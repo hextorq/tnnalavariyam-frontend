@@ -6,12 +6,12 @@ import { applicationForms } from '../data/applicationForms.js'
 export default function StaticPage({ type }) {
   if (type === 'services') {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-20">
+      <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
         <SectionHeader eyebrow="எங்கள் சேவைகள்" title="தொழிலாளர்களுக்கான நல சேவைகள்" />
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:mt-12 lg:gap-8">
           {services.map((service) => (
             <article className="grid gap-5 border border-neutral-200 p-4 sm:p-5" key={service.id}>
-              <img className="h-48 w-full object-cover sm:h-72" src={service.image} alt="" decoding="async" loading="lazy" />
+              <img className="h-44 w-full object-cover sm:h-72" src={service.image} alt="" decoding="async" loading="lazy" />
               <div>
                 <p className="text-3xl font-bold text-[#007cba] sm:text-4xl">{service.number}</p>
                 <h3 className="mt-4 text-xl font-bold sm:text-2xl">{service.title}</h3>
@@ -46,7 +46,7 @@ export default function StaticPage({ type }) {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-20">
+    <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
       <SectionHeader eyebrow="Welcome to" title="The Voice of Construction Workers" />
       <div className="grid gap-8 md:grid-cols-2 md:items-center lg:gap-12">
         <div>
@@ -55,7 +55,7 @@ export default function StaticPage({ type }) {
             For over 15 years, our organization has tirelessly worked to amplify the voices of construction workers. Through our extensive network across Tamil Nadu, we have provided essential support and numerous welfare initiatives, improving the quality of life for countless laborers and their families.
           </p>
         </div>
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl lg:h-[520px]" src={images.about} alt="" decoding="async" loading="lazy" />
+        <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[520px] lg:rounded-3xl" src={images.about} alt="" decoding="async" loading="lazy" />
       </div>
 
       <div className="mt-10 grid gap-3 text-center sm:grid-cols-4">
@@ -68,7 +68,7 @@ export default function StaticPage({ type }) {
       </div>
 
       <div className="mt-12 grid gap-8 md:grid-cols-2 md:items-center lg:gap-12">
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.story} alt="" decoding="async" loading="lazy" />
+        <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[420px] lg:rounded-3xl" src={images.story} alt="" decoding="async" loading="lazy" />
         <div>
           <SectionHeader eyebrow="Our Journey" title="From Inception to Impactful Presence" />
           <p className="mt-6 text-base leading-7 text-neutral-700 sm:text-lg sm:leading-8">

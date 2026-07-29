@@ -22,15 +22,15 @@ export default function PublicLayout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
-          <Link className="flex min-w-0 flex-1 items-center gap-3 text-left lg:max-w-xl" to="/">
-            <img className="h-10 w-10 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" decoding="async" />
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4">
+          <Link className="flex min-w-0 flex-1 items-center gap-2 text-left sm:gap-3 xl:max-w-xl" to="/">
+            <img className="h-9 w-9 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" decoding="async" />
             <span className="min-w-0">
-              <span className="block text-xs font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
+              <span className="block text-[11px] font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
               <span className="hidden text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-8 lg:flex">
+          <nav className="hidden items-center gap-5 xl:flex">
             {navItems.map((item) => (
               <NavLink
                 className={({ isActive }) =>
@@ -44,14 +44,14 @@ export default function PublicLayout({ children }) {
             ))}
             <Button to={loggedIn ? '/app' : '/login'}>Apply Now</Button>
           </nav>
-          <button className="shrink-0 p-2 lg:hidden" onClick={() => setOpen((value) => !value)} type="button">
+          <button className="shrink-0 p-2 xl:hidden" onClick={() => setOpen((value) => !value)} type="button" aria-label="Open menu">
             <Menu />
           </button>
         </div>
         {open && (
-          <nav className="grid gap-3 border-t border-neutral-200 px-4 py-5 sm:px-5 lg:hidden">
+          <nav className="grid gap-2 border-t border-neutral-200 px-3 py-4 sm:px-5 xl:hidden">
             {navItems.map((item) => (
-              <NavLink className="py-2 text-sm font-semibold" key={item.to} to={item.to} onClick={() => setOpen(false)}>
+              <NavLink className="rounded border border-neutral-100 px-3 py-3 text-sm font-semibold" key={item.to} to={item.to} onClick={() => setOpen(false)}>
                 {item.label}
               </NavLink>
             ))}

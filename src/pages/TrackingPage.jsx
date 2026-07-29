@@ -35,7 +35,7 @@ export default function TrackingPage() {
   }
 
   return (
-    <section className="bg-neutral-100 px-4 py-10 sm:px-5 sm:py-14">
+    <section className="bg-neutral-100 px-3 py-8 sm:px-5 sm:py-14">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-8">
         <form className="min-w-0 bg-white p-4 shadow-sm sm:p-6" onSubmit={handleSubmit}>
           <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Application Tracking</p>
@@ -131,7 +131,7 @@ export default function TrackingPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-5 border border-dashed border-neutral-300 p-8 text-sm leading-6 text-neutral-600">
+            <div className="mt-5 border border-dashed border-neutral-300 p-5 text-sm leading-6 text-neutral-600 sm:p-8">
               {mode === 'signup'
                 ? 'Signup request number மற்றும் registered mobile number வைத்து approval status பார்க்கலாம்.'
                 : 'Application number மற்றும் registered mobile number வைத்து application status பார்க்கலாம்.'}

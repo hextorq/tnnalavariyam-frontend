@@ -13,10 +13,10 @@ export default function HomePage() {
   return (
     <>
       <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-5 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:py-20">
+        <div className="mx-auto grid max-w-7xl gap-6 px-3 py-8 sm:px-5 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:py-20">
         <div className="min-w-0">
           <p className="mb-3 text-sm font-bold uppercase text-[#007cba]">Protecting Workers</p>
-          <h1 className="max-w-3xl text-3xl font-bold leading-tight text-black sm:text-4xl md:text-6xl">
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight text-black sm:text-4xl lg:text-5xl">
             Your Rights, Our Mission
           </h1>
           <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-neutral-700 sm:text-lg sm:leading-8">
@@ -27,11 +27,11 @@ export default function HomePage() {
             <Button to="/login" variant="outline">Login</Button>
           </div>
         </div>
-        <img className="h-72 w-full rounded-2xl object-cover sm:h-[460px] sm:rounded-3xl" src={images.heroOne} alt="" decoding="async" fetchPriority="high" />
+        <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[460px] lg:rounded-3xl" src={images.heroOne} alt="" decoding="async" fetchPriority="high" />
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-20 md:grid-cols-2 md:items-center md:gap-12">
+      <section className="mx-auto grid max-w-7xl gap-6 px-3 py-10 sm:px-5 sm:py-20 md:grid-cols-2 md:items-center md:gap-12">
         <div>
           <SectionHeader eyebrow="About Us" title="The Journey of Supporting Construction Workers in Tamil Nadu" />
           <p className="mt-6 text-base leading-7 text-neutral-700 sm:text-lg sm:leading-8">
@@ -41,11 +41,11 @@ export default function HomePage() {
             <Button to="/about">Read More</Button>
           </div>
         </div>
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.about} alt="" decoding="async" loading="lazy" />
+        <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[420px] lg:rounded-3xl" src={images.about} alt="" decoding="async" loading="lazy" />
       </section>
 
-      <section className="bg-white py-12 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-5">
+      <section className="bg-white py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5">
           <SectionHeader eyebrow="Our Services" title="Comprehensive Support for Workers" centered />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {services.map((service) => (
@@ -59,8 +59,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-neutral-950 py-12 text-white sm:py-20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-5 md:grid-cols-[0.8fr_1.2fr] md:items-center md:gap-12">
+      <section className="bg-neutral-950 py-10 text-white sm:py-20">
+        <div className="mx-auto grid max-w-7xl gap-6 px-3 sm:px-5 md:grid-cols-[0.8fr_1.2fr] md:items-center md:gap-12">
           <div>
             <p className="text-sm font-bold uppercase text-[#f0ad4e]">Join Us</p>
             <h2 className="mt-3 text-2xl font-bold sm:text-4xl">Take a Step Towards Secure Future</h2>
@@ -80,7 +80,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-20">
+      <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
         <SectionHeader eyebrow="Why Choose Us" title="Dedicated Support for Every Need" centered />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {whyChooseUs.map((item) => (
@@ -98,8 +98,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-neutral-50 py-12 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-5">
+      <section className="bg-neutral-50 py-10 sm:py-20">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5">
           <SectionHeader eyebrow="What They Say" title="Hear from Our Members" centered />
           <div className="mt-10 grid gap-5 md:grid-cols-2">
             {testimonials.map((testimonial) => (
@@ -116,7 +116,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-20 md:grid-cols-2 md:items-center md:gap-10">
+      <section className="mx-auto grid max-w-7xl gap-6 px-3 py-10 sm:px-5 sm:py-20 md:grid-cols-2 md:items-center md:gap-10">
         <div className="rounded-2xl bg-[#f7f9fb] p-5 sm:rounded-3xl sm:p-8">
           <SectionHeader eyebrow="Get Involved" title="Support Our Cause for Workers’ Rights" />
           <p className="mt-5 text-base leading-7 text-neutral-700 sm:text-lg sm:leading-8">
@@ -129,7 +129,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.cta} alt="" decoding="async" loading="lazy" />
+        <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[420px] lg:rounded-3xl" src={images.cta} alt="" decoding="async" loading="lazy" />
       </section>
     </>
   )

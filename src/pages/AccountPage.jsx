@@ -124,19 +124,19 @@ export default function AccountPage({ mode }) {
   }
 
   return (
-    <section className={`mx-auto px-4 py-12 sm:px-5 sm:py-20 ${mode === 'register' ? 'max-w-4xl' : 'max-w-xl'}`}>
-      <h1 className="text-center text-3xl font-bold sm:text-4xl">{title}</h1>
+    <section className={`mx-auto px-3 py-8 sm:px-5 sm:py-16 ${mode === 'register' ? 'max-w-4xl' : 'max-w-xl'}`}>
+      <h1 className="text-center text-2xl font-bold sm:text-4xl">{title}</h1>
       <form
-        className="mt-8 grid gap-4 border border-neutral-200 p-4 sm:mt-10 sm:gap-5 sm:p-8"
+        className="mt-6 grid gap-4 border border-neutral-200 p-3 sm:mt-10 sm:gap-5 sm:p-8"
         onSubmit={mode === 'register' ? handleSignupSubmit : mode === 'login' ? handleLoginSubmit : undefined}
       >
         {mode === 'register' && (
           <>
-            <div className="border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
+            <div className="border-l-4 border-[#007cba] bg-[#eef8ff] p-3 text-sm leading-6 text-neutral-700 sm:p-4">
               பதிவு கோரிக்கை அனுமதி பெற்ற பிறகே உள்நுழைவு செயல்படும்.
             </div>
             {status.message && (
-              <div className={`border-l-4 p-4 text-sm leading-6 ${status.type === 'success' ? 'border-green-600 bg-green-50 text-green-800' : 'border-red-600 bg-red-50 text-red-800'}`}>
+              <div className={`border-l-4 p-3 text-sm leading-6 sm:p-4 ${status.type === 'success' ? 'border-green-600 bg-green-50 text-green-800' : 'border-red-600 bg-red-50 text-red-800'}`}>
                 {status.message}
               </div>
             )}

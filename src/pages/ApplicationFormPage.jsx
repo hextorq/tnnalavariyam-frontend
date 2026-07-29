@@ -10,12 +10,12 @@ export default function ApplicationFormPage({ formId }) {
   if (!form) return null
 
   return (
-    <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:px-5 sm:py-10">
-      <form className="mx-auto max-w-4xl bg-white p-4 shadow-sm sm:p-8">
+    <div className="min-h-screen bg-neutral-100 px-3 py-8 sm:px-5 sm:py-10">
+      <form className="mx-auto max-w-4xl bg-white p-3 shadow-sm sm:p-8">
         <p className="text-sm font-bold text-[#007cba]">Application Form</p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{form.tamilTitle}</h1>
         <p className="mt-2 text-neutral-600">{form.title}</p>
-        <div className="mt-6 grid gap-4 border border-neutral-200 bg-neutral-50 p-4 sm:p-5 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 border border-neutral-200 bg-neutral-50 p-3 sm:p-5 md:grid-cols-3">
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Application No</p>
             <p className="mt-1 text-sm font-bold text-neutral-950">Generated once, reused for corrections</p>
@@ -29,7 +29,7 @@ export default function ApplicationFormPage({ formId }) {
             <p className="mt-1 text-sm font-bold text-neutral-950">பங்குதாரர் கிராமம்</p>
           </div>
         </div>
-        <div className="mt-5 border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
+        <div className="mt-5 border-l-4 border-[#007cba] bg-[#eef8ff] p-3 text-sm leading-6 text-neutral-700 sm:p-4">
           If this application is returned with a reason, the partner can correct the same application and resubmit it.
           A new application number will not be created.
         </div>

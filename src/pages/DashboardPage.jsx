@@ -7,7 +7,7 @@ export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
 
   return (
-    <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:p-6">
+    <div className="min-h-screen bg-neutral-100 px-3 py-8 sm:p-6">
       <div className="mx-auto max-w-7xl">
         <div>
           <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Online Service Portal</p>
@@ -22,7 +22,7 @@ export default function DashboardPage() {
           <h2 className="text-xl font-bold text-neutral-950">விண்ணப்ப சேவைகள்: {applicationForms.length}</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
             {applicationForms.map((form) => (
-              <Link className="bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6" key={form.id} to={`/app/forms/${form.id}`}>
+              <Link className="min-w-0 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-6" key={form.id} to={`/app/forms/${form.id}`}>
                 <h2 className="text-lg font-bold sm:text-xl">{form.tamilTitle}</h2>
                 <p className="mt-2 text-sm text-neutral-600">{form.title}</p>
                 <p className="mt-5 text-sm font-bold text-[#007cba]">திறக்கவும்</p>
