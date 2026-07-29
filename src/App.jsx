@@ -6,6 +6,7 @@ import ContactPage from './pages/ContactPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import HomePage from './pages/HomePage.jsx'
 import StaticPage from './pages/StaticPage.jsx'
+import TrackingPage from './pages/TrackingPage.jsx'
 import { usePathname } from './lib/router.jsx'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
     '/': <HomePage />,
     '/about': <StaticPage type="about" />,
     '/services': <StaticPage type="services" />,
+    '/tracking': <TrackingPage />,
     '/blog': <BlogPage />,
     '/contact': <ContactPage />,
     '/login': <AccountPage mode="login" />,

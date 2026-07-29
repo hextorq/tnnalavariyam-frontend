@@ -6,6 +6,7 @@ export const navItems = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Schemes', to: '/services' },
+  { label: 'Tracking', to: '/tracking' },
   { label: 'Contact', to: '/contact' },
   { label: 'Login', to: '/login' },
 ]
