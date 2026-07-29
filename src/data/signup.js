@@ -1,3 +1,5 @@
+import tamilNaduHierarchy from './tamilNaduHierarchy.json'
+
 export const requestedRoles = [
   { value: 'PARTNER', label: 'Village Partner' },
   { value: 'VILLAGE_ADMIN', label: 'Village Admin' },
@@ -14,6 +16,5 @@ export const idProofOptions = [
   { value: 'DRIVING_LICENSE', label: 'Driving License' },
 ]
 
-export const sampleDistricts = ['Ariyalur', 'Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli']
-export const sampleTaluks = ['Select district first', 'North Taluk', 'South Taluk', 'East Taluk', 'West Taluk']
-export const sampleVillages = ['Select taluk first', 'Village 1', 'Village 2', 'Village 3']
+export const tamilNaduState = tamilNaduHierarchy
+export const tamilNaduDistricts = tamilNaduHierarchy.districts

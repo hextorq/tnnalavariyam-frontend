@@ -1,9 +1,22 @@
 import Button from '../components/Button.jsx'
-import { idProofOptions, requestedRoles, sampleDistricts, sampleTaluks, sampleVillages } from '../data/signup.js'
+import { useMemo, useState } from 'react'
+import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { Link } from '../lib/router.jsx'
 
 export default function AccountPage({ mode }) {
   const title = mode === 'register' ? 'Register' : mode === 'reset' ? 'Forgot Password' : 'Login'
+  const [districtCode, setDistrictCode] = useState('')
+  const [talukCode, setTalukCode] = useState('')
+  const selectedDistrict = useMemo(
+    () => tamilNaduDistricts.find((district) => district.code === districtCode),
+    [districtCode],
+  )
+  const taluks = useMemo(() => selectedDistrict?.taluks || [], [selectedDistrict])
+  const selectedTaluk = useMemo(
+    () => taluks.find((taluk) => taluk.code === talukCode),
+    [talukCode, taluks],
+  )
+  const villages = useMemo(() => selectedTaluk?.villages || [], [selectedTaluk])
 
   return (
     <section className="mx-auto max-w-xl px-5 py-20">
@@ -22,18 +35,30 @@ export default function AccountPage({ mode }) {
               <option disabled value="">Requested Role</option>
               {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
             </select>
-            <input className="border border-neutral-300 px-4 py-3" disabled value="Tamil Nadu" />
-            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+            <input className="border border-neutral-300 px-4 py-3" disabled value={tamilNaduState.name} />
+            <select
+              className="border border-neutral-300 px-4 py-3"
+              onChange={(event) => {
+                setDistrictCode(event.target.value)
+                setTalukCode('')
+              }}
+              value={districtCode}
+            >
               <option disabled value="">District</option>
-              {sampleDistricts.map((item) => <option key={item}>{item}</option>)}
+              {tamilNaduDistricts.map((district) => <option key={district.code} value={district.code}>{district.name}</option>)}
             </select>
-            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+            <select
+              className="border border-neutral-300 px-4 py-3"
+              disabled={!districtCode}
+              onChange={(event) => setTalukCode(event.target.value)}
+              value={talukCode}
+            >
               <option disabled value="">Taluk</option>
-              {sampleTaluks.map((item) => <option key={item}>{item}</option>)}
+              {taluks.map((taluk) => <option key={taluk.code} value={taluk.code}>{taluk.name}</option>)}
             </select>
-            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+            <select className="border border-neutral-300 px-4 py-3" disabled={!talukCode} defaultValue="">
               <option disabled value="">Village</option>
-              {sampleVillages.map((item) => <option key={item}>{item}</option>)}
+              {villages.map((village) => <option key={village.code} value={village.code}>{village.name}</option>)}
             </select>
             <input className="border border-neutral-300 px-4 py-3" placeholder="Pincode" />
             <textarea className="min-h-24 border border-neutral-300 px-4 py-3" placeholder="Full Address" />
