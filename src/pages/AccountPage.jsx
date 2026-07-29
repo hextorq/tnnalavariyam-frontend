@@ -141,10 +141,22 @@ export default function AccountPage({ mode }) {
               </div>
             )}
             <div className="grid gap-4 md:grid-cols-2">
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+            <label className="grid gap-2">
+              <FieldLabel>முழு பெயர் / Full Name</FieldLabel>
+              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>பயனர் பெயர் / Username</FieldLabel>
+              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>தொலைபேசி எண் / Phone Number</FieldLabel>
+              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
+              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+            </label>
             </div>
             <label className="grid gap-2">
               <FieldLabel>பங்கு / Requested Role</FieldLabel>
@@ -198,11 +210,17 @@ export default function AccountPage({ mode }) {
               </select>
             </label>
             </div>
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
-            <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
+            <label className="grid gap-2">
+              <FieldLabel>அஞ்சல் குறியீடு / Pincode</FieldLabel>
+              <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>முழு முகவரி / Full Address</FieldLabel>
+              <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
+            </label>
             <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
-              Passport Size Photo
+              பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo
               <input accept="image/*" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('photo', event.target.files?.[0] || null)} required type="file" />
             </label>
             <label className="grid gap-2 self-end">
@@ -213,9 +231,12 @@ export default function AccountPage({ mode }) {
               </select>
             </label>
             </div>
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+            <label className="grid gap-2">
+              <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
+              <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+            </label>
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
-              ID Proof Image / Document
+              அடையாள ஆவண படம் / ID Proof Image or Document
               <input accept="image/*,.pdf" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('idProof', event.target.files?.[0] || null)} required type="file" />
             </label>
           </>
@@ -245,18 +266,26 @@ export default function AccountPage({ mode }) {
                 />
               </>
             )}
-            <input
-              className="min-w-0 border border-neutral-300 px-4 py-3"
-              onChange={(event) => {
-                if (mode === 'register') updateSignupField('password', event.target.value)
-                if (mode === 'login') setLoginForm((current) => ({ ...current, password: event.target.value }))
-              }}
-              placeholder="Password"
-              required={mode !== 'reset'}
-              type="password"
-              value={mode === 'register' ? signupForm.password : mode === 'login' ? loginForm.password : undefined}
-            />
-            {mode === 'register' && <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />}
+            <label className="grid gap-2">
+              {mode === 'register' && <FieldLabel>கடவுச்சொல் / Password</FieldLabel>}
+              <input
+                className="min-w-0 border border-neutral-300 px-4 py-3"
+                onChange={(event) => {
+                  if (mode === 'register') updateSignupField('password', event.target.value)
+                  if (mode === 'login') setLoginForm((current) => ({ ...current, password: event.target.value }))
+                }}
+                placeholder="Password"
+                required={mode !== 'reset'}
+                type="password"
+                value={mode === 'register' ? signupForm.password : mode === 'login' ? loginForm.password : undefined}
+              />
+            </label>
+            {mode === 'register' && (
+              <label className="grid gap-2">
+                <FieldLabel>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
+                <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />
+              </label>
+            )}
           </>
         )}
         <Button disabled={submitting} type="submit">{submitting ? 'Submitting...' : title}</Button>
