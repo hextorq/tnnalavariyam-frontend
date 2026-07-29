@@ -1,11 +1,11 @@
 import tamilNaduHierarchy from './tamilNaduHierarchy.json'
 
 export const requestedRoles = [
-  { value: 'PARTNER', label: 'Village Partner' },
-  { value: 'VILLAGE_ADMIN', label: 'Village Admin' },
-  { value: 'TALUK_ADMIN', label: 'Taluk Admin' },
-  { value: 'DISTRICT_ADMIN', label: 'District Admin' },
-  { value: 'STATE_ADMIN', label: 'State Admin' },
+  { value: 'PARTNER', label: 'கிராம பங்குதாரர்' },
+  { value: 'VILLAGE_ADMIN', label: 'கிராம பொறுப்பாளர்' },
+  { value: 'TALUK_ADMIN', label: 'தாலுகா பொறுப்பாளர்' },
+  { value: 'DISTRICT_ADMIN', label: 'மாவட்ட பொறுப்பாளர்' },
+  { value: 'STATE_ADMIN', label: 'மாநில பொறுப்பாளர்' },
 ]
 
 export const idProofOptions = [
