@@ -1,5 +1,5 @@
 import { applicationForms } from '../data/applicationForms.js'
-import { applicationWorkflow, rbacRules, roleHierarchy } from '../data/rbac.js'
+import { applicationWorkflow, rbacRules, roleHierarchy, userCreationRules } from '../data/rbac.js'
 import { Link } from '../lib/router.jsx'
 
 export default function DashboardPage() {
@@ -73,6 +73,18 @@ export default function DashboardPage() {
               <div className="border border-neutral-200 bg-white p-5 shadow-sm" key={step}>
                 <p className="text-sm font-bold text-[#007cba]">Step {index + 1}</p>
                 <p className="mt-2 text-sm leading-6 text-neutral-700">{step}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="text-xl font-bold text-neutral-950">User Creation Rules</h2>
+          <div className="mt-5 overflow-hidden border border-neutral-200 bg-white shadow-sm">
+            {userCreationRules.map(([role, allowed]) => (
+              <div className="grid gap-2 border-b border-neutral-200 p-4 last:border-b-0 md:grid-cols-[220px_1fr]" key={role}>
+                <p className="text-sm font-bold text-neutral-950">{role}</p>
+                <p className="text-sm leading-6 text-neutral-700">{allowed}</p>
               </div>
             ))}
           </div>
