@@ -9,6 +9,7 @@ export const navItems = [
   { label: 'Tracking', to: '/tracking' },
   { label: 'Contact', to: '/contact' },
   { label: 'Login', to: '/login' },
+  { label: 'Register', to: '/register' },
 ]
 
 export const images = {

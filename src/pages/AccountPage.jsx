@@ -234,9 +234,17 @@ export default function AccountPage({ mode }) {
         )}
         <Button disabled={submitting} type="submit">{submitting ? 'Submitting...' : title}</Button>
         {mode === 'login' && (
-          <p className="text-center text-sm text-neutral-600">
-            Forget password? <Link className="font-bold text-[#007cba]" to="/forget">Forget password</Link>
-          </p>
+          <div className="grid gap-3 text-center text-sm text-neutral-600">
+            <p>
+              New user? <Link className="font-bold text-[#007cba]" to="/register">Create signup request</Link>
+            </p>
+            <p>
+              புதிய கணக்கு வேண்டுமா? <Link className="font-bold text-[#007cba]" to="/register">பதிவு செய்யவும்</Link>
+            </p>
+            <p>
+              Forget password? <Link className="font-bold text-[#007cba]" to="/forget">Forget password</Link>
+            </p>
+          </div>
         )}
       </form>
     </section>
