@@ -1,11 +1,11 @@
-export const brandName = 'தமிழ்நாடு தொழிலாளர்கள் நலவாரியம்'
+export const brandName = 'ரேணுகாம்பாள் கட்டுமானம் மற்றும் அமைப்புசாரா தொழிலாளர்கள் நல சங்கம்'
 export const associationName =
-  'தமிழ்நாடு கட்டுமானம் மற்றும் அமைப்பு சாரா பொது தொழிலாளர்கள் நல சங்கம்'
+  'கட்டுமான தொழிலாளர்களின் உரிமை, நலம் மற்றும் பாதுகாப்புக்கான சேவை அமைப்பு'
 
 export const navItems = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
-  { label: 'Schemes', to: '/services' },
+  { label: 'Services', to: '/services' },
   { label: 'Tracking', to: '/tracking' },
   { label: 'Contact', to: '/contact' },
   { label: 'Login', to: '/login' },
@@ -39,18 +39,18 @@ export const services = [
     id: 'education',
     number: '01.',
     title: 'கல்வி நிதியுதவி',
-    short: 'தொழிலாளர்களின் குழந்தைகளுக்கான கல்வி உதவித்தொகை.',
+    short: 'தொழிலாளர்களின் குழந்தைகளுக்கான கல்வி அருளியல் உதவி.',
     description:
-      '6ஆம் வகுப்பு முதல் உயர்கல்வி வரை பயிலும் குழந்தைகளுக்கான கல்வி உதவித் திட்டங்களுக்கான விண்ணப்ப சேவை.',
+      'நாள் காலத்தில் தொழிலாளர்களின் குழந்தைகளுக்கு கல்வி கற்க உதவி வழங்கப்படுகிறது. எங்கள் சங்கத்தின் மூலம் நிதியுதவியை பெற்றுக்கொண்டு, மாணவர்கள் உயர் கல்வியில் சிறந்த வசதிகளை அனுபவிக்க முடியும்.',
     image: images.serviceOne,
   },
   {
     id: 'marriage',
     number: '02.',
     title: 'திருமணம் நிதியுதவி',
-    short: 'தொழிலாளர் குடும்ப திருமண நிதியுதவி.',
+    short: 'தொழிலாளர்களின் மகன்களுக்காக திருமண நிதியுதவி.',
     description:
-      'தொழிலாளர்கள் மற்றும் அவர்களது குடும்ப உறுப்பினர்களின் திருமண உதவிக்கான வழிகாட்டல் மற்றும் விண்ணப்ப ஆதரவு.',
+      'தொழிலாளர்கள் மற்றும் அவர்களது மகன்கள் / மகள்களின் திருமணத்திற்கு நிதியுதவி வழங்கப்படுகிறது. இதன் மூலம் தமிழ்நாட்டில் திருமணம் செய்துகொள்ளும் நகரில் உதவி பெறலாம்.',
     image: images.serviceTwo,
   },
   {
@@ -59,50 +59,101 @@ export const services = [
     title: 'மகப்பேறு உதவி',
     short: 'பெண் தொழிலாளர்களுக்கான மகப்பேறு கால உதவி.',
     description:
-      'பெண் தொழிலாளர்களுக்கான மகப்பேறு உதவித்தொகை தொடர்பான ஆவண மற்றும் விண்ணப்ப உதவி.',
+      'பெண் தொழிலாளர்களுக்கு மகப்பேறு காலத்தில் நிதியுதவி அளிக்கப்படுகிறது. இது அவர்களுக்கான சமூகப்பாதுகாப்புக்கான முக்கிய ஆதரவு வழங்கும்.',
     image: images.serviceThree,
   },
   {
-    id: 'medical',
+    id: 'illness',
     number: '04.',
-    title: 'மருத்துவ / விபத்து உதவி',
-    short: 'விபத்து, நோய் மற்றும் மரண உதவிகள்.',
+    title: 'கனநிலவேந்தி உதவி',
+    short: 'தீவிர நோய்க்கு பாதிக்கப்பட்ட தொழிலாளர்களுக்கான மாத நிதியுதவி.',
     description:
-      'விபத்து, இயற்கை மரணம், மருத்துவ உதவி மற்றும் ஓய்வூதிய சேவைகளுக்கான வழிகாட்டல்.',
+      'தீவிர நோயின் காரணமாக பாதிக்கப்பட்ட தொழிலாளர்களுக்கு மாதாந்திர நிதியுதவி வழங்கப்படுகிறது. இது அவர்களின் நாளாந்த வாழ்க்கையை மேலும் வளர்க்க உதவுகிறது.',
     image: images.serviceFour,
   },
 ]
 
 export const blogPosts = [
   {
-    title: 'நலவாரிய பதிவு செய்ய தேவையான ஆவணங்கள்',
-    date: 'July 29, 2026',
+    title: 'Crafting Captivating Headlines: Your awesome post title goes here',
+    excerpt:
+      'Engaging Introductions: Capturing Your Audience’s Interest The initial impression your blog post makes is crucial, and that’s where your introduction',
+    date: 'May 9, 2026',
     image: images.blogOne,
   },
   {
-    title: 'தொழிலாளர் கல்வி உதவித்தொகை விண்ணப்ப வழிகாட்டி',
-    date: 'July 29, 2026',
+    title: 'The Art of Drawing Readers In: Your attractive post title goes here',
+    excerpt:
+      'Engaging Introductions: Capturing Your Audience’s Interest The initial impression your blog post makes is crucial, and that’s where your introduction',
+    date: 'May 9, 2026',
     image: images.blogTwo,
   },
   {
-    title: 'விண்ணப்ப நிலை மற்றும் திருத்த கோரிக்கை பார்க்கும் முறை',
-    date: 'July 29, 2026',
+    title: 'Mastering the First Impression: Your intriguing post title goes here',
+    excerpt:
+      'Engaging Introductions: Capturing Your Audience’s Interest The initial impression your blog post makes is crucial, and that’s where your introduction',
+    date: 'May 9, 2026',
     image: images.blogThree,
   },
   {
-    title: 'பங்குதாரர் கணக்கு அனுமதி நடைமுறை',
-    date: 'July 29, 2026',
+    title: 'Hello world!',
+    excerpt: 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!',
+    date: 'May 9, 2026',
     image: null,
   },
 ]
 
 export const contactDetails = {
-  phone: '9047219450',
-  whatsapp: '9047219450',
-  email: 'support@tnnalavaariyam.com',
+  phone: '9345909105',
+  whatsapp: '9345909105',
+  email: 'tnskilleducation@gmail.com',
   timing: '9.00 AM TO 6.00 PM',
-  address: 'தமிழ்நாடு தொழிலாளர்கள் நலவாரிய சேவை மையம்',
+  address: '45/ 12 ஜெயின் நகர், படவேடு ரோடு, சந்தவாசல், போளூர் தாலுகா, திருவண்ணாமலை மாவட்டம், தமிழ்நாடு 606905',
 }
+
+export const homeStats = [
+  ['4+', 'Years of Experience'],
+  ['226+', 'Happy Customers'],
+  ['02+', 'Award Winning'],
+]
+
+export const aboutStats = [
+  ['10', 'Years of Experience'],
+  ['0+', 'Happy Customers'],
+  ['00+', 'Award Winning'],
+  ['0%', 'Customer Satisfaction'],
+]
+
+export const whyChooseUs = [
+  {
+    number: '01',
+    title: 'Community Focus',
+    text: 'We are deeply embedded in communities, ensuring timely aid and resources reach those who need them most.',
+  },
+  {
+    number: '02',
+    title: 'Expert Guidance',
+    text: 'Our experienced team offers professional advice on labor rights and welfare schemes tailored for workers.',
+  },
+  {
+    number: '03',
+    title: 'Inclusive Services',
+    text: 'We provide various support programs addressing education, health, and financial needs for all workers and their families.',
+  },
+]
+
+export const testimonials = [
+  {
+    name: 'Arun Kumar',
+    image: images.testimonialOne,
+    text: 'Joining this association has transformed my life. Their support in financial matters and education for my children has been invaluable. I feel empowered and secure.',
+  },
+  {
+    name: 'Ravi Suresh',
+    image: images.testimonialTwo,
+    text: 'The assistance provided during tough times has been a blessing. I appreciate the help with healthcare and welfare schemes that protect my family and me.',
+  },
+]
 
 export const workerCategories = [
   'கல் உடைப்பவர் / கல் வெட்டுபவர் / கல் பொடி செய்பவர்',

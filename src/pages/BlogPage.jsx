@@ -12,6 +12,7 @@ export default function BlogPage() {
             <div className="p-5">
               <p className="text-sm text-neutral-500">{post.date}</p>
               <h2 className="mt-3 text-xl font-bold leading-snug">{post.title}</h2>
+              {post.excerpt && <p className="mt-3 text-sm leading-6 text-neutral-600">{post.excerpt}</p>}
               <p className="mt-4 text-sm font-bold text-[#007cba]">Read Post »</p>
             </div>
           </article>
