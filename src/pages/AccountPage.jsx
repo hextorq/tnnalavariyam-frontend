@@ -21,6 +21,15 @@ const initialSignupForm = {
   idProof: null,
 }
 
+function bilingualName(item) {
+  if (!item) return ''
+  return item.englishName ? `${item.name} / ${item.englishName}` : item.name
+}
+
+function FieldLabel({ children }) {
+  return <span className="text-sm font-semibold text-neutral-700">{children}</span>
+}
+
 export default function AccountPage({ mode }) {
   const title = mode === 'register' ? 'Register' : mode === 'reset' ? 'Forgot Password' : 'Login'
   const [signupForm, setSignupForm] = useState(initialSignupForm)
@@ -137,42 +146,57 @@ export default function AccountPage({ mode }) {
             <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
             <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
             </div>
-            <select className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('requestedRole', event.target.value)} required value={signupForm.requestedRole}>
-              <option disabled value="">Requested Role</option>
-              {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-            </select>
+            <label className="grid gap-2">
+              <FieldLabel>பங்கு / Requested Role</FieldLabel>
+              <select className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('requestedRole', event.target.value)} required value={signupForm.requestedRole}>
+                <option disabled value="">பங்கு தேர்வு செய்யவும் / Select Role</option>
+                {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
+              </select>
+            </label>
             <div className="grid gap-4 md:grid-cols-2">
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={tamilNaduState.name} />
-            <select
-              className="min-w-0 border border-neutral-300 px-4 py-3"
-              onChange={(event) => {
-                setDistrictCode(event.target.value)
-                setTalukCode('')
-                setVillageCode('')
-              }}
-              required
-              value={districtCode}
-            >
-              <option disabled value="">District</option>
-              {tamilNaduDistricts.map((district) => <option key={district.code} value={district.code}>{district.name}</option>)}
-            </select>
-            <select
-              className="min-w-0 border border-neutral-300 px-4 py-3"
-              disabled={!districtCode}
-              onChange={(event) => {
-                setTalukCode(event.target.value)
-                setVillageCode('')
-              }}
-              required
-              value={talukCode}
-            >
-              <option disabled value="">Taluk</option>
-              {taluks.map((taluk) => <option key={taluk.code} value={taluk.code}>{taluk.name}</option>)}
-            </select>
-            <select className="min-w-0 border border-neutral-300 px-4 py-3" disabled={!talukCode} onChange={(event) => setVillageCode(event.target.value)} required value={villageCode}>
-              <option disabled value="">Village</option>
-              {villages.map((village) => <option key={village.code} value={village.code}>{village.name}</option>)}
-            </select>
+            <label className="grid gap-2">
+              <FieldLabel>மாநிலம் / State</FieldLabel>
+              <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={bilingualName(tamilNaduState)} />
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>மாவட்டம் / District</FieldLabel>
+              <select
+                className="min-w-0 border border-neutral-300 px-4 py-3"
+                onChange={(event) => {
+                  setDistrictCode(event.target.value)
+                  setTalukCode('')
+                  setVillageCode('')
+                }}
+                required
+                value={districtCode}
+              >
+                <option disabled value="">மாவட்டம் தேர்வு செய்யவும் / Select District</option>
+                {tamilNaduDistricts.map((district) => <option key={district.code} value={district.code}>{bilingualName(district)}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>தாலுகா / Taluk</FieldLabel>
+              <select
+                className="min-w-0 border border-neutral-300 px-4 py-3"
+                disabled={!districtCode}
+                onChange={(event) => {
+                  setTalukCode(event.target.value)
+                  setVillageCode('')
+                }}
+                required
+                value={talukCode}
+              >
+                <option disabled value="">தாலுகா தேர்வு செய்யவும் / Select Taluk</option>
+                {taluks.map((taluk) => <option key={taluk.code} value={taluk.code}>{bilingualName(taluk)}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <FieldLabel>கிராமம் / Village</FieldLabel>
+              <select className="min-w-0 border border-neutral-300 px-4 py-3" disabled={!talukCode} onChange={(event) => setVillageCode(event.target.value)} required value={villageCode}>
+                <option disabled value="">கிராமம் தேர்வு செய்யவும் / Select Village</option>
+                {villages.map((village) => <option key={village.code} value={village.code}>{bilingualName(village)}</option>)}
+              </select>
+            </label>
             </div>
             <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
             <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
@@ -181,10 +205,13 @@ export default function AccountPage({ mode }) {
               Passport Size Photo
               <input accept="image/*" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('photo', event.target.files?.[0] || null)} required type="file" />
             </label>
-            <select className="min-w-0 border border-neutral-300 px-4 py-3 self-end" onChange={(event) => updateSignupField('idProofType', event.target.value)} required value={signupForm.idProofType}>
-              <option disabled value="">ID Proof Type</option>
-              {idProofOptions.map((proof) => <option key={proof.value} value={proof.value}>{proof.label}</option>)}
-            </select>
+            <label className="grid gap-2 self-end">
+              <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
+              <select className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofType', event.target.value)} required value={signupForm.idProofType}>
+                <option disabled value="">அடையாள ஆவணம் தேர்வு / Select ID Proof</option>
+                {idProofOptions.map((proof) => <option key={proof.value} value={proof.value}>{proof.label}</option>)}
+              </select>
+            </label>
             </div>
             <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
