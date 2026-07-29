@@ -1,4 +1,5 @@
 import Button from '../components/Button.jsx'
+import { idProofOptions, requestedRoles, sampleDistricts, sampleTaluks, sampleVillages } from '../data/signup.js'
 import { Link } from '../lib/router.jsx'
 
 export default function AccountPage({ mode }) {
@@ -10,9 +11,45 @@ export default function AccountPage({ mode }) {
       <form className="mt-10 grid gap-5 border border-neutral-200 p-8">
         {mode === 'register' && (
           <>
+            <div className="border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
+              Self signup creates an approval request. Login is enabled only after the higher hierarchy approves it.
+            </div>
             <input className="border border-neutral-300 px-4 py-3" placeholder="Full Name" />
+            <input className="border border-neutral-300 px-4 py-3" placeholder="Username" />
             <input className="border border-neutral-300 px-4 py-3" placeholder="Phone Number" />
             <input className="border border-neutral-300 px-4 py-3" placeholder="Email Address" type="email" />
+            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+              <option disabled value="">Requested Role</option>
+              {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
+            </select>
+            <input className="border border-neutral-300 px-4 py-3" disabled value="Tamil Nadu" />
+            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+              <option disabled value="">District</option>
+              {sampleDistricts.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+              <option disabled value="">Taluk</option>
+              {sampleTaluks.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+              <option disabled value="">Village</option>
+              {sampleVillages.map((item) => <option key={item}>{item}</option>)}
+            </select>
+            <input className="border border-neutral-300 px-4 py-3" placeholder="Pincode" />
+            <textarea className="min-h-24 border border-neutral-300 px-4 py-3" placeholder="Full Address" />
+            <label className="grid gap-2 text-sm font-semibold text-neutral-700">
+              Passport Size Photo
+              <input className="border border-neutral-300 px-4 py-3 font-normal" type="file" />
+            </label>
+            <select className="border border-neutral-300 px-4 py-3" defaultValue="">
+              <option disabled value="">ID Proof Type</option>
+              {idProofOptions.map((proof) => <option key={proof.value} value={proof.value}>{proof.label}</option>)}
+            </select>
+            <input className="border border-neutral-300 px-4 py-3" placeholder="ID Proof Number" />
+            <label className="grid gap-2 text-sm font-semibold text-neutral-700">
+              ID Proof Image / Document
+              <input className="border border-neutral-300 px-4 py-3 font-normal" type="file" />
+            </label>
           </>
         )}
         {mode === 'reset' ? (

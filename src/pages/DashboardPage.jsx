@@ -79,7 +79,7 @@ export default function DashboardPage() {
         </section>
 
         <section className="mt-10">
-          <h2 className="text-xl font-bold text-neutral-950">User Creation Rules</h2>
+          <h2 className="text-xl font-bold text-neutral-950">Signup Approval Rules</h2>
           <div className="mt-5 overflow-hidden border border-neutral-200 bg-white shadow-sm">
             {userCreationRules.map(([role, allowed]) => (
               <div className="grid gap-2 border-b border-neutral-200 p-4 last:border-b-0 md:grid-cols-[220px_1fr]" key={role}>

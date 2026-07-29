@@ -40,18 +40,18 @@ export const roleHierarchy = [
 export const rbacRules = [
   'Every application is attached to the applicant, selected form and village hierarchy scope.',
   'Higher roles can review applications from their own scope and every child scope below it.',
-  'Each hierarchy role can create only lower-level users inside its assigned scope, never same-level or higher-level users.',
+  'Direct user creation is disabled. Users self-signup for a role and higher hierarchy users approve lower-level requests.',
   'Village partners can submit all six forms and track only their own application numbers.',
   'If an officer returns an application with a reason, the partner edits the same application and resubmits it with the same application number.',
 ]
 
 export const userCreationRules = [
-  ['Super Admin', 'State Admin, District Admin, Taluk Admin, Village Admin, Partner'],
-  ['State Admin', 'District Admin, Taluk Admin, Village Admin, Partner inside the state'],
-  ['District Admin', 'Taluk Admin, Village Admin, Partner inside the district'],
-  ['Taluk Admin', 'Village Admin and Partner inside the taluk'],
-  ['Village Admin', 'Partner accounts inside the village'],
-  ['Partner', 'Cannot create users'],
+  ['Super Admin', 'Approves State Admin, District Admin, Taluk Admin, Village Admin, Partner requests'],
+  ['State Admin', 'Approves District Admin, Taluk Admin, Village Admin, Partner requests inside the state'],
+  ['District Admin', 'Approves Taluk Admin, Village Admin, Partner requests inside the district'],
+  ['Taluk Admin', 'Approves Village Admin and Partner requests inside the taluk'],
+  ['Village Admin', 'Approves Partner signup requests inside the village'],
+  ['Partner', 'Cannot approve signup requests'],
 ]
 
 export const applicationWorkflow = [

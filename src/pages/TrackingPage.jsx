@@ -2,12 +2,26 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 
 export default function TrackingPage() {
+  const [mode, setMode] = useState('application')
   const [applicationNo, setApplicationNo] = useState('')
+  const [requestNo, setRequestNo] = useState('')
   const [phone, setPhone] = useState('')
   const [tracking, setTracking] = useState(null)
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (mode === 'signup') {
+      setTracking({
+        requestNo: requestNo || 'TNSU-20260729-0001',
+        status: 'PENDING',
+        requestedRole: 'Village Partner',
+        scope: 'Selected Village',
+        reason: 'Waiting for hierarchy approval',
+        updatedAt: new Date().toLocaleDateString('en-IN'),
+      })
+      return
+    }
+
     setTracking({
       applicationNo: applicationNo || 'TNW-20260729-0001',
       status: 'SUBMITTED',
@@ -27,18 +41,49 @@ export default function TrackingPage() {
           <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Application Tracking</p>
           <h1 className="mt-2 text-3xl font-bold text-neutral-950">விண்ணப்ப நிலை பார்க்க</h1>
           <p className="mt-3 text-sm leading-6 text-neutral-600">
-            Application number மற்றும் mobile number வைத்து விண்ணப்ப நிலை, payment status, review stage பார்க்கலாம்.
+            Application number அல்லது signup request number வைத்து approval/review status பார்க்கலாம்.
           </p>
 
-          <label className="mt-6 grid gap-2 text-sm font-bold text-neutral-800">
-            Application Number
-            <input
-              className="border border-neutral-300 px-4 py-3 font-normal"
-              onChange={(event) => setApplicationNo(event.target.value)}
-              placeholder="TNW-20260729-0001"
-              value={applicationNo}
-            />
-          </label>
+          <div className="mt-6 grid grid-cols-2 border border-neutral-300">
+            {[
+              ['application', 'Application'],
+              ['signup', 'Signup'],
+            ].map(([value, label]) => (
+              <button
+                className={`px-4 py-3 text-sm font-bold ${mode === value ? 'bg-[#007cba] text-white' : 'bg-white text-neutral-800'}`}
+                key={value}
+                onClick={() => {
+                  setMode(value)
+                  setTracking(null)
+                }}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'application' ? (
+            <label className="mt-6 grid gap-2 text-sm font-bold text-neutral-800">
+              Application Number
+              <input
+                className="border border-neutral-300 px-4 py-3 font-normal"
+                onChange={(event) => setApplicationNo(event.target.value)}
+                placeholder="TNW-20260729-0001"
+                value={applicationNo}
+              />
+            </label>
+          ) : (
+            <label className="mt-6 grid gap-2 text-sm font-bold text-neutral-800">
+              Signup Request Number
+              <input
+                className="border border-neutral-300 px-4 py-3 font-normal"
+                onChange={(event) => setRequestNo(event.target.value)}
+                placeholder="TNSU-20260729-0001"
+                value={requestNo}
+              />
+            </label>
+          )}
 
           <label className="mt-4 grid gap-2 text-sm font-bold text-neutral-800">
             Mobile Number
@@ -60,16 +105,25 @@ export default function TrackingPage() {
           <h2 className="text-xl font-bold text-neutral-950">Tracking Result</h2>
           {tracking ? (
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {[
-                ['Application No', tracking.applicationNo],
-                ['Form', tracking.formTitle],
-                ['Scope', tracking.village],
-                ['Application Status', tracking.status],
-                ['Payment Status', tracking.paymentStatus],
-                ['Correction Reason', tracking.reason],
-                ['Revision Count', tracking.revisionCount],
-                ['Last Updated', tracking.updatedAt],
-              ].map(([label, value]) => (
+              {(mode === 'signup'
+                ? [
+                    ['Request No', tracking.requestNo],
+                    ['Requested Role', tracking.requestedRole],
+                    ['Scope', tracking.scope],
+                    ['Signup Status', tracking.status],
+                    ['Review Reason', tracking.reason],
+                    ['Last Updated', tracking.updatedAt],
+                  ]
+                : [
+                    ['Application No', tracking.applicationNo],
+                    ['Form', tracking.formTitle],
+                    ['Scope', tracking.village],
+                    ['Application Status', tracking.status],
+                    ['Payment Status', tracking.paymentStatus],
+                    ['Correction Reason', tracking.reason],
+                    ['Revision Count', tracking.revisionCount],
+                    ['Last Updated', tracking.updatedAt],
+                  ]).map(([label, value]) => (
                 <div className="border border-neutral-200 p-4" key={label}>
                   <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p>
                   <p className="mt-2 text-base font-bold text-neutral-950">{value}</p>
@@ -78,8 +132,10 @@ export default function TrackingPage() {
             </div>
           ) : (
             <div className="mt-5 border border-dashed border-neutral-300 p-8 text-sm leading-6 text-neutral-600">
-              Enter an application number to view status. Backend route planned for this screen:
-              <span className="mt-2 block font-mono text-neutral-900">GET /api/applications/track?applicationNo=TNW...</span>
+              Enter a number to view status.
+              <span className="mt-2 block font-mono text-neutral-900">
+                {mode === 'signup' ? 'GET /api/auth/signup-requests/track?requestNo=TNSU...' : 'GET /api/applications/track?applicationNo=TNW...'}
+              </span>
             </div>
           )}
         </div>
