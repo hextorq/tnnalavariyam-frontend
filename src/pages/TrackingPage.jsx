@@ -27,7 +27,7 @@ export default function TrackingPage() {
       status: 'SUBMITTED',
       paymentStatus: 'PAID / நிலுவை இல்லை',
       formTitle: 'புதிய விண்ணப்பப் பதிவு',
-      village: 'Assigned Village Scope',
+      village: 'பதிவு செய்யப்பட்ட கிராமம்',
       reason: 'No correction requested',
       revisionCount: 0,
       updatedAt: new Date().toLocaleDateString('en-IN'),
@@ -102,26 +102,26 @@ export default function TrackingPage() {
         </form>
 
         <div className="bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-neutral-950">Tracking Result</h2>
+          <h2 className="text-xl font-bold text-neutral-950">நிலை விவரம்</h2>
           {tracking ? (
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {(mode === 'signup'
                 ? [
                     ['Request No', tracking.requestNo],
                     ['Requested Role', tracking.requestedRole],
-                    ['Scope', tracking.scope],
+                    ['பகுதி', tracking.scope],
                     ['Signup Status', tracking.status],
-                    ['Review Reason', tracking.reason],
+                    ['குறிப்பு', tracking.reason],
                     ['Last Updated', tracking.updatedAt],
                   ]
                 : [
                     ['Application No', tracking.applicationNo],
                     ['Form', tracking.formTitle],
-                    ['Scope', tracking.village],
+                    ['கிராமம்', tracking.village],
                     ['Application Status', tracking.status],
                     ['Payment Status', tracking.paymentStatus],
                     ['Correction Reason', tracking.reason],
-                    ['Revision Count', tracking.revisionCount],
+                    ['திருத்த எண்ணிக்கை', tracking.revisionCount],
                     ['Last Updated', tracking.updatedAt],
                   ]).map(([label, value]) => (
                 <div className="border border-neutral-200 p-4" key={label}>

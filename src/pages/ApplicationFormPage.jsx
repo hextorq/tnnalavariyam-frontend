@@ -21,8 +21,8 @@ export default function ApplicationFormPage({ formId }) {
             <p className="mt-1 text-sm font-bold text-neutral-950">{form.fee ? `Rs. ${form.fee}` : 'Based on course'}</p>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase text-neutral-500">Scope</p>
-            <p className="mt-1 text-sm font-bold text-neutral-950">Partner Village</p>
+            <p className="text-xs font-bold uppercase text-neutral-500">Village</p>
+            <p className="mt-1 text-sm font-bold text-neutral-950">பங்குதாரர் கிராமம்</p>
           </div>
         </div>
         <div className="mt-5 border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
