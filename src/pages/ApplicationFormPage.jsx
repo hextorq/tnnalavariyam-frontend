@@ -1,6 +1,10 @@
+import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
+import { isAuthenticated } from '../lib/auth.js'
 
 export default function ApplicationFormPage({ formId }) {
+  if (!isAuthenticated()) return <AuthRequired />
+
   const form = applicationForms.find((item) => item.id === formId)
 
   if (!form) return null

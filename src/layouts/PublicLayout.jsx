@@ -1,11 +1,23 @@
 import { Menu } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../components/Button.jsx'
 import { associationName, brandName, images, navItems } from '../data/siteContent.js'
+import { isAuthenticated } from '../lib/auth.js'
 import { Link, NavLink } from '../lib/router.jsx'
 
 export default function PublicLayout({ children }) {
   const [open, setOpen] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(() => isAuthenticated())
+
+  useEffect(() => {
+    const update = () => setLoggedIn(isAuthenticated())
+    window.addEventListener('authchange', update)
+    window.addEventListener('storage', update)
+    return () => {
+      window.removeEventListener('authchange', update)
+      window.removeEventListener('storage', update)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,7 +42,7 @@ export default function PublicLayout({ children }) {
                 {item.label}
               </NavLink>
             ))}
-            <Button to="/app">Apply Now</Button>
+            <Button to={loggedIn ? '/app' : '/login'}>Apply Now</Button>
           </nav>
           <button className="shrink-0 p-2 lg:hidden" onClick={() => setOpen((value) => !value)} type="button">
             <Menu />
@@ -43,7 +55,7 @@ export default function PublicLayout({ children }) {
                 {item.label}
               </NavLink>
             ))}
-            <Button to="/app">Apply Now</Button>
+            <Button to={loggedIn ? '/app' : '/login'}>Apply Now</Button>
           </nav>
         )}
       </header>

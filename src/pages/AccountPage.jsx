@@ -2,7 +2,8 @@ import Button from '../components/Button.jsx'
 import { useMemo, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
-import { Link } from '../lib/router.jsx'
+import { saveSession } from '../lib/auth.js'
+import { Link, navigate } from '../lib/router.jsx'
 
 const initialSignupForm = {
   fullName: '',
@@ -27,6 +28,7 @@ export default function AccountPage({ mode }) {
   const [talukCode, setTalukCode] = useState('')
   const [villageCode, setVillageCode] = useState('')
   const [status, setStatus] = useState({ type: '', message: '' })
+  const [loginForm, setLoginForm] = useState({ identifier: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
   const selectedDistrict = useMemo(
     () => tamilNaduDistricts.find((district) => district.code === districtCode),
@@ -93,10 +95,32 @@ export default function AccountPage({ mode }) {
     }
   }
 
+  async function handleLoginSubmit(event) {
+    event.preventDefault()
+    setStatus({ type: '', message: '' })
+
+    try {
+      setSubmitting(true)
+      const response = await api.post('/auth/login', loginForm)
+      saveSession({ token: response.data.token, user: response.data.user })
+      navigate('/app')
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: error.response?.data?.message || 'உள்நுழைய முடியவில்லை. அனுமதி பெற்ற கணக்கு விவரங்களை சரிபார்க்கவும்.',
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <section className={`mx-auto px-4 py-12 sm:px-5 sm:py-20 ${mode === 'register' ? 'max-w-4xl' : 'max-w-xl'}`}>
       <h1 className="text-center text-3xl font-bold sm:text-4xl">{title}</h1>
-      <form className="mt-8 grid gap-4 border border-neutral-200 p-4 sm:mt-10 sm:gap-5 sm:p-8" onSubmit={mode === 'register' ? handleSignupSubmit : undefined}>
+      <form
+        className="mt-8 grid gap-4 border border-neutral-200 p-4 sm:mt-10 sm:gap-5 sm:p-8"
+        onSubmit={mode === 'register' ? handleSignupSubmit : mode === 'login' ? handleLoginSubmit : undefined}
+      >
         {mode === 'register' && (
           <>
             <div className="border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
@@ -178,8 +202,33 @@ export default function AccountPage({ mode }) {
           </>
         ) : (
           <>
-            {mode === 'login' && <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email / Phone / Username" />}
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => mode === 'register' && updateSignupField('password', event.target.value)} placeholder="Password" required={mode === 'register'} type="password" value={mode === 'register' ? signupForm.password : undefined} />
+            {mode === 'login' && (
+              <>
+                {status.message && (
+                  <div className="border-l-4 border-red-600 bg-red-50 p-4 text-sm leading-6 text-red-800">
+                    {status.message}
+                  </div>
+                )}
+                <input
+                  className="min-w-0 border border-neutral-300 px-4 py-3"
+                  onChange={(event) => setLoginForm((current) => ({ ...current, identifier: event.target.value }))}
+                  placeholder="Email / Phone / Username"
+                  required
+                  value={loginForm.identifier}
+                />
+              </>
+            )}
+            <input
+              className="min-w-0 border border-neutral-300 px-4 py-3"
+              onChange={(event) => {
+                if (mode === 'register') updateSignupField('password', event.target.value)
+                if (mode === 'login') setLoginForm((current) => ({ ...current, password: event.target.value }))
+              }}
+              placeholder="Password"
+              required={mode !== 'reset'}
+              type="password"
+              value={mode === 'register' ? signupForm.password : mode === 'login' ? loginForm.password : undefined}
+            />
             {mode === 'register' && <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />}
           </>
         )}

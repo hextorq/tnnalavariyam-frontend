@@ -19,7 +19,7 @@ export default function HomePage() {
             கட்டுமானம் மற்றும் அமைப்பு சாரா தொழிலாளர்களுக்கான பதிவு, புதுப்பித்தல், கல்வி உதவி மற்றும் நலத்திட்ட விண்ணப்பங்களை ஒரே இடத்தில் நிர்வகிக்க வடிவமைக்கப்பட்ட வேகமான சேவை தளம்.
           </p>
           <div className="mt-8 grid gap-3 sm:flex sm:gap-4">
-            <Button to="/app">Apply Now</Button>
+            <Button to="/login">Apply Now</Button>
             <Button to="/services" variant="outline">View Schemes</Button>
           </div>
           <div className="mt-8 grid max-w-xl gap-3 text-center sm:grid-cols-3">

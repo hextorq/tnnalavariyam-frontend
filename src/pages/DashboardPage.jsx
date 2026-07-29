@@ -1,7 +1,11 @@
+import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
+import { isAuthenticated } from '../lib/auth.js'
 import { Link } from '../lib/router.jsx'
 
 export default function DashboardPage() {
+  if (!isAuthenticated()) return <AuthRequired />
+
   return (
     <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:p-6">
       <div className="mx-auto max-w-7xl">
