@@ -8,7 +8,7 @@ export default function BlogPage() {
       <div className="mt-8 grid gap-6 sm:mt-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
         {blogPosts.map((post) => (
           <article className="border border-neutral-200" key={post.title}>
-            {post.image ? <img className="h-48 w-full object-cover sm:h-56" src={post.image} alt="" /> : <div className="h-48 bg-neutral-100 sm:h-56" />}
+            {post.image ? <img className="h-48 w-full object-cover sm:h-56" src={post.image} alt="" decoding="async" loading="lazy" /> : <div className="h-48 bg-neutral-100 sm:h-56" />}
             <div className="p-5">
               <p className="text-sm text-neutral-500">{post.date}</p>
               <h2 className="mt-3 text-xl font-bold leading-snug">{post.title}</h2>

@@ -17,7 +17,7 @@ export default function ContactPage() {
         </form>
       </div>
       <aside className="bg-neutral-50 p-5 sm:p-8">
-        <img className="mb-6 h-48 w-full object-cover sm:mb-8 sm:h-64" src={images.cta} alt="" />
+        <img className="mb-6 h-48 w-full object-cover sm:mb-8 sm:h-64" src={images.cta} alt="" decoding="async" loading="lazy" />
         <p className="text-sm font-bold uppercase text-[#007cba]">Reach Out</p>
         <h2 className="mt-2 text-xl font-bold sm:text-2xl">We’re Here to Assist You</h2>
         <dl className="mt-6 grid gap-5 text-neutral-700">

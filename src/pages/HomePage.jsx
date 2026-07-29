@@ -27,7 +27,7 @@ export default function HomePage() {
             <Button to="/login" variant="outline">Login</Button>
           </div>
         </div>
-        <img className="h-72 w-full rounded-2xl object-cover sm:h-[460px] sm:rounded-3xl" src={images.heroOne} alt="" />
+        <img className="h-72 w-full rounded-2xl object-cover sm:h-[460px] sm:rounded-3xl" src={images.heroOne} alt="" decoding="async" fetchPriority="high" />
         </div>
       </section>
 
@@ -41,7 +41,7 @@ export default function HomePage() {
             <Button to="/about">Read More</Button>
           </div>
         </div>
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.about} alt="" />
+        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.about} alt="" decoding="async" loading="lazy" />
       </section>
 
       <section className="bg-white py-12 sm:py-20">
@@ -93,7 +93,7 @@ export default function HomePage() {
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-4">
           {[images.heroOne, images.heroTwo, images.heroThree, images.heroFour].map((image) => (
-            <img className="h-48 w-full rounded-xl object-cover" key={image} src={image} alt="" />
+            <img className="h-48 w-full rounded-xl object-cover" key={image} src={image} alt="" decoding="async" loading="lazy" />
           ))}
         </div>
       </section>
@@ -107,7 +107,7 @@ export default function HomePage() {
                 <p className="text-[#f0ad4e]">★★★★★</p>
                 <p className="mt-4 leading-7 text-neutral-700">{testimonial.text}</p>
                 <div className="mt-6 flex items-center gap-3">
-                  <img className="h-12 w-12 rounded-full object-cover" src={testimonial.image} alt="" />
+                  <img className="h-12 w-12 rounded-full object-cover" src={testimonial.image} alt="" decoding="async" loading="lazy" />
                   <p className="font-bold">{testimonial.name}</p>
                 </div>
               </article>
@@ -129,7 +129,7 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.cta} alt="" />
+        <img className="h-64 w-full rounded-2xl object-cover sm:h-[420px] sm:rounded-3xl" src={images.cta} alt="" decoding="async" loading="lazy" />
       </section>
     </>
   )

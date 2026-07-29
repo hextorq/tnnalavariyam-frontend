@@ -24,7 +24,7 @@ export default function PublicLayout({ children }) {
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
           <Link className="flex min-w-0 flex-1 items-center gap-3 text-left lg:max-w-xl" to="/">
-            <img className="h-10 w-10 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" />
+            <img className="h-10 w-10 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" decoding="async" />
             <span className="min-w-0">
               <span className="block text-xs font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
               <span className="hidden text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
