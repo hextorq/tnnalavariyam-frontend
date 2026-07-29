@@ -35,11 +35,11 @@ export default function TrackingPage() {
   }
 
   return (
-    <section className="bg-neutral-100 px-5 py-14">
-      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[420px_1fr]">
-        <form className="bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
+    <section className="bg-neutral-100 px-4 py-10 sm:px-5 sm:py-14">
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-8">
+        <form className="min-w-0 bg-white p-4 shadow-sm sm:p-6" onSubmit={handleSubmit}>
           <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Application Tracking</p>
-          <h1 className="mt-2 text-3xl font-bold text-neutral-950">விண்ணப்ப நிலை பார்க்க</h1>
+          <h1 className="mt-2 text-2xl font-bold text-neutral-950 sm:text-3xl">விண்ணப்ப நிலை பார்க்க</h1>
           <p className="mt-3 text-sm leading-6 text-neutral-600">
             Application number அல்லது signup request number வைத்து approval/review status பார்க்கலாம்.
           </p>
@@ -50,7 +50,7 @@ export default function TrackingPage() {
               ['signup', 'Signup'],
             ].map(([value, label]) => (
               <button
-                className={`px-4 py-3 text-sm font-bold ${mode === value ? 'bg-[#007cba] text-white' : 'bg-white text-neutral-800'}`}
+              className={`min-w-0 px-3 py-3 text-sm font-bold ${mode === value ? 'bg-[#007cba] text-white' : 'bg-white text-neutral-800'}`}
                 key={value}
                 onClick={() => {
                   setMode(value)
@@ -67,7 +67,7 @@ export default function TrackingPage() {
             <label className="mt-6 grid gap-2 text-sm font-bold text-neutral-800">
               Application Number
               <input
-                className="border border-neutral-300 px-4 py-3 font-normal"
+                className="min-w-0 border border-neutral-300 px-4 py-3 font-normal"
                 onChange={(event) => setApplicationNo(event.target.value)}
                 placeholder="TNW-20260729-0001"
                 value={applicationNo}
@@ -77,7 +77,7 @@ export default function TrackingPage() {
             <label className="mt-6 grid gap-2 text-sm font-bold text-neutral-800">
               Signup Request Number
               <input
-                className="border border-neutral-300 px-4 py-3 font-normal"
+                className="min-w-0 border border-neutral-300 px-4 py-3 font-normal"
                 onChange={(event) => setRequestNo(event.target.value)}
                 placeholder="TNSU-20260729-0001"
                 value={requestNo}
@@ -88,21 +88,21 @@ export default function TrackingPage() {
           <label className="mt-4 grid gap-2 text-sm font-bold text-neutral-800">
             Mobile Number
             <input
-              className="border border-neutral-300 px-4 py-3 font-normal"
+              className="min-w-0 border border-neutral-300 px-4 py-3 font-normal"
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Registered phone number"
               value={phone}
             />
           </label>
 
-          <button className="mt-6 inline-flex items-center gap-2 bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-neutral-950" type="submit">
+          <button className="mt-6 inline-flex w-full items-center justify-center gap-2 bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-neutral-950 sm:w-auto" type="submit">
             <Search size={18} />
             Track Status
           </button>
         </form>
 
-        <div className="bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-neutral-950">நிலை விவரம்</h2>
+        <div className="min-w-0 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-lg font-bold text-neutral-950 sm:text-xl">நிலை விவரம்</h2>
           {tracking ? (
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {(mode === 'signup'

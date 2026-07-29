@@ -94,9 +94,9 @@ export default function AccountPage({ mode }) {
   }
 
   return (
-    <section className="mx-auto max-w-xl px-5 py-20">
-      <h1 className="text-center text-4xl font-bold">{title}</h1>
-      <form className="mt-10 grid gap-5 border border-neutral-200 p-8" onSubmit={mode === 'register' ? handleSignupSubmit : undefined}>
+    <section className={`mx-auto px-4 py-12 sm:px-5 sm:py-20 ${mode === 'register' ? 'max-w-4xl' : 'max-w-xl'}`}>
+      <h1 className="text-center text-3xl font-bold sm:text-4xl">{title}</h1>
+      <form className="mt-8 grid gap-4 border border-neutral-200 p-4 sm:mt-10 sm:gap-5 sm:p-8" onSubmit={mode === 'register' ? handleSignupSubmit : undefined}>
         {mode === 'register' && (
           <>
             <div className="border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
@@ -107,17 +107,20 @@ export default function AccountPage({ mode }) {
                 {status.message}
               </div>
             )}
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+            <div className="grid gap-4 md:grid-cols-2">
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+            </div>
             <select className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('requestedRole', event.target.value)} required value={signupForm.requestedRole}>
               <option disabled value="">Requested Role</option>
               {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
             </select>
-            <input className="border border-neutral-300 px-4 py-3" disabled value={tamilNaduState.name} />
+            <div className="grid gap-4 md:grid-cols-2">
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={tamilNaduState.name} />
             <select
-              className="border border-neutral-300 px-4 py-3"
+              className="min-w-0 border border-neutral-300 px-4 py-3"
               onChange={(event) => {
                 setDistrictCode(event.target.value)
                 setTalukCode('')
@@ -130,7 +133,7 @@ export default function AccountPage({ mode }) {
               {tamilNaduDistricts.map((district) => <option key={district.code} value={district.code}>{district.name}</option>)}
             </select>
             <select
-              className="border border-neutral-300 px-4 py-3"
+              className="min-w-0 border border-neutral-300 px-4 py-3"
               disabled={!districtCode}
               onChange={(event) => {
                 setTalukCode(event.target.value)
@@ -142,20 +145,23 @@ export default function AccountPage({ mode }) {
               <option disabled value="">Taluk</option>
               {taluks.map((taluk) => <option key={taluk.code} value={taluk.code}>{taluk.name}</option>)}
             </select>
-            <select className="border border-neutral-300 px-4 py-3" disabled={!talukCode} onChange={(event) => setVillageCode(event.target.value)} required value={villageCode}>
+            <select className="min-w-0 border border-neutral-300 px-4 py-3" disabled={!talukCode} onChange={(event) => setVillageCode(event.target.value)} required value={villageCode}>
               <option disabled value="">Village</option>
               {villages.map((village) => <option key={village.code} value={village.code}>{village.name}</option>)}
             </select>
+            </div>
             <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
             <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
+            <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
               Passport Size Photo
               <input accept="image/*" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('photo', event.target.files?.[0] || null)} required type="file" />
             </label>
-            <select className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofType', event.target.value)} required value={signupForm.idProofType}>
+            <select className="min-w-0 border border-neutral-300 px-4 py-3 self-end" onChange={(event) => updateSignupField('idProofType', event.target.value)} required value={signupForm.idProofType}>
               <option disabled value="">ID Proof Type</option>
               {idProofOptions.map((proof) => <option key={proof.value} value={proof.value}>{proof.label}</option>)}
             </select>
+            </div>
             <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
               ID Proof Image / Document
@@ -165,16 +171,16 @@ export default function AccountPage({ mode }) {
         )}
         {mode === 'reset' ? (
           <>
-            <input className="border border-neutral-300 px-4 py-3" placeholder="Email Address" />
-            <input className="border border-neutral-300 px-4 py-3" placeholder="Phone Number" />
-            <input className="border border-neutral-300 px-4 py-3" placeholder="New Password" type="password" />
-            <input className="border border-neutral-300 px-4 py-3" placeholder="Confirm New Password" type="password" />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email Address" />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Phone Number" />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="New Password" type="password" />
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Confirm New Password" type="password" />
           </>
         ) : (
           <>
-            {mode === 'login' && <input className="border border-neutral-300 px-4 py-3" placeholder="Email / Phone / Username" />}
-            <input className="border border-neutral-300 px-4 py-3" onChange={(event) => mode === 'register' && updateSignupField('password', event.target.value)} placeholder="Password" required={mode === 'register'} type="password" value={mode === 'register' ? signupForm.password : undefined} />
-            {mode === 'register' && <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />}
+            {mode === 'login' && <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email / Phone / Username" />}
+            <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => mode === 'register' && updateSignupField('password', event.target.value)} placeholder="Password" required={mode === 'register'} type="password" value={mode === 'register' ? signupForm.password : undefined} />
+            {mode === 'register' && <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />}
           </>
         )}
         <Button disabled={submitting} type="submit">{submitting ? 'Submitting...' : title}</Button>

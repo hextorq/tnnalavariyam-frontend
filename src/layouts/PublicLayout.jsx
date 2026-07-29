@@ -10,11 +10,11 @@ export default function PublicLayout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-          <Link className="flex max-w-xl items-center gap-3 text-left" to="/">
-            <img className="h-12 w-12 rounded-full object-cover" src={images.logoLeft} alt="" />
-            <span>
-              <span className="block text-sm font-bold leading-snug text-black md:text-base">{brandName}</span>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
+          <Link className="flex min-w-0 flex-1 items-center gap-3 text-left lg:max-w-xl" to="/">
+            <img className="h-10 w-10 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" />
+            <span className="min-w-0">
+              <span className="block text-xs font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
               <span className="hidden text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
             </span>
           </Link>
@@ -32,17 +32,18 @@ export default function PublicLayout({ children }) {
             ))}
             <Button to="/app">Apply Now</Button>
           </nav>
-          <button className="lg:hidden" onClick={() => setOpen((value) => !value)} type="button">
+          <button className="shrink-0 p-2 lg:hidden" onClick={() => setOpen((value) => !value)} type="button">
             <Menu />
           </button>
         </div>
         {open && (
-          <nav className="grid gap-3 border-t border-neutral-200 px-5 py-5 lg:hidden">
+          <nav className="grid gap-3 border-t border-neutral-200 px-4 py-5 sm:px-5 lg:hidden">
             {navItems.map((item) => (
-              <NavLink className="text-sm font-semibold" key={item.to} to={item.to} onClick={() => setOpen(false)}>
+              <NavLink className="py-2 text-sm font-semibold" key={item.to} to={item.to} onClick={() => setOpen(false)}>
                 {item.label}
               </NavLink>
             ))}
+            <Button to="/app">Apply Now</Button>
           </nav>
         )}
       </header>
