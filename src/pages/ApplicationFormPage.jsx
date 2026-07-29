@@ -14,7 +14,7 @@ export default function ApplicationFormPage({ formId }) {
         <div className="mt-6 grid gap-4 border border-neutral-200 bg-neutral-50 p-5 md:grid-cols-3">
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Application No</p>
-            <p className="mt-1 text-sm font-bold text-neutral-950">Generated after submit</p>
+            <p className="mt-1 text-sm font-bold text-neutral-950">Generated once, reused for corrections</p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Payment</p>
@@ -22,8 +22,12 @@ export default function ApplicationFormPage({ formId }) {
           </div>
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Scope</p>
-            <p className="mt-1 text-sm font-bold text-neutral-950">Applicant Village</p>
+            <p className="mt-1 text-sm font-bold text-neutral-950">Partner Village</p>
           </div>
+        </div>
+        <div className="mt-5 border-l-4 border-[#007cba] bg-[#eef8ff] p-4 text-sm leading-6 text-neutral-700">
+          If this application is returned with a reason, the partner can correct the same application and resubmit it.
+          A new application number will not be created.
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           {form.fields.map((field) => (

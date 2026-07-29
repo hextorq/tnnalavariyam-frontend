@@ -14,6 +14,8 @@ export default function TrackingPage() {
       paymentStatus: 'PAID / நிலுவை இல்லை',
       formTitle: 'புதிய விண்ணப்பப் பதிவு',
       village: 'Assigned Village Scope',
+      reason: 'No correction requested',
+      revisionCount: 0,
       updatedAt: new Date().toLocaleDateString('en-IN'),
     })
   }
@@ -64,6 +66,8 @@ export default function TrackingPage() {
                 ['Scope', tracking.village],
                 ['Application Status', tracking.status],
                 ['Payment Status', tracking.paymentStatus],
+                ['Correction Reason', tracking.reason],
+                ['Revision Count', tracking.revisionCount],
                 ['Last Updated', tracking.updatedAt],
               ].map(([label, value]) => (
                 <div className="border border-neutral-200 p-4" key={label}>

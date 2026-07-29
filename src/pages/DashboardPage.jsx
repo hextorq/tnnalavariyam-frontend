@@ -1,5 +1,5 @@
 import { applicationForms } from '../data/applicationForms.js'
-import { rbacRules, roleHierarchy } from '../data/rbac.js'
+import { applicationWorkflow, rbacRules, roleHierarchy } from '../data/rbac.js'
 import { Link } from '../lib/router.jsx'
 
 export default function DashboardPage() {
@@ -12,7 +12,7 @@ export default function DashboardPage() {
             <h1 className="mt-2 text-3xl font-bold text-neutral-950">Application Dashboard</h1>
             <p className="mt-2 max-w-3xl text-neutral-600">
               பயனர், கிராமம், தாலுகா, மாவட்டம், மாநிலம் என்ற வரிசையில் விண்ணப்பங்கள் பார்க்கப்படும்.
-              Users can apply all six welfare forms, while officers see only their assigned scope and child levels.
+              Village partners can apply all six welfare forms, while officers see only their assigned scope and child levels.
             </p>
           </div>
 
@@ -62,7 +62,19 @@ export default function DashboardPage() {
           </div>
           <div className="mt-5 bg-[#071f35] p-5 text-white">
             <p className="text-sm font-bold text-[#f2b705]">Hierarchy Flow</p>
-            <p className="mt-2 text-lg font-bold">Super Admin to State Admin to District to Taluk to Village to Users</p>
+            <p className="mt-2 text-lg font-bold">Super Admin to State Admin to District to Taluk to Village to Partners</p>
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="text-xl font-bold text-neutral-950">Application Review Flow</h2>
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            {applicationWorkflow.map((step, index) => (
+              <div className="border border-neutral-200 bg-white p-5 shadow-sm" key={step}>
+                <p className="text-sm font-bold text-[#007cba]">Step {index + 1}</p>
+                <p className="mt-2 text-sm leading-6 text-neutral-700">{step}</p>
+              </div>
+            ))}
           </div>
         </section>
       </div>
