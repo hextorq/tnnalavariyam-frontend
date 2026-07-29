@@ -132,10 +132,9 @@ export default function TrackingPage() {
             </div>
           ) : (
             <div className="mt-5 border border-dashed border-neutral-300 p-8 text-sm leading-6 text-neutral-600">
-              Enter a number to view status.
-              <span className="mt-2 block font-mono text-neutral-900">
-                {mode === 'signup' ? 'GET /api/auth/signup-requests/track?requestNo=TNSU...' : 'GET /api/applications/track?applicationNo=TNW...'}
-              </span>
+              {mode === 'signup'
+                ? 'Signup request number மற்றும் registered mobile number வைத்து approval status பார்க்கலாம்.'
+                : 'Application number மற்றும் registered mobile number வைத்து application status பார்க்கலாம்.'}
             </div>
           )}
         </div>

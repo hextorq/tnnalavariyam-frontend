@@ -74,23 +74,23 @@ export const services = [
 
 export const blogPosts = [
   {
-    title: 'Crafting Captivating Headlines: Your awesome post title goes here',
-    date: 'May 9, 2026',
+    title: 'நலவாரிய பதிவு செய்ய தேவையான ஆவணங்கள்',
+    date: 'July 29, 2026',
     image: images.blogOne,
   },
   {
-    title: 'The Art of Drawing Readers In: Your attractive post title goes here',
-    date: 'May 9, 2026',
+    title: 'தொழிலாளர் கல்வி உதவித்தொகை விண்ணப்ப வழிகாட்டி',
+    date: 'July 29, 2026',
     image: images.blogTwo,
   },
   {
-    title: 'Mastering the First Impression: Your intriguing post title goes here',
-    date: 'May 9, 2026',
+    title: 'விண்ணப்ப நிலை மற்றும் திருத்த கோரிக்கை பார்க்கும் முறை',
+    date: 'July 29, 2026',
     image: images.blogThree,
   },
   {
-    title: 'Hello world!',
-    date: 'May 9, 2026',
+    title: 'பங்குதாரர் கணக்கு அனுமதி நடைமுறை',
+    date: 'July 29, 2026',
     image: null,
   },
 ]
@@ -98,7 +98,7 @@ export const blogPosts = [
 export const contactDetails = {
   phone: '9047219450',
   whatsapp: '9047219450',
-  email: 'support@tnnalavaariyam.local',
+  email: 'support@tnnalavaariyam.com',
   timing: '9.00 AM TO 6.00 PM',
   address: 'தமிழ்நாடு தொழிலாளர்கள் நலவாரிய சேவை மையம்',
 }
