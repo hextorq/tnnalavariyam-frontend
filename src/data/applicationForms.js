@@ -9,7 +9,7 @@ export const applicationForms = [
   {
     id: 'renewal',
     title: 'Renewal',
-    tamilTitle: 'புதுப்பித்தல்',
+    tamilTitle: 'பதிவு புதுப்பித்தல்',
     fee: 150,
     fields: ['Worker Name', 'District', 'Phone Number', 'Worker Registration Card', 'Aadhar Card', 'Bank Passbook', 'Payment Screenshot'],
   },

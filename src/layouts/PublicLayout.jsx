@@ -1,7 +1,7 @@
 import { Menu } from 'lucide-react'
 import { useState } from 'react'
 import Button from '../components/Button.jsx'
-import { brandName, navItems } from '../data/siteContent.js'
+import { associationName, brandName, images, navItems } from '../data/siteContent.js'
 import { Link, NavLink } from '../lib/router.jsx'
 
 export default function PublicLayout({ children }) {
@@ -11,8 +11,12 @@ export default function PublicLayout({ children }) {
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-          <Link className="max-w-sm text-base font-bold leading-snug text-black" to="/">
-            {brandName}
+          <Link className="flex max-w-xl items-center gap-3 text-left" to="/">
+            <img className="h-12 w-12 rounded-full object-cover" src={images.logoLeft} alt="" />
+            <span>
+              <span className="block text-sm font-bold leading-snug text-black md:text-base">{brandName}</span>
+              <span className="hidden text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
+            </span>
           </Link>
           <nav className="hidden items-center gap-8 lg:flex">
             {navItems.map((item) => (
@@ -26,7 +30,7 @@ export default function PublicLayout({ children }) {
                 {item.label}
               </NavLink>
             ))}
-            <Button to="/contact">Get Support</Button>
+            <Button to="/app">Apply Now</Button>
           </nav>
           <button className="lg:hidden" onClick={() => setOpen((value) => !value)} type="button">
             <Menu />
@@ -49,7 +53,7 @@ export default function PublicLayout({ children }) {
 
       <footer className="border-t border-neutral-200 py-8">
         <div className="mx-auto max-w-7xl px-5 text-center text-sm text-neutral-600">
-          Copyright © 2026 {brandName}
+          © 2026 {brandName}. All Rights Reserved.
         </div>
       </footer>
     </div>

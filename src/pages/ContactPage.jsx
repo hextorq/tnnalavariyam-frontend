@@ -6,10 +6,11 @@ export default function ContactPage() {
   return (
     <section className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[1fr_0.8fr]">
       <div>
-        <SectionHeader eyebrow="Get in Touch" title="Contact Us for Worker Support" />
+        <SectionHeader eyebrow="Contact us" title="தொழிலாளர் சேவை உதவி மையம்" />
         <form className="mt-10 grid gap-5">
           <input className="border border-neutral-300 px-4 py-3" placeholder="First Name" type="text" />
           <input className="border border-neutral-300 px-4 py-3" placeholder="Email" type="email" />
+          <input className="border border-neutral-300 px-4 py-3" placeholder="Phone Number" type="tel" />
           <textarea className="min-h-40 border border-neutral-300 px-4 py-3" placeholder="Message" />
           <div>
             <Button type="submit">Submit</Button>
@@ -21,7 +22,9 @@ export default function ContactPage() {
         <h2 className="text-2xl font-bold">We're Here to Assist You</h2>
         <dl className="mt-6 grid gap-5 text-neutral-700">
           <div><dt className="font-bold text-black">Phone</dt><dd>{contactDetails.phone}</dd></div>
+          <div><dt className="font-bold text-black">WhatsApp</dt><dd>{contactDetails.whatsapp}</dd></div>
           <div><dt className="font-bold text-black">Email</dt><dd>{contactDetails.email}</dd></div>
+          <div><dt className="font-bold text-black">Office Timing</dt><dd>{contactDetails.timing}</dd></div>
           <div><dt className="font-bold text-black">Address</dt><dd>{contactDetails.address}</dd></div>
         </dl>
       </aside>

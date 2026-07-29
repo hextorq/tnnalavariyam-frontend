@@ -23,6 +23,7 @@ function App() {
     '/login': <AccountPage mode="login" />,
     '/register': <AccountPage mode="register" />,
     '/password-reset': <AccountPage mode="reset" />,
+    '/forget': <AccountPage mode="reset" />,
   }
 
   return <PublicLayout>{publicPages[path] || <HomePage />}</PublicLayout>
