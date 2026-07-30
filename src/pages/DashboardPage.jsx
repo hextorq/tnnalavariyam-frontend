@@ -250,6 +250,7 @@ function AdminPanel({ user }) {
   const pendingSignupCount = signupRequests.filter((request) => request.status === 'PENDING').length
   const reviewApplicationCount = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
   const activeUsersCount = overview?.users?.active ?? 0
+  const activeRecentUsers = (overview?.users?.recent || []).filter((recentUser) => recentUser.isActive)
 
   return (
     <section className="grid gap-6">
@@ -316,7 +317,7 @@ function AdminPanel({ user }) {
       {activeSection === 'users' && (
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)]">
         <Panel>
-          <PanelHeader eyebrow="Access" title="User Control Overview" />
+          <PanelHeader eyebrow="Access" title="Active Users & Activity" />
           <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
             {(overview?.users?.byRole || []).map((item) => (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" key={item.role}>
@@ -326,18 +327,20 @@ function AdminPanel({ user }) {
             ))}
           </div>
           <div className="overflow-x-auto px-4 pb-4 sm:px-5 sm:pb-5">
-            <table className="w-full min-w-[680px] text-left text-sm">
+            <table className="w-full min-w-[920px] text-left text-sm">
               <thead className="bg-slate-100 text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-3 py-3">User</th>
                   <th className="px-3 py-3">Role</th>
                   <th className="px-3 py-3">Scope</th>
                   <th className="px-3 py-3">Status</th>
+                  <th className="px-3 py-3">Last Login</th>
+                  <th className="px-3 py-3">Latest Activity</th>
                   <th className="px-3 py-3">Created</th>
                 </tr>
               </thead>
               <tbody>
-                {(overview?.users?.recent || []).map((recentUser) => (
+                {activeRecentUsers.map((recentUser) => (
                   <tr className="border-b border-slate-100" key={recentUser.id}>
                     <td className="px-3 py-3">
                       <p className="font-bold text-slate-950">{recentUser.username}</p>
@@ -346,11 +349,17 @@ function AdminPanel({ user }) {
                     <td className="px-3 py-3">{roleLabels[recentUser.role] || recentUser.role}</td>
                     <td className="px-3 py-3">{recentUser.scope?.name || 'All Tamil Nadu'}</td>
                     <td className="px-3 py-3"><StatusPill status={recentUser.isActive ? 'ACTIVE' : 'INACTIVE'} /></td>
+                    <td className="px-3 py-3">{formatDate(recentUser.lastLoginAt)}</td>
+                    <td className="px-3 py-3">
+                      <p className="font-semibold text-slate-800">{recentUser.latestActivity?.label || '-'}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatDate(recentUser.latestActivity?.at)}</p>
+                    </td>
                     <td className="px-3 py-3">{formatDate(recentUser.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {!activeRecentUsers.length && <EmptyState>No active users found.</EmptyState>}
           </div>
         </Panel>
 
