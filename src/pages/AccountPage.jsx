@@ -1,5 +1,5 @@
 import Button from '../components/Button.jsx'
-import { Eye, EyeOff, Trash2, Upload } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, LoaderCircle, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
@@ -48,6 +48,14 @@ const documentConfig = {
   ],
   hint: 'Image, PDF, Word, Excel or text document. Max 15 MB.',
 }
+
+const signupProgressSteps = [
+  { id: 'checking', label: 'விவரங்கள் சரிபார்ப்பு / Checking details' },
+  { id: 'photo', label: 'புகைப்படம் தயார் செய்கிறது / Preparing photo' },
+  { id: 'document', label: 'ஆவணம் தயார் செய்கிறது / Preparing document' },
+  { id: 'uploading', label: 'கோப்புகள் மற்றும் விவரங்கள் பதிவேற்றம் / Uploading files and data' },
+  { id: 'processing', label: 'சர்வர் செயலாக்கம் / Server processing' },
+]
 
 function bilingualName(item) {
   if (!item) return ''
@@ -277,6 +285,47 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
   )
 }
 
+function SignupUploadManager({ idProof, phase, photo, progress }) {
+  if (!phase) return null
+
+  const activeIndex = signupProgressSteps.findIndex((step) => step.id === phase)
+  const progressText = phase === 'uploading' ? `${progress || 0}%` : phase === 'processing' ? 'Processing' : 'In progress'
+
+  return (
+    <div className="rounded-lg border border-[#007cba]/30 bg-[#eef8ff] p-4 text-sm text-neutral-800">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-bold text-neutral-950">பதிவு சமர்ப்பிப்பு நிலை / Submission Status</p>
+          <p className="mt-1 text-neutral-600">Large images/documents may take time. Please keep this page open.</p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#007cba] ring-1 ring-[#007cba]/20">
+          <LoaderCircle className="animate-spin" size={14} />
+          {progressText}
+        </span>
+      </div>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+        <div className="h-full rounded-full bg-[#007cba] transition-all" style={{ width: `${phase === 'uploading' ? progress : Math.max(8, (activeIndex + 1) * 18)}%` }} />
+      </div>
+      <div className="mt-4 grid gap-2">
+        {signupProgressSteps.map((step, index) => {
+          const done = activeIndex > index
+          const active = activeIndex === index
+          return (
+            <div className={`flex items-center gap-2 rounded-md px-3 py-2 ${active ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-600'}`} key={step.id}>
+              {done ? <CheckCircle2 className="text-emerald-600" size={16} /> : active ? <LoaderCircle className="animate-spin text-[#007cba]" size={16} /> : <span className="size-4 rounded-full border border-neutral-300" />}
+              <span className="font-semibold">{step.label}</span>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-4 grid gap-2 rounded-md bg-white p-3 text-xs text-neutral-600 sm:grid-cols-2">
+        <p><span className="font-bold text-neutral-800">Photo:</span> {photo?.name || '-'} {photo?.size ? `(${formatFileSize(photo.size)})` : ''}</p>
+        <p><span className="font-bold text-neutral-800">Document:</span> {idProof?.name || '-'} {idProof?.size ? `(${formatFileSize(idProof.size)})` : ''}</p>
+      </div>
+    </div>
+  )
+}
+
 function getConflictMessage(conflicts) {
   const labels = {
     username: 'பயனர் பெயர் / Username',
@@ -316,6 +365,8 @@ export default function AccountPage({ mode }) {
   const [status, setStatus] = useState({ type: '', message: '' })
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [uploadPhase, setUploadPhase] = useState('')
+  const [uploadProgress, setUploadProgress] = useState(0)
   const { notify } = useNotifications()
   const selectedDistrict = useMemo(
     () => tamilNaduDistricts.find((district) => district.code === districtCode),
@@ -430,6 +481,8 @@ export default function AccountPage({ mode }) {
   async function handleSignupSubmit(event) {
     event.preventDefault()
     setStatus({ type: '', message: '' })
+    setUploadPhase('')
+    setUploadProgress(0)
 
     const validationMessage = validateSignupForm()
     if (validationMessage) {
@@ -471,10 +524,29 @@ export default function AccountPage({ mode }) {
 
     try {
       setSubmitting(true)
+      setUploadPhase('checking')
       const available = await checkSignupAvailability()
-      if (!available) return
+      if (!available) {
+        setUploadPhase('')
+        setUploadProgress(0)
+        return
+      }
 
-      const response = await api.post('/auth/register', payload)
+      setUploadPhase('photo')
+      await new Promise((resolve) => window.setTimeout(resolve, 150))
+      setUploadPhase('document')
+      await new Promise((resolve) => window.setTimeout(resolve, 150))
+      setUploadPhase('uploading')
+      const response = await api.post('/auth/register', payload, {
+        onUploadProgress: (progressEvent) => {
+          const percent = progressEvent.total
+            ? Math.min(100, Math.round((progressEvent.loaded * 100) / progressEvent.total))
+            : 0
+          setUploadProgress(percent)
+          if (percent >= 100) setUploadPhase('processing')
+        },
+      })
+      setUploadPhase('processing')
       const message = `பதிவு கோரிக்கை சமர்ப்பிக்கப்பட்டது. Request No: ${response.data.signupRequest.requestNo}`
       setStatus({
         type: 'success',
@@ -492,7 +564,11 @@ export default function AccountPage({ mode }) {
       setDistrictCode('')
       setTalukCode('')
       setVillageCode('')
+      setUploadPhase('')
+      setUploadProgress(0)
     } catch (error) {
+      setUploadPhase('')
+      setUploadProgress(0)
       const message = getApiErrorMessage(error, 'பதிவு கோரிக்கை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.')
       setStatus({
         type: 'error',
@@ -725,6 +801,9 @@ export default function AccountPage({ mode }) {
               </label>
             )}
           </>
+        )}
+        {mode === 'register' && (
+          <SignupUploadManager idProof={signupForm.idProof} phase={uploadPhase} photo={signupForm.photo} progress={uploadProgress} />
         )}
         <Button disabled={submitting} type="submit">{submitting ? 'Submitting...' : title}</Button>
         {mode === 'login' && (
