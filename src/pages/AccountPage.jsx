@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
-import { normalizePhone, phoneInputProps } from '../lib/phone.js'
+import { normalizePhone, normalizePincode, phoneInputProps, pincodeInputProps } from '../lib/phone.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
@@ -310,7 +310,7 @@ export default function AccountPage({ mode }) {
       [signupForm.phone.length === 10, '10 இலக்க தொலைபேசி எண் தேவை. / 10 digit phone number is required.'],
       [signupForm.email.trim(), 'மின்னஞ்சல் முகவரி தேவை. / Email Address is required.'],
       [signupForm.requestedRole, 'பங்கு தேர்வு செய்யவும். / Select Role.'],
-      [signupForm.pincode.trim(), 'அஞ்சல் குறியீடு தேவை. / Pincode is required.'],
+      [signupForm.pincode.length === 6, '6 இலக்க அஞ்சல் குறியீடு தேவை. / 6 digit pincode is required.'],
       [signupForm.addressLine.trim(), 'முழு முகவரி தேவை. / Full Address is required.'],
       [signupForm.photo, 'பாஸ்போர்ட் புகைப்படம் தேர்வு செய்யவும். / Passport photo is required.'],
       [signupForm.idProofType, 'அடையாள ஆவணம் தேர்வு செய்யவும். / Select ID Proof.'],
@@ -554,7 +554,14 @@ export default function AccountPage({ mode }) {
               <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
                 <label className="grid gap-2">
                   <FieldLabel required>அஞ்சல் குறியீடு / Pincode</FieldLabel>
-                  <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
+                  <input
+                    {...pincodeInputProps}
+                    className="border border-neutral-300 px-4 py-3"
+                    onChange={(event) => updateSignupField('pincode', normalizePincode(event.target.value))}
+                    placeholder="6 digit pincode"
+                    required
+                    value={signupForm.pincode}
+                  />
                 </label>
                 <label className="grid gap-2">
                   <FieldLabel required>முழு முகவரி / Full Address</FieldLabel>
