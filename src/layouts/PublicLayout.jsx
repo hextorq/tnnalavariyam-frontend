@@ -22,17 +22,17 @@ export default function PublicLayout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-3 py-3 sm:px-5">
-          <Link className="flex min-w-0 max-w-[72vw] shrink items-center gap-3 text-left lg:max-w-md xl:max-w-lg" to="/">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-3 py-3 sm:px-5">
+          <Link className="flex min-w-0 max-w-[72vw] shrink items-center gap-3 text-left lg:max-w-md xl:max-w-none xl:flex-1" to="/">
             <span className="rounded-lg border border-slate-200 bg-slate-50 p-1">
               <img className="h-10 w-10 shrink-0 rounded-md object-cover sm:h-11 sm:w-11" src={images.logoLeft} alt="" decoding="async" />
             </span>
             <span className="min-w-0 overflow-hidden">
-              <span className="block truncate whitespace-nowrap text-[11px] font-extrabold leading-snug text-slate-950 sm:text-sm md:text-base">{brandName}</span>
-              <span className="hidden truncate whitespace-nowrap text-xs font-semibold text-slate-500 md:block">{associationName}</span>
+              <span className="block truncate whitespace-nowrap text-[11px] font-extrabold leading-snug text-slate-950 sm:text-sm md:text-base xl:overflow-visible xl:text-clip xl:whitespace-normal">{brandName}</span>
+              <span className="hidden truncate whitespace-nowrap text-xs font-semibold text-slate-500 md:block xl:overflow-visible xl:text-clip xl:whitespace-normal">{associationName}</span>
             </span>
           </Link>
-          <nav className="hidden shrink-0 items-center gap-5 xl:flex">
+          <nav className="order-3 hidden w-full items-center justify-center gap-5 border-t border-slate-100 pt-3 xl:flex">
             {navItems.map((item) => (
               <NavLink
                 className={({ isActive }) =>
