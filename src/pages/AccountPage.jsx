@@ -30,8 +30,13 @@ function bilingualName(item) {
   return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
 }
 
-function FieldLabel({ children }) {
-  return <span className="text-sm font-semibold text-neutral-700">{children}</span>
+function FieldLabel({ children, required = false }) {
+  return (
+    <span className="text-sm font-semibold text-neutral-700">
+      {children}
+      {required && <span className="ml-1 text-red-600" aria-label="required">*</span>}
+    </span>
+  )
 }
 
 function FormSection({ children, title }) {
@@ -136,7 +141,7 @@ function DocumentUpload({ accept, file, label, onChange, required = false }) {
 
   return (
     <div className="grid gap-2 text-sm font-semibold text-neutral-700">
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel required={required}>{label}</FieldLabel>
       <input
         accept={accept}
         className="sr-only"
@@ -379,15 +384,15 @@ export default function AccountPage({ mode }) {
             <FormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
-                  <FieldLabel>முழு பெயர் / Full Name</FieldLabel>
+                  <FieldLabel required>முழு பெயர் / Full Name</FieldLabel>
                   <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel>பயனர் பெயர் / Username</FieldLabel>
+                  <FieldLabel required>பயனர் பெயர் / Username</FieldLabel>
                   <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel>தொலைபேசி எண் / Phone Number</FieldLabel>
+                  <FieldLabel required>தொலைபேசி எண் / Phone Number</FieldLabel>
                   <input
                     {...phoneInputProps}
                     className="min-w-0 border border-neutral-300 px-4 py-3"
@@ -398,7 +403,7 @@ export default function AccountPage({ mode }) {
                   />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
+                  <FieldLabel required>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
                   <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
                 </label>
               </div>
@@ -406,16 +411,16 @@ export default function AccountPage({ mode }) {
 
             <FormSection title="பங்கு மற்றும் பகுதி / Role and Area">
               <label className="grid gap-2">
-                <FieldLabel>பங்கு / Requested Role</FieldLabel>
+                <FieldLabel required>பங்கு / Requested Role</FieldLabel>
                 <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2">
-                  <FieldLabel>மாநிலம் / State</FieldLabel>
+                  <FieldLabel required>மாநிலம் / State</FieldLabel>
                   <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={bilingualName(tamilNaduState)} />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel>மாவட்டம் / District</FieldLabel>
+                  <FieldLabel required>மாவட்டம் / District</FieldLabel>
                   <SearchSelect
                     onChange={(value) => {
                       setDistrictCode(value)
@@ -429,7 +434,7 @@ export default function AccountPage({ mode }) {
                 </label>
                 {needsTaluk && (
                   <label className="grid gap-2">
-                    <FieldLabel>தாலுகா / Taluk</FieldLabel>
+                    <FieldLabel required>தாலுகா / Taluk</FieldLabel>
                     <SearchSelect
                       disabled={!districtCode}
                       onChange={(value) => {
@@ -444,7 +449,7 @@ export default function AccountPage({ mode }) {
                 )}
                 {needsVillage && (
                   <label className="grid gap-2">
-                    <FieldLabel>கிராமம் / Village</FieldLabel>
+                    <FieldLabel required>கிராமம் / Village</FieldLabel>
                     <SearchSelect disabled={!talukCode} onChange={setVillageCode} options={villageOptions} placeholder="கிராமம் தேடவும் / Search village" value={villageCode} />
                   </label>
                 )}
@@ -454,11 +459,11 @@ export default function AccountPage({ mode }) {
             <FormSection title="முகவரி / Address">
               <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
                 <label className="grid gap-2">
-                  <FieldLabel>அஞ்சல் குறியீடு / Pincode</FieldLabel>
+                  <FieldLabel required>அஞ்சல் குறியீடு / Pincode</FieldLabel>
                   <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
                 </label>
                 <label className="grid gap-2">
-                  <FieldLabel>முழு முகவரி / Full Address</FieldLabel>
+                  <FieldLabel required>முழு முகவரி / Full Address</FieldLabel>
                   <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
                 </label>
               </div>
@@ -469,7 +474,7 @@ export default function AccountPage({ mode }) {
                 <DocumentUpload accept="image/*" file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file) => updateSignupField('photo', file)} required />
                 <div className="grid content-start gap-4">
                   <label className="grid gap-2">
-                    <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
+                    <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
                     <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
                   </label>
                   <label className="grid gap-2">
@@ -511,7 +516,7 @@ export default function AccountPage({ mode }) {
               <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="grid gap-2">
-                    <FieldLabel>கடவுச்சொல் / Password</FieldLabel>
+                    <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
                     <input
                       className="min-w-0 border border-neutral-300 px-4 py-3"
                       onChange={(event) => updateSignupField('password', event.target.value)}
@@ -522,7 +527,7 @@ export default function AccountPage({ mode }) {
                     />
                   </label>
                   <label className="grid gap-2">
-                    <FieldLabel>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
+                    <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
                     <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />
                   </label>
                 </div>
