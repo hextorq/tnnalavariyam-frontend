@@ -56,9 +56,7 @@ const documentConfig = {
 
 const signupProgressSteps = [
   { id: 'checking', label: 'விவரங்கள் சரிபார்ப்பு / Checking details' },
-  { id: 'photo', label: 'புகைப்படம் தயார் செய்கிறது / Preparing photo' },
-  { id: 'document', label: 'ஆவணம் தயார் செய்கிறது / Preparing document' },
-  { id: 'uploading', label: 'கோப்புகள் மற்றும் விவரங்கள் பதிவேற்றம் / Uploading files and data' },
+  { id: 'uploading', label: 'விவரங்கள் சமர்ப்பிக்கப்படுகிறது / Submitting details' },
   { id: 'processing', label: 'சர்வர் செயலாக்கம் / Server processing' },
 ]
 
@@ -199,7 +197,7 @@ function validateFile(file, config) {
   return ''
 }
 
-function DocumentUpload({ file, label, onChange, required = false, uploadConfig, uploadState }) {
+function DocumentUpload({ file, label, onChange, required = false, uploadConfig }) {
   const inputRef = useRef(null)
   const [previewUrl, setPreviewUrl] = useState('')
 
@@ -254,15 +252,6 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig,
                 <p className="mt-1 text-xs font-normal text-neutral-600">
                   {file.type || 'Selected file'}{file.size ? ` - ${formatFileSize(file.size)}` : ''}
                 </p>
-                {uploadState?.status === 'uploading' && (
-                  <p className="mt-1 text-xs font-bold text-[#007cba]">Preparing file... {uploadState.progress || 0}%</p>
-                )}
-                {uploadState?.status === 'ready' && (
-                  <p className="mt-1 text-xs font-bold text-emerald-700">Ready for instant submission</p>
-                )}
-                {uploadState?.status === 'error' && (
-                  <p className="mt-1 text-xs font-bold text-red-700">{uploadState.error || 'File preparation failed'}</p>
-                )}
               </div>
               <div className="flex shrink-0 gap-2">
                 <button className="inline-flex items-center gap-2 border border-neutral-300 px-3 py-2 text-xs font-bold" onClick={openPicker} type="button">
@@ -617,9 +606,7 @@ export default function AccountPage({ mode }) {
         return
       }
 
-      setUploadPhase('photo')
       const preparedPhotoPath = preuploads.photo.path || await uploadPromisesRef.current.photo
-      setUploadPhase('document')
       const preparedIdProofPath = preuploads.idProof.path || await uploadPromisesRef.current.idProof
 
       const payload = new FormData()
@@ -834,7 +821,7 @@ export default function AccountPage({ mode }) {
 
             <FormSection title="ஆவணங்கள் / Documents">
               <div className="grid gap-4 lg:grid-cols-2">
-                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} uploadState={preuploads.photo} />
+                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} />
                 <div className="grid content-start gap-4">
                   <label className="grid gap-2">
                     <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
@@ -846,7 +833,7 @@ export default function AccountPage({ mode }) {
                   </label>
                 </div>
               </div>
-              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} uploadState={preuploads.idProof} />
+              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} />
             </FormSection>
           </>
         )}
