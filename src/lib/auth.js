@@ -41,9 +41,21 @@ export function saveProfilePhoto(photoUrl) {
   }
 }
 
+export function getUploadUrl(path) {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path) || path.startsWith('data:')) return path
+  const apiBase = import.meta.env.VITE_API_URL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api'
+  const siteBase = apiBase.replace(/\/api\/?$/, '/')
+  return new URL(path.replace(/^\//, ''), siteBase).href
+}
+
 export function getProfilePhoto(user) {
   const profilePhotoKey = getProfilePhotoKey(user)
-  return (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || localStorage.getItem(PENDING_PROFILE_PHOTO_KEY) || ''
+  const localPhoto = (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || localStorage.getItem(PENDING_PROFILE_PHOTO_KEY) || ''
+  if (localPhoto) return localPhoto
+  const serverPhoto = user?.photoPath || user?.photo || user?.photoUrl || ''
+  if (serverPhoto) return getUploadUrl(serverPhoto)
+  return ''
 }
 
 export function clearProfilePhoto(user) {
