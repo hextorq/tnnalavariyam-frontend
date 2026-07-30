@@ -138,8 +138,8 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
 
       <div className="p-4 sm:p-5">
         <div className={`flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-slate-950">
-            {getUserInitials(user)}
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-slate-950">
+            {getProfilePhoto(user) ? <img alt="Profile" className="h-full w-full object-cover" src={getProfilePhoto(user)} /> : getUserInitials(user)}
           </div>
           <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
             <p className="truncate text-base font-bold">{getUserDisplayName(user)}</p>
@@ -208,17 +208,22 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
   )
 }
 
-function UserImageCard({ user }) {
+function UserImageCard({ onProfilePhotoChange, user }) {
   const inputRef = useRef(null)
-  const [previewUrl, setPreviewUrl] = useState(() => getProfilePhoto())
+  const [previewUrl, setPreviewUrl] = useState(() => getProfilePhoto(user))
+
+  useEffect(() => {
+    setPreviewUrl(getProfilePhoto(user))
+  }, [user])
 
   function openPicker() {
     inputRef.current?.click()
   }
 
   function clearImage() {
-    clearProfilePhoto()
+    clearProfilePhoto(user)
     setPreviewUrl('')
+    onProfilePhotoChange?.('')
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -234,6 +239,7 @@ function UserImageCard({ user }) {
       if (typeof reader.result === 'string') {
         saveProfilePhoto(reader.result)
         setPreviewUrl(reader.result)
+        onProfilePhotoChange?.(reader.result)
       }
     }
     reader.readAsDataURL(file)
@@ -1049,6 +1055,18 @@ export default function DashboardPage() {
   const user = getSession()?.user
   const isAdmin = adminRoles.has(user?.role)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => getProfilePhoto(user))
+
+  useEffect(() => {
+    const syncProfilePhoto = () => setProfilePhotoUrl(getProfilePhoto(user))
+    syncProfilePhoto()
+    window.addEventListener('authchange', syncProfilePhoto)
+    window.addEventListener('storage', syncProfilePhoto)
+    return () => {
+      window.removeEventListener('authchange', syncProfilePhoto)
+      window.removeEventListener('storage', syncProfilePhoto)
+    }
+  }, [user])
 
   const scrollToSection = useCallback((sectionId) => {
     const element = document.getElementById(sectionId)
@@ -1091,7 +1109,7 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <UserImageCard user={user} />
+          <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
 
           <section id="check-status">
             <CheckStatusPanel />
