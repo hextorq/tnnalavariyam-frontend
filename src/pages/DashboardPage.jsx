@@ -111,7 +111,7 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
   ]
 
   return (
-    <aside className={`sticky top-4 self-start rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
+    <aside className={`sticky top-4 self-start overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
       <div className="flex items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5">
         <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
           <p className="text-sm font-bold uppercase tracking-[0.24em] text-white/45">User Panel</p>
@@ -129,7 +129,7 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
       </div>
 
       <div className="p-4 sm:p-5">
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className={`flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
           <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-slate-950">
             {getUserInitials(user)}
           </div>
@@ -234,7 +234,7 @@ function UserImageCard({ user }) {
       <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Update</p>
-          <h2 className="mt-1 text-lg font-bold text-slate-950">Upload your image</h2>
+          <h2 className="mt-1 text-lg font-bold text-slate-950">Upload your image first</h2>
         </div>
         <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={openPicker} type="button">
           <Upload size={16} />
@@ -242,7 +242,7 @@ function UserImageCard({ user }) {
         </button>
       </div>
 
-      <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[260px_minmax(0,1fr)]">
         <input ref={inputRef} accept="image/*" className="sr-only" onChange={handleFileChange} type="file" />
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
           {previewUrl ? (
@@ -277,7 +277,7 @@ function UserImageCard({ user }) {
           </div>
 
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate-600">
-            Profile photo, application work and tracking shortcuts are now grouped into one dashboard flow.
+            Upload the user photo here first. The rest of the dashboard stays available below for applications, status and review actions.
           </div>
         </div>
       </div>
