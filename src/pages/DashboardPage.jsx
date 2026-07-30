@@ -111,35 +111,38 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
   ]
 
   return (
-    <aside className={`sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
-      <div className="flex items-center justify-between gap-3 border-b border-slate-800 p-4">
+    <aside className={`sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-72'}`}>
+      <div className={`flex items-center justify-between gap-3 border-b border-slate-800 ${collapsed ? 'p-3 lg:justify-center' : 'p-4'}`}>
         <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
           <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
         </div>
         <button
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
           onClick={onCollapseToggle}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           type="button"
         >
           {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
         </button>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="grid gap-1.5">
+      <nav className={`min-h-0 flex-1 overflow-y-auto ${collapsed ? 'p-3' : 'p-4'}`}>
+        <div className="grid gap-2">
           {items.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
             return (
               <button
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${isActive ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+                aria-label={item.label}
+                className={`flex min-w-0 items-center gap-3 rounded-2xl text-left text-sm font-semibold transition ${collapsed ? 'h-14 w-full justify-center p-0' : 'px-3 py-2.5'} ${isActive ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
+                title={collapsed ? item.label : undefined}
                 type="button"
               >
-                <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800'}`}>
+                <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'}`}>
                   <Icon size={16} />
                 </span>
                 <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
@@ -152,11 +155,13 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
         </div>
       </nav>
 
-      <div className="border-t border-slate-800 p-3">
-        <div className={`flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 p-2 ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`border-t border-slate-800 ${collapsed ? 'p-3' : 'p-3'}`}>
+        <div className={`rounded-2xl border border-slate-800 bg-slate-900/40 p-2 ${collapsed ? 'grid justify-items-center gap-2' : 'flex items-center gap-2'}`}>
           <button
-            className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-semibold transition ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-800 hover:text-white'} ${collapsed ? 'hidden lg:flex lg:justify-center' : ''}`}
+            aria-label="Profile update"
+            className={`flex min-w-0 items-center gap-3 rounded-xl text-left text-sm font-semibold transition ${collapsed ? 'size-12 justify-center p-0' : 'flex-1 px-2 py-2'} ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
             onClick={() => onNavigate('profile-image')}
+            title={collapsed ? 'Profile update' : undefined}
             type="button"
           >
             <span className={`inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full ${activeTab === 'profile-image' ? 'bg-white/20 text-white' : 'bg-white text-slate-950'}`}>
@@ -170,8 +175,9 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
 
           <button
             aria-label="Logout"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-slate-800 text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200"
+            className={`${collapsed ? 'size-12' : 'size-10'} inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-950/40 text-slate-300 transition hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-200`}
             onClick={onLogout}
+            title="Logout"
             type="button"
           >
             <LogOut size={17} />
