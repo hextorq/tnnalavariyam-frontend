@@ -577,13 +577,13 @@ function AdminPanel({ user }) {
 
   return (
     <section className="grid gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <Panel>
           <PanelHeader
             action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
@@ -735,7 +735,7 @@ function PartnerPanel({ user }) {
 
   return (
     <section className="grid gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
         ))}
@@ -828,7 +828,7 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row text-slate-900">
+    <div className="flex min-h-screen w-full bg-slate-100 text-slate-900 lg:h-screen lg:overflow-hidden">
       <DashboardSidebar
         activeTab={activeTab}
         collapsed={sidebarCollapsed}
@@ -838,11 +838,11 @@ export default function DashboardPage() {
         user={user}
       />
 
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+      <main className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto p-3 sm:p-5 lg:h-screen lg:p-6 xl:p-8">
         {activeTab === 'dashboard-overview' && (
           <>
             {/* Header Banner */}
-            <section id="dashboard-overview" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
+            <section id="dashboard-overview" className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
@@ -850,7 +850,7 @@ export default function DashboardPage() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span>. {roleLabels[user?.role] || user?.role} access active.
                   </p>
-                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
+                  <p className="mt-1 max-w-5xl text-sm leading-6 text-slate-500">
                     {isAdmin ? roleScopeLabels[user?.role] : 'Select an application form below, track submitted requests, or manage your profile.'}
                   </p>
                 </div>
@@ -877,7 +877,7 @@ export default function DashboardPage() {
                 eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
                 title="Select Application Form / விண்ணப்பத்தை தேர்வு செய்க"
               />
-              <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {applicationForms.map((form) => (
                   <Link
                     className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-white hover:shadow-md"
