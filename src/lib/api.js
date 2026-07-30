@@ -6,7 +6,8 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  config.metadata = { startedAt: performance.now() }
+  const fullUrl = new URL(config.url || '', config.baseURL || window.location.origin).href
+  config.metadata = { fullUrl, startedAt: performance.now() }
   const token = getSession()?.token
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
@@ -32,6 +33,7 @@ function logApiTiming(responseOrError) {
   const networkAndBrowserTimeMs = serverProcessingTimeMs === null
     ? null
     : Math.max(0, Math.round((clientTotalMs - serverProcessingTimeMs) * 100) / 100)
+  const resourceTiming = getResourceTiming(config.metadata.fullUrl, startedAt)
 
   console.info('[API timing]', {
     method: config.method?.toUpperCase(),
@@ -41,7 +43,34 @@ function logApiTiming(responseOrError) {
     serverProcessingTimeMs,
     dbRoundTripTimeMs,
     networkAndBrowserTimeMs,
+    resourceTiming,
   })
+}
+
+function roundTiming(value) {
+  return Math.max(0, Math.round(value * 100) / 100)
+}
+
+function getResourceTiming(url, startedAt) {
+  const entries = performance
+    .getEntriesByType('resource')
+    .filter((entry) => entry.name === url && entry.startTime >= startedAt - 5)
+  const entry = entries.at(-1)
+  if (!entry) return null
+
+  return {
+    totalMs: roundTiming(entry.responseEnd - entry.startTime),
+    redirectMs: roundTiming(entry.redirectEnd - entry.redirectStart),
+    dnsMs: roundTiming(entry.domainLookupEnd - entry.domainLookupStart),
+    tcpMs: roundTiming(entry.connectEnd - entry.connectStart),
+    tlsMs: entry.secureConnectionStart > 0 ? roundTiming(entry.connectEnd - entry.secureConnectionStart) : 0,
+    requestUploadMs: roundTiming(entry.responseStart - entry.requestStart),
+    waitToFirstByteMs: roundTiming(entry.responseStart - entry.requestStart),
+    downloadMs: roundTiming(entry.responseEnd - entry.responseStart),
+    transferSize: entry.transferSize,
+    encodedBodySize: entry.encodedBodySize,
+    decodedBodySize: entry.decodedBodySize,
+  }
 }
 
 api.interceptors.response.use(
