@@ -1,5 +1,5 @@
 import Button from '../components/Button.jsx'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
@@ -28,6 +28,46 @@ function bilingualName(item) {
 
 function FieldLabel({ children }) {
   return <span className="text-sm font-semibold text-neutral-700">{children}</span>
+}
+
+function formatFileSize(size) {
+  if (!size) return ''
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function FilePreview({ file, label }) {
+  const [previewUrl, setPreviewUrl] = useState('')
+
+  useEffect(() => {
+    if (!file || !file.type?.startsWith('image/')) {
+      setPreviewUrl('')
+      return undefined
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(file)
+    setPreviewUrl(nextPreviewUrl)
+    return () => URL.revokeObjectURL(nextPreviewUrl)
+  }, [file])
+
+  if (!file) return null
+
+  return (
+    <div className="mt-3 overflow-hidden border border-neutral-200 bg-neutral-50">
+      <div className="grid gap-1 p-3 text-xs text-neutral-600">
+        <p className="font-bold text-neutral-900">{label}</p>
+        <p>{file.name}</p>
+        <p>{file.type || 'Selected file'}{file.size ? ` • ${formatFileSize(file.size)}` : ''}</p>
+      </div>
+      {previewUrl ? (
+        <img className="max-h-64 w-full object-contain bg-white" src={previewUrl} alt={`${label} preview`} />
+      ) : (
+        <div className="border-t border-neutral-200 bg-white p-4 text-sm font-semibold text-neutral-700">
+          {file.type === 'application/pdf' ? 'PDF document selected' : 'Document selected'}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function getConflictMessage(conflicts) {
@@ -259,6 +299,7 @@ export default function AccountPage({ mode }) {
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
               பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo
               <input accept="image/*" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('photo', event.target.files?.[0] || null)} required type="file" />
+              <FilePreview file={signupForm.photo} label="Passport photo preview" />
             </label>
             <label className="grid gap-2 self-end">
               <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
@@ -275,6 +316,7 @@ export default function AccountPage({ mode }) {
             <label className="grid gap-2 text-sm font-semibold text-neutral-700">
               அடையாள ஆவண படம் / ID Proof Image or Document
               <input accept="image/*,.pdf" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('idProof', event.target.files?.[0] || null)} required type="file" />
+              <FilePreview file={signupForm.idProof} label="ID proof preview" />
             </label>
           </>
         )}
