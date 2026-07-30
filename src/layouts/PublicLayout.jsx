@@ -21,23 +21,23 @@ export default function PublicLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 border-b border-sky-900/10 bg-white/85 shadow-[0_14px_45px_rgba(15,23,42,0.10)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-3 sm:px-5">
-          <Link className="group flex min-w-0 max-w-[72vw] shrink items-center gap-3 text-left lg:max-w-md xl:max-w-lg" to="/">
-            <span className="rounded-2xl bg-gradient-to-br from-[#007cba] to-slate-950 p-1 shadow-lg shadow-sky-900/20">
-              <img className="h-10 w-10 shrink-0 rounded-xl border border-white/30 object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" decoding="async" />
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-3 py-3 sm:px-5">
+          <Link className="flex min-w-0 max-w-[72vw] shrink items-center gap-3 text-left lg:max-w-md xl:max-w-lg" to="/">
+            <span className="rounded-lg border border-slate-200 bg-slate-50 p-1">
+              <img className="h-10 w-10 shrink-0 rounded-md object-cover sm:h-11 sm:w-11" src={images.logoLeft} alt="" decoding="async" />
             </span>
             <span className="min-w-0 overflow-hidden">
               <span className="block truncate whitespace-nowrap text-[11px] font-extrabold leading-snug text-slate-950 sm:text-sm md:text-base">{brandName}</span>
               <span className="hidden truncate whitespace-nowrap text-xs font-semibold text-slate-500 md:block">{associationName}</span>
             </span>
           </Link>
-          <nav className="hidden shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50/80 p-1 shadow-inner xl:flex">
+          <nav className="hidden shrink-0 items-center gap-5 xl:flex">
             {navItems.map((item) => (
               <NavLink
                 className={({ isActive }) =>
-                  `rounded-full px-3 py-2 whitespace-nowrap text-xs font-bold leading-tight transition 2xl:text-sm ${
-                    isActive ? 'bg-white text-[#007cba] shadow-sm ring-1 ring-slate-200' : 'text-slate-700 hover:bg-white hover:text-[#007cba]'
+                  `whitespace-nowrap border-b-2 px-0.5 py-2 text-xs font-bold leading-tight transition 2xl:text-sm ${
+                    isActive ? 'border-[#007cba] text-[#007cba]' : 'border-transparent text-slate-700 hover:border-slate-300 hover:text-slate-950'
                   }`
                 }
                 key={item.to}
@@ -48,18 +48,18 @@ export default function PublicLayout({ children }) {
             ))}
           </nav>
           <div className="hidden shrink-0 xl:block">
-            <Link className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#f0ad4e] to-[#f78a0c] px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-amber-500/25 transition hover:-translate-y-0.5" to={loggedIn ? '/app' : '/login'}>
+            <Link className="inline-flex items-center justify-center rounded-md bg-[#f0ad4e] px-5 py-2.5 text-sm font-extrabold text-slate-950 transition hover:bg-[#f78a0c]" to={loggedIn ? '/app' : '/login'}>
               Apply Now
             </Link>
           </div>
-          <button className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-900 shadow-sm xl:hidden" onClick={() => setOpen((value) => !value)} type="button" aria-label="Open menu">
+          <button className="shrink-0 rounded-md border border-slate-300 bg-white p-2 text-slate-900 xl:hidden" onClick={() => setOpen((value) => !value)} type="button" aria-label="Open menu">
             <Menu />
           </button>
         </div>
         {open && (
-          <nav className="grid gap-2 border-t border-slate-200 bg-white/95 px-3 py-4 shadow-lg sm:px-5 xl:hidden">
+          <nav className="grid gap-2 border-t border-slate-200 bg-white px-3 py-4 sm:px-5 xl:hidden">
             {navItems.map((item) => (
-              <NavLink className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800" key={item.to} to={item.to} onClick={() => setOpen(false)}>
+              <NavLink className="rounded-md border border-slate-200 px-3 py-3 text-sm font-bold text-slate-800" key={item.to} to={item.to} onClick={() => setOpen(false)}>
                 {item.label}
               </NavLink>
             ))}
