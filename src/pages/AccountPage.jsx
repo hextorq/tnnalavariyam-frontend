@@ -456,7 +456,7 @@ export default function AccountPage({ mode }) {
   async function deletePreuploadedPath(path) {
     if (!path) return
     try {
-      await api.delete('/auth/uploads/signup-temp', { data: { path } })
+      await api.delete('/auth/uploads/signup-temp', { data: { path }, showLoader: false })
     } catch (error) {
       console.warn('[signup upload cleanup failed]', error.response?.data?.message || error.message)
     }
@@ -471,6 +471,7 @@ export default function AccountPage({ mode }) {
     resetPreupload(field, { status: 'uploading', progress: 0 })
 
     const uploadPromise = api.post('/auth/uploads/signup-temp', payload, {
+      showLoader: false,
       onUploadProgress: (progressEvent) => {
         if (uploadTokensRef.current[field] !== token) return
         const percent = progressEvent.total

@@ -5,11 +5,31 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api',
 })
 
+let activeRequestCount = 0
+
+function emitLoadingChange() {
+  window.dispatchEvent(new CustomEvent('api-loading-change', { detail: { loading: activeRequestCount > 0, count: activeRequestCount } }))
+}
+
+function startLoading(config) {
+  if (config.showLoader === false) return
+  activeRequestCount += 1
+  config.metadata = { ...(config.metadata || {}), loaderStarted: true }
+  emitLoadingChange()
+}
+
+function stopLoading(config) {
+  if (!config?.metadata?.loaderStarted) return
+  activeRequestCount = Math.max(0, activeRequestCount - 1)
+  emitLoadingChange()
+}
+
 api.interceptors.request.use((config) => {
   const fullUrl = new URL(config.url || '', config.baseURL || window.location.origin).href
-  config.metadata = { fullUrl, startedAt: performance.now() }
+  config.metadata = { ...(config.metadata || {}), fullUrl, startedAt: performance.now() }
   const token = getSession()?.token
   if (token) config.headers.Authorization = `Bearer ${token}`
+  startLoading(config)
   return config
 })
 
@@ -76,10 +96,12 @@ function getResourceTiming(url, startedAt) {
 api.interceptors.response.use(
   (response) => {
     logApiTiming(response)
+    stopLoading(response.config)
     return response
   },
   (error) => {
     logApiTiming(error)
+    stopLoading(error.config || error.response?.config)
     return Promise.reject(error)
   },
 )
