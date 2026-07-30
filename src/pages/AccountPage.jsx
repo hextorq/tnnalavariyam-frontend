@@ -1,5 +1,6 @@
 import Button from '../components/Button.jsx'
-import { useEffect, useMemo, useState } from 'react'
+import { Trash2, Upload } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
@@ -31,6 +32,15 @@ function bilingualName(item) {
 
 function FieldLabel({ children }) {
   return <span className="text-sm font-semibold text-neutral-700">{children}</span>
+}
+
+function FormSection({ children, title }) {
+  return (
+    <section className="grid gap-4 border border-neutral-200 bg-white p-4 sm:p-5">
+      <h2 className="border-b border-neutral-200 pb-3 text-base font-bold text-neutral-950">{title}</h2>
+      {children}
+    </section>
+  )
 }
 
 function SearchSelect({ disabled = false, onChange, options, placeholder, value }) {
@@ -100,7 +110,8 @@ function formatFileSize(size) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function FilePreview({ file, label }) {
+function DocumentUpload({ accept, file, label, onChange, required = false }) {
+  const inputRef = useRef(null)
   const [previewUrl, setPreviewUrl] = useState('')
 
   useEffect(() => {
@@ -114,22 +125,67 @@ function FilePreview({ file, label }) {
     return () => URL.revokeObjectURL(nextPreviewUrl)
   }, [file])
 
-  if (!file) return null
+  function openPicker() {
+    inputRef.current?.click()
+  }
+
+  function clearFile() {
+    if (inputRef.current) inputRef.current.value = ''
+    onChange(null)
+  }
 
   return (
-    <div className="mt-3 overflow-hidden border border-neutral-200 bg-neutral-50">
-      <div className="grid gap-1 p-3 text-xs text-neutral-600">
-        <p className="font-bold text-neutral-900">{label}</p>
-        <p>{file.name}</p>
-        <p>{file.type || 'Selected file'}{file.size ? ` • ${formatFileSize(file.size)}` : ''}</p>
+    <div className="grid gap-2 text-sm font-semibold text-neutral-700">
+      <FieldLabel>{label}</FieldLabel>
+      <input
+        accept={accept}
+        className="sr-only"
+        onChange={(event) => onChange(event.target.files?.[0] || null)}
+        ref={inputRef}
+        required={required && !file}
+        type="file"
+      />
+      <div className="overflow-hidden border border-neutral-300 bg-neutral-50">
+        {file ? (
+          <>
+            <div className="flex flex-col gap-3 border-b border-neutral-200 bg-white p-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="truncate font-bold text-neutral-950">{file.name}</p>
+                <p className="mt-1 text-xs font-normal text-neutral-600">
+                  {file.type || 'Selected file'}{file.size ? ` - ${formatFileSize(file.size)}` : ''}
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button className="inline-flex items-center gap-2 border border-neutral-300 px-3 py-2 text-xs font-bold" onClick={openPicker} type="button">
+                  <Upload size={14} />
+                  Reselect
+                </button>
+                <button className="inline-flex items-center gap-2 border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700" onClick={clearFile} type="button">
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              </div>
+            </div>
+            {previewUrl ? (
+              <div className="bg-white p-3">
+                <img className="mx-auto max-h-72 w-full object-contain" src={previewUrl} alt={`${label} preview`} />
+              </div>
+            ) : (
+              <div className="bg-white p-5 text-sm font-semibold text-neutral-700">
+                {file.type === 'application/pdf' ? 'PDF document selected' : 'Document selected'}
+              </div>
+            )}
+          </>
+        ) : (
+          <button className="flex min-h-40 w-full flex-col items-center justify-center gap-3 px-4 py-6 text-center" onClick={openPicker} type="button">
+            <span className="inline-flex size-11 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
+              <Upload size={22} />
+            </span>
+            <span className="font-bold text-neutral-950">Choose file</span>
+            <span className="text-xs font-normal text-neutral-500">Image or document preview will appear here</span>
+          </button>
+        )}
       </div>
-      {previewUrl ? (
-        <img className="max-h-64 w-full object-contain bg-white" src={previewUrl} alt={`${label} preview`} />
-      ) : (
-        <div className="border-t border-neutral-200 bg-white p-4 text-sm font-semibold text-neutral-700">
-          {file.type === 'application/pdf' ? 'PDF document selected' : 'Document selected'}
-        </div>
-      )}
     </div>
   )
 }
@@ -320,103 +376,110 @@ export default function AccountPage({ mode }) {
                 {status.message}
               </div>
             )}
-            <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2">
-              <FieldLabel>முழு பெயர் / Full Name</FieldLabel>
-              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>பயனர் பெயர் / Username</FieldLabel>
-              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>தொலைபேசி எண் / Phone Number</FieldLabel>
-              <input
-                {...phoneInputProps}
-                className="min-w-0 border border-neutral-300 px-4 py-3"
-                onChange={(event) => updateSignupField('phone', normalizePhone(event.target.value))}
-                placeholder="10 digit phone number"
-                required
-                value={signupForm.phone}
-              />
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
-              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
-            </label>
-            </div>
-            <label className="grid gap-2">
-              <FieldLabel>பங்கு / Requested Role</FieldLabel>
-              <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
-            </label>
-            <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2">
-              <FieldLabel>மாநிலம் / State</FieldLabel>
-              <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={bilingualName(tamilNaduState)} />
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>மாவட்டம் / District</FieldLabel>
-              <SearchSelect
-                onChange={(value) => {
-                  setDistrictCode(value)
-                  setTalukCode('')
-                  setVillageCode('')
-                }}
-                options={districtOptions}
-                placeholder="மாவட்டம் தேடவும் / Search district"
-                value={districtCode}
-              />
-            </label>
-            {needsTaluk && (
+            <FormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <FieldLabel>முழு பெயர் / Full Name</FieldLabel>
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>பயனர் பெயர் / Username</FieldLabel>
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>தொலைபேசி எண் / Phone Number</FieldLabel>
+                  <input
+                    {...phoneInputProps}
+                    className="min-w-0 border border-neutral-300 px-4 py-3"
+                    onChange={(event) => updateSignupField('phone', normalizePhone(event.target.value))}
+                    placeholder="10 digit phone number"
+                    required
+                    value={signupForm.phone}
+                  />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+                </label>
+              </div>
+            </FormSection>
+
+            <FormSection title="பங்கு மற்றும் பகுதி / Role and Area">
               <label className="grid gap-2">
-                <FieldLabel>தாலுகா / Taluk</FieldLabel>
-                <SearchSelect
-                  disabled={!districtCode}
-                  onChange={(value) => {
-                    setTalukCode(value)
-                    setVillageCode('')
-                  }}
-                  options={talukOptions}
-                  placeholder="தாலுகா தேடவும் / Search taluk"
-                  value={talukCode}
-                />
+                <FieldLabel>பங்கு / Requested Role</FieldLabel>
+                <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
-            )}
-            {needsVillage && (
-              <label className="grid gap-2">
-                <FieldLabel>கிராமம் / Village</FieldLabel>
-                <SearchSelect disabled={!talukCode} onChange={setVillageCode} options={villageOptions} placeholder="கிராமம் தேடவும் / Search village" value={villageCode} />
-              </label>
-            )}
-            </div>
-            <label className="grid gap-2">
-              <FieldLabel>அஞ்சல் குறியீடு / Pincode</FieldLabel>
-              <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>முழு முகவரி / Full Address</FieldLabel>
-              <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
-            </label>
-            <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-semibold text-neutral-700">
-              பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo
-              <input accept="image/*" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('photo', event.target.files?.[0] || null)} required type="file" />
-              <FilePreview file={signupForm.photo} label="Passport photo preview" />
-            </label>
-            <label className="grid gap-2 self-end">
-              <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
-              <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
-            </label>
-            </div>
-            <label className="grid gap-2">
-              <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
-              <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
-            </label>
-            <label className="grid gap-2 text-sm font-semibold text-neutral-700">
-              அடையாள ஆவண படம் / ID Proof Image or Document
-              <input accept="image/*,.pdf" className="border border-neutral-300 px-4 py-3 font-normal" onChange={(event) => updateSignupField('idProof', event.target.files?.[0] || null)} required type="file" />
-              <FilePreview file={signupForm.idProof} label="ID proof preview" />
-            </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <FieldLabel>மாநிலம் / State</FieldLabel>
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={bilingualName(tamilNaduState)} />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>மாவட்டம் / District</FieldLabel>
+                  <SearchSelect
+                    onChange={(value) => {
+                      setDistrictCode(value)
+                      setTalukCode('')
+                      setVillageCode('')
+                    }}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={districtCode}
+                  />
+                </label>
+                {needsTaluk && (
+                  <label className="grid gap-2">
+                    <FieldLabel>தாலுகா / Taluk</FieldLabel>
+                    <SearchSelect
+                      disabled={!districtCode}
+                      onChange={(value) => {
+                        setTalukCode(value)
+                        setVillageCode('')
+                      }}
+                      options={talukOptions}
+                      placeholder="தாலுகா தேடவும் / Search taluk"
+                      value={talukCode}
+                    />
+                  </label>
+                )}
+                {needsVillage && (
+                  <label className="grid gap-2">
+                    <FieldLabel>கிராமம் / Village</FieldLabel>
+                    <SearchSelect disabled={!talukCode} onChange={setVillageCode} options={villageOptions} placeholder="கிராமம் தேடவும் / Search village" value={villageCode} />
+                  </label>
+                )}
+              </div>
+            </FormSection>
+
+            <FormSection title="முகவரி / Address">
+              <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
+                <label className="grid gap-2">
+                  <FieldLabel>அஞ்சல் குறியீடு / Pincode</FieldLabel>
+                  <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('pincode', event.target.value)} placeholder="Pincode" required value={signupForm.pincode} />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>முழு முகவரி / Full Address</FieldLabel>
+                  <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
+                </label>
+              </div>
+            </FormSection>
+
+            <FormSection title="ஆவணங்கள் / Documents">
+              <div className="grid gap-4 lg:grid-cols-2">
+                <DocumentUpload accept="image/*" file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file) => updateSignupField('photo', file)} required />
+                <div className="grid content-start gap-4">
+                  <label className="grid gap-2">
+                    <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
+                    <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
+                  </label>
+                  <label className="grid gap-2">
+                    <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
+                    <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+                  </label>
+                </div>
+              </div>
+              <DocumentUpload accept="image/*,.pdf" file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file) => updateSignupField('idProof', file)} required />
+            </FormSection>
           </>
         )}
         {mode === 'reset' ? (
@@ -444,24 +507,36 @@ export default function AccountPage({ mode }) {
                 />
               </>
             )}
-            <label className="grid gap-2">
-              {mode === 'register' && <FieldLabel>கடவுச்சொல் / Password</FieldLabel>}
-              <input
-                className="min-w-0 border border-neutral-300 px-4 py-3"
-                onChange={(event) => {
-                  if (mode === 'register') updateSignupField('password', event.target.value)
-                  if (mode === 'login') setLoginForm((current) => ({ ...current, password: event.target.value }))
-                }}
-                placeholder="Password"
-                required={mode !== 'reset'}
-                type="password"
-                value={mode === 'register' ? signupForm.password : mode === 'login' ? loginForm.password : undefined}
-              />
-            </label>
-            {mode === 'register' && (
+            {mode === 'register' ? (
+              <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-2">
+                    <FieldLabel>கடவுச்சொல் / Password</FieldLabel>
+                    <input
+                      className="min-w-0 border border-neutral-300 px-4 py-3"
+                      onChange={(event) => updateSignupField('password', event.target.value)}
+                      placeholder="Password"
+                      required
+                      type="password"
+                      value={signupForm.password}
+                    />
+                  </label>
+                  <label className="grid gap-2">
+                    <FieldLabel>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
+                    <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />
+                  </label>
+                </div>
+              </FormSection>
+            ) : (
               <label className="grid gap-2">
-                <FieldLabel>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
-                <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />
+                <input
+                  className="min-w-0 border border-neutral-300 px-4 py-3"
+                  onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
+                  placeholder="Password"
+                  required
+                  type="password"
+                  value={loginForm.password}
+                />
               </label>
             )}
           </>
