@@ -6,7 +6,7 @@ import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { ArrowLeft, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, Upload } from 'lucide-react'
+import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 const dobProofOptions = [
@@ -189,22 +189,16 @@ function DobInput({ value, onChange }) {
 function CameraCapture({ preview, onCapture }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
-  const [stream, setStream] = useState(null)
-  const [captured, setCaptured] = useState(!!preview)
+  const [mode, setMode] = useState(preview ? 'captured' : 'idle')
 
-  useEffect(() => {
-    if (captured) return
+  function startCamera() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
       .then((s) => {
-        setStream(s)
         if (videoRef.current) videoRef.current.srcObject = s
+        setMode('streaming')
       })
       .catch(() => {})
-
-    return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop())
-    }
-  }, [captured])
+  }
 
   function handleCapture() {
     const video = videoRef.current
@@ -215,16 +209,17 @@ function CameraCapture({ preview, onCapture }) {
     canvas.getContext('2d').drawImage(video, 0, 0)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
     onCapture(dataUrl)
-    setCaptured(true)
+    setMode('captured')
+    const stream = video.srcObject
     if (stream) stream.getTracks().forEach((t) => t.stop())
   }
 
   function handleRetake() {
-    setCaptured(false)
+    setMode('idle')
     onCapture('')
   }
 
-  if (captured && preview) {
+  if (mode === 'captured' && preview) {
     return (
       <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
         <span>Live Photo / நேரடி புகைப்படம்</span>
@@ -238,16 +233,28 @@ function CameraCapture({ preview, onCapture }) {
     )
   }
 
+  if (mode === 'streaming') {
+    return (
+      <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
+        <span>Live Photo / நேரடி புகைப்படம்</span>
+        <div className="relative rounded-lg border border-neutral-300 bg-black overflow-hidden">
+          <video autoPlay muted playsInline ref={videoRef} className="w-full" />
+          <canvas ref={canvasRef} className="hidden" />
+          <button className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-6 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleCapture} type="button">
+            Capture / பிடிக்கவும்
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
       <span>Live Photo / நேரடி புகைப்படம்</span>
-      <div className="relative rounded-lg border border-neutral-300 bg-black overflow-hidden">
-        <video autoPlay muted playsInline ref={videoRef} className="w-full" />
-        <canvas ref={canvasRef} className="hidden" />
-        <button className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-6 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleCapture} type="button">
-          Capture / பிடிக்கவும்
-        </button>
-      </div>
+      <button className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm font-bold text-neutral-600 hover:border-[#007cba] hover:text-[#007cba]" onClick={startCamera} type="button">
+        <Camera size={20} />
+        Capture Live Photo / நேரடி புகைப்படம் பிடிக்க
+      </button>
     </div>
   )
 }
@@ -671,12 +678,6 @@ export default function ApplicationFormPage({ formId }) {
                   Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
                 </FileField>
 
-                <CameraCapture
-                  onCapture={(dataUrl) => {
-                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                  }}
-                  preview={previews.livePhoto}
-                />
               </div>
 
               <div className="grid gap-5 md:grid-cols-3 items-start">
@@ -768,6 +769,15 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Signature / கையொப்பம்
                 </FileField>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-1 items-start">
+                <CameraCapture
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
+                  preview={previews.livePhoto}
+                />
               </div>
             </Section>
           )}
