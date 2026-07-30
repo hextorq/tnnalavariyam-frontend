@@ -86,14 +86,9 @@ function SelectField({ children, options, className = '', required = false, ...p
 export default function ApplicationFormPage({ formId }) {
   if (!isAuthenticated()) return <AuthRequired />
 
-  const initialFormType = formId === 'renewal' ? 'renewal' : 'new-registration'
-  const [formType, setFormType] = useState(initialFormType)
-
-  useEffect(() => {
-    if (formId) {
-      setFormType(formId === 'renewal' ? 'renewal' : 'new-registration')
-    }
-  }, [formId])
+  const { notify } = useNotifications()
+  const form = applicationForms.find((item) => item.id === formId) || applicationForms[0]
+  const currentKey = form.id
 
   const [formData, setFormData] = useState({
     workerName: '',
@@ -108,6 +103,7 @@ export default function ApplicationFormPage({ formId }) {
     nomineeName: '',
     upiTransactionId: '',
     declared: false,
+    customData: {},
   })
 
   const [previews, setPreviews] = useState({
@@ -126,11 +122,15 @@ export default function ApplicationFormPage({ formId }) {
   const [submitting, setSubmitting] = useState(false)
   const [submittedAppNo, setSubmittedAppNo] = useState('')
 
-  const isRenewal = formType === 'renewal'
-  const currentForm = applicationForms.find((item) => item.id === formType) || applicationForms[0]
-
   function handleInputChange(field, value) {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function handleCustomChange(field, value) {
+    setFormData((prev) => ({
+      ...prev,
+      customData: { ...prev.customData, [field]: value },
+    }))
   }
 
   function handleFileSelect(field, event) {
@@ -177,7 +177,7 @@ export default function ApplicationFormPage({ formId }) {
     try {
       setSubmitting(true)
       const payload = {
-        formKey: formType,
+        formKey: currentKey,
         applicantData: {
           workerName: formData.workerName.trim(),
           district: formData.district,
@@ -189,10 +189,11 @@ export default function ApplicationFormPage({ formId }) {
           subCaste: formData.subCaste,
           workerJob: formData.workerJob,
           nomineeName: formData.nomineeName,
-          mode: isRenewal ? 'Renewal' : 'New Registration',
+          customData: formData.customData,
+          formTitle: form.tamilTitle || form.title,
         },
         paymentData: {
-          amount: 150,
+          amount: form.fee || 150,
           upiTransactionId: formData.upiTransactionId.trim(),
         },
         paymentReference: formData.upiTransactionId.trim(),
@@ -233,7 +234,7 @@ export default function ApplicationFormPage({ formId }) {
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <button
-              className="rounded-lg bg-[#007cba] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
+              className="rounded-xl bg-[#007cba] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
               onClick={() => navigate('/app')}
               type="button"
             >
@@ -245,6 +246,9 @@ export default function ApplicationFormPage({ formId }) {
     )
   }
 
+  const isRenewal = currentKey === 'renewal'
+  const isNewRegistration = currentKey === 'new-registration'
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-100 to-white px-3 py-6 sm:px-5 sm:py-10">
       <form className="mx-auto max-w-5xl rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-8" onSubmit={handleSubmit}>
@@ -252,7 +256,7 @@ export default function ApplicationFormPage({ formId }) {
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">TN Nalavariyam / தமிழ்நாடு நலவாரியம்</p>
             <h1 className="mt-1 text-2xl font-bold text-neutral-950 sm:text-3xl">
-              {isRenewal ? 'Renewal / புதுப்பித்தல்' : 'New Application Registration / புதிய விண்ணப்பப் பதிவு'}
+              {form.tamilTitle} / {form.title}
             </h1>
           </div>
           <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-bold text-neutral-800 shadow-sm transition hover:border-[#007cba] hover:text-[#007cba]" to="/app">
@@ -261,36 +265,14 @@ export default function ApplicationFormPage({ formId }) {
           </Link>
         </div>
 
-        {/* Mode Selector Tabs */}
-        <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-2xl border border-neutral-300 bg-neutral-100 p-1">
-          <button
-            className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-              isRenewal ? 'bg-[#007cba] text-white shadow-md' : 'bg-transparent text-neutral-700 hover:text-neutral-950'
-            }`}
-            onClick={() => setFormType('renewal')}
-            type="button"
-          >
-            Renewal / புதுப்பித்தல்
-          </button>
-          <button
-            className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
-              !isRenewal ? 'bg-[#007cba] text-white shadow-md' : 'bg-transparent text-neutral-700 hover:text-neutral-950'
-            }`}
-            onClick={() => setFormType('new-registration')}
-            type="button"
-          >
-            New Application Registration / புதிய விண்ணப்பப் பதிவு
-          </button>
-        </div>
-
         <div className="mt-6 grid gap-4 border border-neutral-200 bg-neutral-50 p-4 rounded-2xl md:grid-cols-3">
           <div>
-            <p className="text-xs font-bold uppercase text-neutral-500">Application Mode</p>
-            <p className="mt-1 text-sm font-bold text-neutral-950">{isRenewal ? 'Renewal / புதுப்பித்தல்' : 'New Registration / புதிய பதிவு'}</p>
+            <p className="text-xs font-bold uppercase text-neutral-500">Application Name</p>
+            <p className="mt-1 text-sm font-bold text-neutral-950">{form.tamilTitle}</p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Fee Amount / கட்டணம்</p>
-            <p className="mt-1 text-sm font-bold text-[#007cba]">₹150</p>
+            <p className="mt-1 text-sm font-bold text-[#007cba]">{form.fee ? `₹${form.fee}` : 'Based on course'}</p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Processing</p>
@@ -299,190 +281,294 @@ export default function ApplicationFormPage({ formId }) {
         </div>
 
         <div className="mt-8 grid gap-8">
-          {/* Section 1: Worker Details */}
-          <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                onChange={(e) => handleInputChange('workerName', e.target.value)}
-                placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
-                required
-                type="text"
-                value={formData.workerName}
-              >
-                Worker Name / தொழிலாளியின் பெயர்
-              </Field>
-
-              <SelectField
-                onChange={(e) => handleInputChange('district', e.target.value)}
-                options={tamilNaduDistricts}
-                required
-                value={formData.district}
-              >
-                District / மாவட்டம்
-              </SelectField>
-
-              <Field
-                {...phoneInputProps}
-                onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
-                placeholder="10 digit mobile number"
-                required
-                value={formData.phone}
-              >
-                Phone no / அலைபேசி எண்
-              </Field>
-
-              <Field
-                onChange={(e) => handleInputChange('dob', e.target.value)}
-                type="date"
-                value={formData.dob}
-              >
-                Date of Birth / பிறந்த தேதி
-              </Field>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <FileField
-                accept="image/*"
-                onChange={(e) => handleFileSelect('photo', e)}
-                preview={previews.photo}
-              >
-                Photo / புகைப்படம்
-              </FileField>
-
-              <div className="grid gap-4">
-                <SelectField
-                  onChange={(e) => handleInputChange('dobProofType', e.target.value)}
-                  options={dobProofOptions}
-                  value={formData.dobProofType}
+          {/* Dedicated Renewal Form View */}
+          {isRenewal && (
+            <Section eyebrow="Renewal Details" title="Renewal / புதுப்பித்தல் விவரங்கள்">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  onChange={(e) => handleInputChange('workerName', e.target.value)}
+                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.workerName}
                 >
-                  Document for Date of Birth / பிறந்த தேதிக்கான ஆவணம் (Select Proof Type / ஆவண வகையைத் தேர்ந்தெடுக்கவும்)
+                  Worker Name / தொழிலாளியின் பெயர்
+                </Field>
+
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
                 </SelectField>
 
-                <FileField
-                  accept="image/*,.pdf,.doc,.docx"
-                  onChange={(e) => handleFileSelect('dobDocument', e)}
-                  preview={previews.dobDocument}
+                <Field
+                  {...phoneInputProps}
+                  onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
+                  placeholder="10 digit mobile number"
+                  required
+                  value={formData.phone}
                 >
-                  Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
+                  Phone no / அலைபேசி எண்
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('registrationCard', e)}
+                  preview={previews.registrationCard}
+                  required
+                >
+                  Worker Registration Card / தொழிலாளியின் பதிவு அட்டை
+                </FileField>
+
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('aadharCard', e)}
+                  preview={previews.aadharCard}
+                >
+                  Aadhar Card / ஆதார் அட்டை
+                </FileField>
+
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('bankPassbook', e)}
+                  preview={previews.bankPassbook}
+                >
+                  Bank Passbook / வங்கி புத்தகம்
                 </FileField>
               </div>
-            </div>
+            </Section>
+          )}
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <Field
-                onChange={(e) => handleInputChange('religion', e.target.value)}
-                placeholder="மதம்"
-                type="text"
-                value={formData.religion}
-              >
-                Religion / மதம்
-              </Field>
+          {/* Dedicated New Registration Form View */}
+          {isNewRegistration && (
+            <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  onChange={(e) => handleInputChange('workerName', e.target.value)}
+                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.workerName}
+                >
+                  Worker Name / தொழிலாளியின் பெயர்
+                </Field>
 
-              <Field
-                onChange={(e) => handleInputChange('caste', e.target.value)}
-                placeholder="ஜாதி"
-                type="text"
-                value={formData.caste}
-              >
-                Caste / ஜாதி
-              </Field>
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
 
-              <Field
-                onChange={(e) => handleInputChange('subCaste', e.target.value)}
-                placeholder="உட்பிரிவு"
-                type="text"
-                value={formData.subCaste}
-              >
-                Sub-Caste / உட்பிரிவு
-              </Field>
-            </div>
+                <Field
+                  {...phoneInputProps}
+                  onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
+                  placeholder="10 digit mobile number"
+                  required
+                  value={formData.phone}
+                >
+                  Phone no / அலைபேசி எண்
+                </Field>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                onChange={(e) => handleInputChange('workerJob', e.target.value)}
-                placeholder="தொழிலாளியின் வேலை"
-                type="text"
-                value={formData.workerJob}
-              >
-                Worker's job / தொழிலாளியின் வேலை
-              </Field>
+                <Field
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  type="date"
+                  value={formData.dob}
+                >
+                  Date of Birth / பிறந்த தேதி
+                </Field>
+              </div>
 
-              <Field
-                onChange={(e) => handleInputChange('nomineeName', e.target.value)}
-                placeholder="நாமினி பெயர்"
-                type="text"
-                value={formData.nomineeName}
-              >
-                Nominee Name / நாமினி பெயர்
-              </Field>
-            </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('photo', e)}
+                  preview={previews.photo}
+                >
+                  Photo / புகைப்படம்
+                </FileField>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FileField
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileSelect('bankPassbook', e)}
-                preview={previews.bankPassbook}
-              >
-                Bank Passbook / வங்கி புத்தகம்
-              </FileField>
+                <div className="grid gap-4">
+                  <SelectField
+                    onChange={(e) => handleInputChange('dobProofType', e.target.value)}
+                    options={dobProofOptions}
+                    value={formData.dobProofType}
+                  >
+                    Document for Date of Birth / பிறந்த தேதிக்கான ஆவணம் (Select Proof Type / ஆவண வகையைத் தேர்ந்தெடுக்கவும்)
+                  </SelectField>
 
-              <FileField
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileSelect('aadharCard', e)}
-                preview={previews.aadharCard}
-              >
-                Aadhar Card / ஆதார் அட்டை
-              </FileField>
-            </div>
+                  <FileField
+                    accept="image/*,.pdf,.doc,.docx"
+                    onChange={(e) => handleFileSelect('dobDocument', e)}
+                    preview={previews.dobDocument}
+                  >
+                    Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
+                  </FileField>
+                </div>
+              </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FileField
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileSelect('rationCard', e)}
-                preview={previews.rationCard}
-              >
-                Ration card / குடும்ப அட்டை
-              </FileField>
+              <div className="grid gap-4 md:grid-cols-3">
+                <Field
+                  onChange={(e) => handleInputChange('religion', e.target.value)}
+                  placeholder="மதம்"
+                  type="text"
+                  value={formData.religion}
+                >
+                  Religion / மதம்
+                </Field>
 
-              <FileField
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileSelect('registrationCard', e)}
-                preview={previews.registrationCard}
-              >
-                Worker Registration Card / தொழிலாளியின் பதிவு அட்டை
-              </FileField>
-            </div>
+                <Field
+                  onChange={(e) => handleInputChange('caste', e.target.value)}
+                  placeholder="ஜாதி"
+                  type="text"
+                  value={formData.caste}
+                >
+                  Caste / ஜாதி
+                </Field>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FileField
-                accept="image/*,.pdf"
-                onChange={(e) => handleFileSelect('nomineeAadhar', e)}
-                preview={previews.nomineeAadhar}
-              >
-                Nominee's Aadhar Card File / நாமினி ஆதார் அட்டை
-              </FileField>
+                <Field
+                  onChange={(e) => handleInputChange('subCaste', e.target.value)}
+                  placeholder="உட்பிரிவு"
+                  type="text"
+                  value={formData.subCaste}
+                >
+                  Sub-Caste / உட்பிரிவு
+                </Field>
+              </div>
 
-              <FileField
-                accept="image/*"
-                onChange={(e) => handleFileSelect('signature', e)}
-                preview={previews.signature}
-              >
-                Signature / கையொப்பம்
-              </FileField>
-            </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  onChange={(e) => handleInputChange('workerJob', e.target.value)}
+                  placeholder="தொழிலாளியின் வேலை"
+                  type="text"
+                  value={formData.workerJob}
+                >
+                  Worker's job / தொழிலாளியின் வேலை
+                </Field>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FileField
-                accept="image/*"
-                onChange={(e) => handleFileSelect('livePhoto', e)}
-                preview={previews.livePhoto}
-              >
-                Live Photo / நேரடி புகைப்படம்
-              </FileField>
-            </div>
-          </Section>
+                <Field
+                  onChange={(e) => handleInputChange('nomineeName', e.target.value)}
+                  placeholder="நாமினி பெயர்"
+                  type="text"
+                  value={formData.nomineeName}
+                >
+                  Nominee Name / நாமினி பெயர்
+                </Field>
+              </div>
 
-          {/* Section 2: Registration Fee Payment */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('bankPassbook', e)}
+                  preview={previews.bankPassbook}
+                >
+                  Bank Passbook / வங்கி புத்தகம்
+                </FileField>
+
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('aadharCard', e)}
+                  preview={previews.aadharCard}
+                >
+                  Aadhar Card / ஆதார் அட்டை
+                </FileField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('rationCard', e)}
+                  preview={previews.rationCard}
+                >
+                  Ration card / குடும்ப அட்டை
+                </FileField>
+
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('nomineeAadhar', e)}
+                  preview={previews.nomineeAadhar}
+                >
+                  Nominee's Aadhar Card File / நாமினி ஆதார் அட்டை
+                </FileField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('signature', e)}
+                  preview={previews.signature}
+                >
+                  Signature / கையொப்பம்
+                </FileField>
+
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('livePhoto', e)}
+                  preview={previews.livePhoto}
+                >
+                  Live Photo / நேரடி புகைப்படம்
+                </FileField>
+              </div>
+            </Section>
+          )}
+
+          {/* Dedicated View for Other Welfare Assistance Forms */}
+          {!isRenewal && !isNewRegistration && (
+            <Section eyebrow="Application Details" title={`${form.tamilTitle} விவரங்கள்`}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  onChange={(e) => handleInputChange('workerName', e.target.value)}
+                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.workerName}
+                >
+                  Worker Name / தொழிலாளியின் பெயர்
+                </Field>
+
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
+
+                <Field
+                  {...phoneInputProps}
+                  onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
+                  placeholder="10 digit mobile number"
+                  required
+                  value={formData.phone}
+                >
+                  Phone no / அலைபேசி எண்
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {form.fields.map((field) => (
+                  <Field
+                    key={field}
+                    onChange={(e) => handleCustomChange(field, e.target.value)}
+                    placeholder={field}
+                    type="text"
+                  >
+                    {field}
+                  </Field>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Payment Section */}
           <Section eyebrow="Payment Information" title="Registration Fee Payment / பதிவுக் கட்டண செலுத்துதல்">
             <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
               <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
@@ -493,7 +579,7 @@ export default function ApplicationFormPage({ formId }) {
                   src="https://tnthozhilalarservice.com/uploads/qrcodes/68c6543910e47-nv%20qr.jpg"
                 />
                 <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
-                  Pay the amount ₹150 / ₹150 தொகையை செலுத்தவும்
+                  Pay the amount ₹{form.fee || 150} / ₹{form.fee || 150} தொகையை செலுத்தவும்
                 </p>
               </div>
 
