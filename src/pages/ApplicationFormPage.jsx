@@ -19,58 +19,58 @@ const dobProofOptions = [
 ]
 
 const religionOptions = [
-  'இந்து / Hindu',
-  'இஸ்லாம் / Muslim',
-  'கிறிஸ்துவர் / Christian',
-  'சீக்கியர் / Sikh',
-  'புத்தம் / Buddhist',
-  'சமணம் / Jain',
-  'பிற மதம் / Other',
+  { value: 'Hindu', label: 'இந்து / Hindu' },
+  { value: 'Muslim', label: 'இஸ்லாம் / Muslim' },
+  { value: 'Christian', label: 'கிறிஸ்துவர் / Christian' },
+  { value: 'Sikh', label: 'சீக்கியர் / Sikh' },
+  { value: 'Buddhist', label: 'புத்தம் / Buddhist' },
+  { value: 'Jain', label: 'சமணம் / Jain' },
+  { value: 'Other', label: 'பிற மதம் / Other' },
 ]
 
 const casteOptions = [
-  'பொது பிரிவு / General',
-  'பிற்படுத்தப்பட்டோர் / BC',
-  'மிகவும் பிற்படுத்தப்பட்டோர் / MBC',
-  'சீர் மரபினர் / DNC',
-  'பட்டியல் சாதி / SC',
-  'பட்டியல் பழங்குடி / ST',
-  'பிற பிரிவு / Other',
+  { value: 'General', label: 'பொது பிரிவு / General' },
+  { value: 'BC', label: 'பிற்படுத்தப்பட்டோர் / BC' },
+  { value: 'MBC', label: 'மிகவும் பிற்படுத்தப்பட்டோர் / MBC' },
+  { value: 'DNC', label: 'சீர் மரபினர் / DNC' },
+  { value: 'SC', label: 'பட்டியல் சாதி / SC' },
+  { value: 'ST', label: 'பட்டியல் பழங்குடி / ST' },
+  { value: 'Other', label: 'பிற பிரிவு / Other' },
 ]
 
 const subCasteOptions = [
-  'ஆதிதிராவிடர் / Adi Dravidar',
-  'அருந்ததியர் / Arunthathiyar',
-  'வன்னியர் / Vanniyar',
-  'நாடார் / Nadar',
-  'யாதவர் / Yadava',
-  'தேவர் / Thevar',
-  'கவுண்டர் / Gounder',
-  'நாயுடு / Naidu',
-  'முதலியார் / Mudaliar',
-  'பிள்ளை / Pillai',
-  'செட்டியார் / Chettiar',
-  'முஸ்லிம் சமூக பிரிவு / Muslim Community',
-  'கிறிஸ்துவர் சமூக பிரிவு / Christian Community',
-  'பிற உட்பிரிவு / Other',
+  { value: 'Adi Dravidar', label: 'ஆதிதிராவிடர் / Adi Dravidar' },
+  { value: 'Arunthathiyar', label: 'அருந்ததியர் / Arunthathiyar' },
+  { value: 'Vanniyar', label: 'வன்னியர் / Vanniyar' },
+  { value: 'Nadar', label: 'நாடார் / Nadar' },
+  { value: 'Yadava', label: 'யாதவர் / Yadava' },
+  { value: 'Thevar', label: 'தேவர் / Thevar' },
+  { value: 'Gounder', label: 'கவுண்டர் / Gounder' },
+  { value: 'Naidu', label: 'நாயுடு / Naidu' },
+  { value: 'Mudaliar', label: 'முதலியார் / Mudaliar' },
+  { value: 'Pillai', label: 'பிள்ளை / Pillai' },
+  { value: 'Chettiar', label: 'செட்டியார் / Chettiar' },
+  { value: 'Muslim Community', label: 'முஸ்லிம் சமூக பிரிவு / Muslim Community' },
+  { value: 'Christian Community', label: 'கிறிஸ்துவர் சமூக பிரிவு / Christian Community' },
+  { value: 'Other', label: 'பிற உட்பிரிவு / Other' },
 ]
 
 const workerJobOptions = [
-  'கட்டிட மேஸ்திரி / Mason',
-  'கட்டிட உதவியாளர் / Construction Helper',
-  'பெயிண்டர் / Painter',
-  'தச்சர் / Carpenter',
-  'மின்சார தொழிலாளர் / Electrician',
-  'குழாய் தொழிலாளர் / Plumber',
-  'வெல்டர் / Welder',
-  'டைல்ஸ் தொழிலாளர் / Tiles Worker',
-  'கம்பி கட்டுபவர் / Bar Bender',
-  'சென்டரிங் தொழிலாளர் / Centering Worker',
-  'சாலை தொழிலாளர் / Road Worker',
-  'மண் வேலை தொழிலாளர் / Earthwork Labour',
-  'கான்கிரீட் தொழிலாளர் / Concrete Worker',
-  'இயந்திர ஆபரேட்டர் / Machine Operator',
-  'பிற தொழில் / Other',
+  { value: 'Mason', label: 'கட்டிட மேஸ்திரி / Mason' },
+  { value: 'Construction Helper', label: 'கட்டிட உதவியாளர் / Construction Helper' },
+  { value: 'Painter', label: 'பெயிண்டர் / Painter' },
+  { value: 'Carpenter', label: 'தச்சர் / Carpenter' },
+  { value: 'Electrician', label: 'மின்சார தொழிலாளர் / Electrician' },
+  { value: 'Plumber', label: 'குழாய் தொழிலாளர் / Plumber' },
+  { value: 'Welder', label: 'வெல்டர் / Welder' },
+  { value: 'Tiles Worker', label: 'டைல்ஸ் தொழிலாளர் / Tiles Worker' },
+  { value: 'Bar Bender', label: 'கம்பி கட்டுபவர் / Bar Bender' },
+  { value: 'Centering Worker', label: 'சென்டரிங் தொழிலாளர் / Centering Worker' },
+  { value: 'Road Worker', label: 'சாலை தொழிலாளர் / Road Worker' },
+  { value: 'Earthwork Labour', label: 'மண் வேலை தொழிலாளர் / Earthwork Labour' },
+  { value: 'Concrete Worker', label: 'கான்கிரீட் தொழிலாளர் / Concrete Worker' },
+  { value: 'Machine Operator', label: 'இயந்திர ஆபரேட்டர் / Machine Operator' },
+  { value: 'Other', label: 'பிற தொழில் / Other' },
 ]
 
 function Section({ eyebrow, title, children }) {
@@ -95,25 +95,25 @@ function Field({ children, className = '', required = false, ...props }) {
   )
 }
 
-function SearchableTextField({ children, options, inputId, className = '', required = false, ...props }) {
-  const listId = `${inputId}-options`
-
+function SelectField({ children, options, className = '', required = false, ...props }) {
   return (
     <label className={`flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
       <span>
         {children}
         {required && <span className="ml-1 text-red-600">*</span>}
       </span>
-      <input
-        className="w-full rounded-lg border border-neutral-300 px-4 py-3 font-normal outline-none transition focus:border-[#007cba]"
-        list={listId}
-        {...props}
-      />
-      <datalist id={listId}>
-        {options.map((option) => (
-          <option key={option} value={option} />
-        ))}
-      </datalist>
+      <select className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 font-normal text-neutral-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20" {...props}>
+        <option value="">Select an option / தேர்வு செய்யவும்</option>
+        {options.map((option) => {
+          const val = typeof option === 'string' ? option : option.value || option.name
+          const lbl = typeof option === 'string' ? option : option.label || option.name
+          return (
+            <option key={val} value={val}>
+              {lbl}
+            </option>
+          )
+        })}
+      </select>
     </label>
   )
 }
@@ -138,25 +138,6 @@ function FileField({ children, className = '', preview = '', onChange, required 
           </div>
         )}
       </div>
-    </label>
-  )
-}
-
-function SelectField({ children, options, className = '', required = false, ...props }) {
-  return (
-    <label className={`flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
-      <span>
-        {children}
-        {required && <span className="ml-1 text-red-600">*</span>}
-      </span>
-      <select className="w-full rounded-lg border border-neutral-300 px-4 py-3 font-normal outline-none transition focus:border-[#007cba]" {...props}>
-        <option value="">Select an option / தேர்வு செய்யவும்</option>
-        {options.map((option) => (
-          <option key={option.value || option.code} value={option.value || option.name}>
-            {option.label || option.name}
-          </option>
-        ))}
-      </select>
     </label>
   )
 }
@@ -520,51 +501,39 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               <div className="grid gap-5 md:grid-cols-3 items-start">
-                <SearchableTextField
-                  inputId="religion"
+                <SelectField
                   onChange={(e) => handleInputChange('religion', e.target.value)}
                   options={religionOptions}
-                  placeholder="மதம் / Religion"
-                  type="text"
                   value={formData.religion}
                 >
                   Religion / மதம்
-                </SearchableTextField>
+                </SelectField>
 
-                <SearchableTextField
-                  inputId="caste"
+                <SelectField
                   onChange={(e) => handleInputChange('caste', e.target.value)}
                   options={casteOptions}
-                  placeholder="ஜாதி / Caste"
-                  type="text"
                   value={formData.caste}
                 >
                   Caste / ஜாதி
-                </SearchableTextField>
+                </SelectField>
 
-                <SearchableTextField
-                  inputId="sub-caste"
+                <SelectField
                   onChange={(e) => handleInputChange('subCaste', e.target.value)}
                   options={subCasteOptions}
-                  placeholder="உட்பிரிவு / Sub-Caste"
-                  type="text"
                   value={formData.subCaste}
                 >
                   Sub-Caste / உட்பிரிவு
-                </SearchableTextField>
+                </SelectField>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SearchableTextField
-                  inputId="worker-job"
+                <SelectField
                   onChange={(e) => handleInputChange('workerJob', e.target.value)}
                   options={workerJobOptions}
-                  placeholder="தொழிலாளியின் வேலை / Worker's job"
-                  type="text"
                   value={formData.workerJob}
                 >
                   Worker's job / தொழிலாளியின் வேலை
-                </SearchableTextField>
+                </SelectField>
 
                 <Field
                   onChange={(e) => handleInputChange('nomineeName', e.target.value)}
