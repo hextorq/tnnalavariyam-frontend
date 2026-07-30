@@ -293,6 +293,19 @@ function getConflictMessage(conflicts) {
   return `இந்த விவரங்கள் ஏற்கனவே உள்ளது. ${conflictFields.join(', ')}. வேறு விவரம் பயன்படுத்தவும்.`
 }
 
+function getApiErrorMessage(error, fallback) {
+  const issues = error.response?.data?.issues
+  if (Array.isArray(issues) && issues.length) {
+    return issues
+      .map((issue) => {
+        const field = issue.path?.join('.') || 'Field'
+        return `${field}: ${issue.message}`
+      })
+      .join(', ')
+  }
+  return error.response?.data?.message || fallback
+}
+
 export default function AccountPage({ mode }) {
   const title = mode === 'register' ? 'Register' : mode === 'reset' ? 'Forgot Password' : 'Login'
   const [signupForm, setSignupForm] = useState(initialSignupForm)
@@ -382,7 +395,10 @@ export default function AccountPage({ mode }) {
     ]
     const missingField = requiredFields.find(([valid]) => !valid)
     if (missingField) return missingField[1]
+    if (signupForm.fullName.trim().length < 2) return 'முழு பெயர் குறைந்தது 2 எழுத்துகள் வேண்டும். / Full Name must be at least 2 characters.'
+    if (signupForm.username.trim().length < 3) return 'பயனர் பெயர் குறைந்தது 3 எழுத்துகள் வேண்டும். / Username must be at least 3 characters.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupForm.email.trim())) return 'சரியான மின்னஞ்சல் முகவரி உள்ளிடவும். / Enter a valid email address.'
+    if (signupForm.addressLine.trim().length < 5) return 'முழு முகவரி குறைந்தது 5 எழுத்துகள் வேண்டும். / Full Address must be at least 5 characters.'
     if (signupForm.password.length < 6) return 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் வேண்டும். / Password must be at least 6 characters.'
     return ''
   }
@@ -476,7 +492,7 @@ export default function AccountPage({ mode }) {
       setTalukCode('')
       setVillageCode('')
     } catch (error) {
-      const message = error.response?.data?.message || 'பதிவு கோரிக்கை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.'
+      const message = getApiErrorMessage(error, 'பதிவு கோரிக்கை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.')
       setStatus({
         type: 'error',
         message,
