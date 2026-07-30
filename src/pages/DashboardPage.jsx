@@ -1,7 +1,7 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
-import { clearSession, getSession, isAuthenticated } from '../lib/auth.js'
+import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History, Layers3, LayoutDashboard, LogOut, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
@@ -107,11 +107,11 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary' },
     { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
     { id: 'service-portal', icon: FileText, label: 'Application', description: 'Open forms' },
-    { to: '/tracking', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
+    { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
   return (
-    <aside className={`sticky top-4 self-start overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
+    <aside className={`sticky top-6 self-start overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-[width] duration-300 lg:h-[calc(100vh-3rem)] lg:overflow-y-auto ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
       <div className="flex items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5">
         <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
           <p className="text-sm font-bold uppercase tracking-[0.24em] text-white/45">User Panel</p>
@@ -202,18 +202,14 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
 
 function UserImageCard({ user }) {
   const inputRef = useRef(null)
-  const [previewUrl, setPreviewUrl] = useState('')
-
-  useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-  }, [previewUrl])
+  const [previewUrl, setPreviewUrl] = useState(() => getProfilePhoto())
 
   function openPicker() {
     inputRef.current?.click()
   }
 
   function clearImage() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    clearProfilePhoto()
     setPreviewUrl('')
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -225,8 +221,14 @@ function UserImageCard({ user }) {
       return
     }
 
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewUrl(URL.createObjectURL(file))
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        saveProfilePhoto(reader.result)
+        setPreviewUrl(reader.result)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -282,6 +284,137 @@ function UserImageCard({ user }) {
         </div>
       </div>
     </section>
+  )
+}
+
+function CheckStatusPanel() {
+  const [mode, setMode] = useState('application')
+  const [applicationNo, setApplicationNo] = useState('')
+  const [requestNo, setRequestNo] = useState('')
+  const [phone, setPhone] = useState('')
+  const [tracking, setTracking] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const { notify } = useNotifications()
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    const trackingNumber = mode === 'signup' ? requestNo.trim() : applicationNo.trim()
+    if (!trackingNumber) {
+      notify({ type: 'warning', title: 'Tracking Number Required / எண் தேவை', message: mode === 'signup' ? 'Signup request number உள்ளிடவும்.' : 'Application number உள்ளிடவும்.' })
+      return
+    }
+
+    try {
+      setLoading(true)
+      setTracking(null)
+      const params = mode === 'signup'
+        ? { requestNo: trackingNumber, ...(phone ? { phone } : {}) }
+        : { applicationNo: trackingNumber, ...(phone ? { phone } : {}) }
+      const endpoint = mode === 'signup' ? '/auth/signup-requests/track' : '/applications/track'
+      const response = await api.get(endpoint, { params })
+      setTracking(response.data.tracking)
+      notify({ type: 'success', title: 'Status Found / நிலை கிடைத்தது', message: 'உங்கள் விண்ணப்ப நிலை கீழே காட்டப்பட்டுள்ளது.', popup: false })
+    } catch (error) {
+      notify({ type: 'error', title: 'Status Not Found / நிலை கிடைக்கவில்லை', message: error.response?.data?.message || 'Tracking details கிடைக்கவில்லை.' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function formatTrackDate(value) {
+    if (!value) return '-'
+    return new Date(value).toLocaleString('en-IN')
+  }
+
+  return (
+    <Panel>
+      <PanelHeader eyebrow="Check Status" title="Track your request here" />
+      <div className="grid gap-4 p-4 sm:p-5">
+        <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+          {[
+            ['application', 'Application'],
+            ['signup', 'Signup'],
+          ].map(([value, label]) => {
+            const active = mode === value
+            return (
+              <button
+                className={`px-4 py-3 text-sm font-bold ${active ? 'bg-slate-950 text-white' : 'bg-transparent text-slate-700'}`}
+                key={value}
+                onClick={() => {
+                  setMode(value)
+                  setTracking(null)
+                }}
+                type="button"
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
+        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+          {mode === 'application' ? (
+            <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+              <span>Application Number</span>
+              <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setApplicationNo(event.target.value)} placeholder="TNW-20260729-0001" value={applicationNo} />
+            </label>
+          ) : (
+            <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+              <span>Signup Request Number</span>
+              <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setRequestNo(event.target.value)} placeholder="TNSU-20260729-0001" value={requestNo} />
+            </label>
+          )}
+
+          <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+            <span>Registered Mobile Number</span>
+            <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10 digit mobile number" value={phone} />
+          </label>
+
+          <div className="md:col-span-2">
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" disabled={loading} type="submit">
+              <ClipboardCheck size={16} />
+              {loading ? 'Checking...' : 'Track Status'}
+            </button>
+          </div>
+        </form>
+
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+          {tracking ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {(mode === 'signup'
+                ? [
+                    ['Request No', tracking.requestNo],
+                    ['Requested Role', tracking.requestedRole],
+                    ['Scope', tracking.scope],
+                    ['Status', tracking.status],
+                    ['Reason', tracking.reason || '-'],
+                    ['Reviewed By', tracking.reviewedBy?.username || '-'],
+                    ['Reviewed At', formatTrackDate(tracking.reviewedAt)],
+                    ['Created At', formatTrackDate(tracking.createdAt)],
+                  ]
+                : [
+                    ['Application No', tracking.applicationNo],
+                    ['Form', tracking.tamilFormTitle || tracking.formTitle],
+                    ['Applicant', tracking.applicantName || '-'],
+                    ['Scope', tracking.scope || '-'],
+                    ['Status', tracking.status],
+                    ['Payment Status', tracking.paymentStatus],
+                    ['Payment Reference', tracking.paymentReference || '-'],
+                    ['Last Updated', formatTrackDate(tracking.updatedAt)],
+                  ]).map(([label, value]) => (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" key={label}>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
+                  <p className="mt-2 text-sm font-bold text-slate-950">{value}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm leading-6 text-slate-600">Track your signup request or application from this dashboard without leaving the page.</p>
+          )}
+        </div>
+      </div>
+    </Panel>
   )
 }
 
@@ -826,6 +959,10 @@ export default function DashboardPage() {
           </section>
 
           <UserImageCard user={user} />
+
+          <section id="check-status">
+            <CheckStatusPanel />
+          </section>
 
           <section id="dashboard-work" className="space-y-6">
             {isAdmin && <AdminPanel user={user} />}

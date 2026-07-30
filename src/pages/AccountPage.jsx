@@ -3,7 +3,7 @@ import { CheckCircle2, Eye, EyeOff, LoaderCircle, Trash2, Upload } from 'lucide-
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
-import { saveSession } from '../lib/auth.js'
+import { saveProfilePhoto, saveSession } from '../lib/auth.js'
 import { normalizePhone, normalizePincode, phoneInputProps, pincodeInputProps } from '../lib/phone.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
@@ -501,6 +501,16 @@ export default function AccountPage({ mode }) {
     uploadTokensRef.current[field] = Symbol(`${field}-reset`)
     updateSignupFile(field, file, error)
     if (previousPath) deletePreuploadedPath(previousPath)
+
+    if (field === 'photo' && file && !error) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          saveProfilePhoto(reader.result)
+        }
+      }
+      reader.readAsDataURL(file)
+    }
 
     if (error || !file) {
       resetPreupload(field)
