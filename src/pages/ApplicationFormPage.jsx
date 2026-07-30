@@ -86,9 +86,14 @@ function SelectField({ children, options, className = '', required = false, ...p
 export default function ApplicationFormPage({ formId }) {
   if (!isAuthenticated()) return <AuthRequired />
 
-  const { notify } = useNotifications()
   const initialFormType = formId === 'renewal' ? 'renewal' : 'new-registration'
   const [formType, setFormType] = useState(initialFormType)
+
+  useEffect(() => {
+    if (formId) {
+      setFormType(formId === 'renewal' ? 'renewal' : 'new-registration')
+    }
+  }, [formId])
 
   const [formData, setFormData] = useState({
     workerName: '',

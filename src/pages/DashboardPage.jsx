@@ -51,7 +51,7 @@ function StatusPill({ status }) {
 }
 
 function Panel({ children, className = '' }) {
-  return <section className={`min-w-0 rounded-lg border border-slate-200 bg-white shadow-sm ${className}`}>{children}</section>
+  return <section className={`min-w-0 rounded-2xl border border-slate-200 bg-white shadow-xs ${className}`}>{children}</section>
 }
 
 function PanelHeader({ action, eyebrow, title }) {
@@ -76,13 +76,13 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
           <p className="mt-3 text-3xl font-bold text-slate-950">{loading ? '-' : value}</p>
         </div>
-        <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}>
+        <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
           <Icon size={20} />
         </span>
       </div>
@@ -91,7 +91,7 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
 }
 
 function EmptyState({ children }) {
-  return <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
+  return <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
 }
 
 function getUserDisplayName(user) {
@@ -113,7 +113,7 @@ function getUserInitials(user) {
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
   const [formsExpanded, setFormsExpanded] = useState(false)
   const items = [
-    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary' },
+    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
     { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
     { id: 'service-portal', icon: FileText, label: 'Application Forms', description: '6 welfare forms' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
@@ -122,35 +122,35 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
   const profilePhoto = getProfilePhoto(user)
 
   return (
-    <aside className={`sticky top-6 self-start rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-all duration-300 max-h-[calc(100vh-3rem)] flex flex-col justify-between overflow-y-auto ${collapsed ? 'lg:w-20' : 'lg:w-80'}`}>
-      <div className="flex flex-col flex-1 p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
+    <aside className={`sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex flex-col justify-between overflow-y-auto ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
+      <div className="flex flex-col flex-1 p-4">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">User Panel</p>
-            <p className="mt-1 text-xl font-bold leading-tight">My Dashboard</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+            <p className="mt-0.5 text-lg font-bold leading-tight text-white">User Portal</p>
           </div>
           <button
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
             onClick={onCollapseToggle}
             type="button"
           >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
 
         <div className="mt-4">
-          <div className={`flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-slate-950 ring-2 ring-white/20">
+          <div className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
+            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
               {profilePhoto ? (
-                <img alt="Profile" className="h-full w-full object-cover" src={profilePhoto} />
+                <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
               ) : (
-                <span className="font-bold text-slate-900">{getUserInitials(user)}</span>
+                <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
               )}
             </div>
             <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <p className="truncate text-sm font-bold">{getUserDisplayName(user)}</p>
-              <p className="truncate text-xs text-white/60">{roleLabels[user?.role] || user?.role || 'PARTNER'}</p>
+              <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
+              <p className="truncate text-xs text-slate-400">{roleLabels[user?.role] || user?.role || 'PARTNER'}</p>
             </div>
           </div>
 
@@ -158,13 +158,15 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
             {items.map((item) => {
               const Icon = item.icon
               const isActive = activeTab === item.id
-              const commonClasses = `flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                isActive ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25 font-bold' : 'text-white/80 hover:bg-white/10 hover:text-white'
+              const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                isActive
+                  ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
+                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
               } ${collapsed ? 'justify-center' : ''}`
 
               if (item.id === 'service-portal') {
                 return (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03]" key={item.id}>
+                  <div className="rounded-xl border border-slate-800/60 bg-slate-900/30" key={item.id}>
                     <button
                       className={`${commonClasses} w-full`}
                       onClick={() => {
@@ -173,20 +175,20 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                       }}
                       type="button"
                     >
-                      <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-white/20' : 'bg-white/10'}`}>
+                      <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
                         <Icon size={16} />
                       </span>
                       <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
                         <span className="block text-sm leading-tight">{item.label}</span>
-                        <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-white/45'}`}>{item.description}</span>
+                        <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
                       </span>
                       <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={16} />
                     </button>
                     {formsExpanded && !collapsed && (
-                      <div className="grid gap-1 px-3 pb-3 pt-1">
+                      <div className="grid gap-1 px-3 pb-3 pt-1 border-t border-slate-800/50 mt-1">
                         {applicationForms.map((form) => (
                           <Link
-                            className="block rounded-lg px-3 py-1.5 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+                            className="block rounded-lg px-3 py-1.5 text-xs text-slate-300 transition hover:bg-[#007cba]/20 hover:text-white"
                             key={form.id}
                             to={`/app/forms/${form.id}`}
                           >
@@ -206,12 +208,12 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                   onClick={() => onNavigate(item.id)}
                   type="button"
                 >
-                  <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-white/20' : 'bg-white/10'}`}>
+                  <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
                     <Icon size={16} />
                   </span>
                   <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
                     <span className="block text-sm leading-tight">{item.label}</span>
-                    <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-white/45'}`}>{item.description}</span>
+                    <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
                   </span>
                 </button>
               )
@@ -219,20 +221,20 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
           </nav>
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-4 border-t border-slate-800">
           <button
-            className={`flex w-full items-center gap-3 rounded-2xl border border-white/10 px-3 py-2.5 text-left text-sm font-semibold text-white/80 transition hover:bg-rose-500/20 hover:text-rose-200 ${
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200 ${
               collapsed ? 'justify-center' : ''
             }`}
             onClick={onLogout}
             type="button"
           >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10">
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-300">
               <LogOut size={16} />
             </span>
             <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
               <span className="block text-sm leading-tight">Logout</span>
-              <span className="block text-[11px] font-normal text-white/45">Sign out safely</span>
+              <span className="block text-[11px] font-normal text-slate-400">Sign out safely</span>
             </span>
           </button>
         </div>
@@ -279,13 +281,13 @@ function UserImageCard({ onProfilePhotoChange, user }) {
   }
 
   return (
-    <section id="profile-image" className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <section id="profile-image" className="rounded-2xl border border-slate-200 bg-white shadow-xs">
       <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Update</p>
           <h2 className="mt-1 text-lg font-bold text-slate-950">Update Profile Photo</h2>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={openPicker} type="button">
+        <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={openPicker} type="button">
           <Upload size={16} />
           Choose image
         </button>
@@ -298,7 +300,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
             <img alt="User profile preview" className="h-full min-h-64 w-full object-cover" src={previewUrl} />
           ) : (
             <div className="flex min-h-64 flex-col items-center justify-center gap-4 px-6 py-8 text-center text-slate-500">
-              <div className="flex size-20 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-200">
+              <div className="flex size-20 items-center justify-center rounded-full bg-white text-slate-400 shadow-xs ring-1 ring-slate-200">
                 <User size={34} />
               </div>
               <div>
@@ -316,11 +318,11 @@ function UserImageCard({ onProfilePhotoChange, user }) {
           </div>
 
           <div className="grid gap-3 sm:flex sm:flex-wrap">
-            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" onClick={openPicker} type="button">
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" onClick={openPicker} type="button">
               <Upload size={16} />
               Upload image
             </button>
-            <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:text-slate-950" onClick={clearImage} type="button">
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:text-slate-950" onClick={clearImage} type="button">
               Reset to default
             </button>
           </div>
@@ -404,22 +406,22 @@ function CheckStatusPanel() {
           {mode === 'application' ? (
             <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
               <span>Application Number</span>
-              <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setApplicationNo(event.target.value)} placeholder="TNW-20260729-0001" value={applicationNo} />
+              <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setApplicationNo(event.target.value)} placeholder="TNW-20260729-0001" value={applicationNo} />
             </label>
           ) : (
             <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
               <span>Signup Request Number</span>
-              <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setRequestNo(event.target.value)} placeholder="TNSU-20260729-0001" value={requestNo} />
+              <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setRequestNo(event.target.value)} placeholder="TNSU-20260729-0001" value={requestNo} />
             </label>
           )}
 
           <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
             <span>Registered Mobile Number</span>
-            <input className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10 digit mobile number" value={phone} />
+            <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10 digit mobile number" value={phone} />
           </label>
 
           <div className="md:col-span-2">
-            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" disabled={loading} type="submit">
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" disabled={loading} type="submit">
               <ClipboardCheck size={16} />
               {loading ? 'Checking...' : 'Track Status'}
             </button>
@@ -500,7 +502,7 @@ function SignupRejectedHistory({ history }) {
 
 function SignupDetailRow({ label, value }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 break-words text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
@@ -512,16 +514,16 @@ function SignupDocumentCard({ icon: Icon, label, path }) {
   const isImage = /\.(jpg|jpeg|png|webp)$/i.test(path || '')
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-[#eef8ff] text-[#007cba]">
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-[#007cba]">
             <Icon size={17} />
           </span>
           <p className="font-bold text-slate-950">{label}</p>
         </div>
         {url && (
-          <a className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" href={url} rel="noreferrer" target="_blank">
+          <a className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" href={url} rel="noreferrer" target="_blank">
             Open <ExternalLink size={13} />
           </a>
         )}
@@ -636,23 +638,6 @@ function AdminPanel({ user }) {
 
   return (
     <section className="grid gap-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Administrative Dashboard</p>
-            <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-4xl">அதிகாரபூர்வ நிர்வாக பலகை</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              {user?.username || user?.email} - {roleLabels[user?.role] || user?.role}
-            </p>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{roleScopeLabels[user?.role]}</p>
-          </div>
-          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={loadDashboard} type="button">
-            <RefreshCw size={16} />
-            Refresh
-          </button>
-        </div>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
@@ -669,7 +654,7 @@ function AdminPanel({ user }) {
           <div className="grid gap-3 p-4 sm:p-5">
             {pendingRequests.length ? (
               pendingRequests.map((request) => (
-                <div className="rounded-lg border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
+                <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-bold text-slate-950">{request.fullName}</p>
@@ -678,7 +663,7 @@ function AdminPanel({ user }) {
                       <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
                       <SignupRejectedHistory history={request.rejectedHistory} />
                     </div>
-                    <button className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
                       View Details
                     </button>
                   </div>
@@ -694,7 +679,7 @@ function AdminPanel({ user }) {
           <PanelHeader eyebrow="Work Queue" title="Applications Review Queue" />
           <div className="grid gap-3 p-4 sm:p-5">
             {submissions.length ? submissions.slice(0, 10).map((submission) => (
-              <div className="rounded-lg border border-slate-200 p-3" key={submission.id}>
+              <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
@@ -705,10 +690,10 @@ function AdminPanel({ user }) {
                   <StatusPill status={submission.status} />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button className="rounded-md border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
-                  <button className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'APPROVED')} type="button">Approve</button>
-                  <button className="rounded-md bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950" onClick={() => reviewApplication(submission, 'NEEDS_CORRECTION')} type="button">Return</button>
-                  <button className="rounded-md bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'REJECTED')} type="button">Reject</button>
+                  <button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
+                  <button className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'APPROVED')} type="button">Approve</button>
+                  <button className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950" onClick={() => reviewApplication(submission, 'NEEDS_CORRECTION')} type="button">Return</button>
+                  <button className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'REJECTED')} type="button">Reject</button>
                 </div>
               </div>
             )) : (
@@ -727,7 +712,7 @@ function AdminPanel({ user }) {
                 <h2 className="mt-1 text-xl font-bold text-slate-950">{selectedSignup.fullName}</h2>
                 <p className="mt-1 text-sm text-slate-600">{selectedSignup.requestNo} - {roleLabels[selectedSignup.requestedRole] || selectedSignup.requestedRole}</p>
               </div>
-              <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100" onClick={() => setSelectedSignup(null)} type="button">Close</button>
+              <button className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100" onClick={() => setSelectedSignup(null)} type="button">Close</button>
             </div>
 
             <div className="mt-4 grid gap-4">
@@ -756,13 +741,13 @@ function AdminPanel({ user }) {
 
               <label className="grid gap-2 text-sm font-semibold text-slate-700">
                 <span>Review Note / Reason (Required if rejecting)</span>
-                <textarea className="rounded-lg border border-slate-300 p-3 outline-none focus:border-[#007cba]" onChange={(e) => setReviewReason(e.target.value)} rows={3} value={reviewReason} />
+                <textarea className="rounded-xl border border-slate-300 p-3 outline-none focus:border-[#007cba]" onChange={(e) => setReviewReason(e.target.value)} rows={3} value={reviewReason} />
               </label>
 
               <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-4">
-                <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700" onClick={() => setSelectedSignup(null)} type="button">Cancel</button>
-                <button className="rounded-lg bg-rose-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-50" disabled={submittingReview} onClick={() => reviewSignup(selectedSignup, 'REJECTED')} type="button">Reject Request</button>
-                <button className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50" disabled={submittingReview} onClick={() => reviewSignup(selectedSignup, 'APPROVED')} type="button">Approve Request</button>
+                <button className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700" onClick={() => setSelectedSignup(null)} type="button">Cancel</button>
+                <button className="rounded-xl bg-rose-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-50" disabled={submittingReview} onClick={() => reviewSignup(selectedSignup, 'REJECTED')} type="button">Reject Request</button>
+                <button className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50" disabled={submittingReview} onClick={() => reviewSignup(selectedSignup, 'APPROVED')} type="button">Approve Request</button>
               </div>
             </div>
           </div>
@@ -811,23 +796,6 @@ function PartnerPanel({ user }) {
 
   return (
     <section className="grid gap-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Partner Dashboard</p>
-            <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-4xl">என் விண்ணப்ப டாஷ்போர்டு</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              {user?.username || user?.email} - {roleLabels[user?.role] || user?.role}
-            </p>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{roleScopeLabels.PARTNER}</p>
-          </div>
-          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={loadDashboard} type="button">
-            <RefreshCw size={16} />
-            Refresh
-          </button>
-        </div>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
@@ -838,7 +806,7 @@ function PartnerPanel({ user }) {
         <PanelHeader eyebrow="My Work" title="My Recent Applications" />
         <div className="grid gap-3 p-4 sm:p-5">
           {submissions.length ? submissions.slice(0, 10).map((submission) => (
-            <div className="rounded-lg border border-slate-200 p-3" key={submission.id}>
+            <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
@@ -877,17 +845,17 @@ function ServicePortal() {
         <h2 className="text-xl font-bold text-slate-950">விண்ணப்ப சேவைகள்: {applicationForms.length}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
           {applicationForms.map((form) => (
-            <Link className="group min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#007cba] hover:shadow-md sm:p-5" key={form.id} to={`/app/forms/${form.id}`}>
+            <Link className="group min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:border-[#007cba] hover:shadow-md sm:p-5" key={form.id} to={`/app/forms/${form.id}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-slate-950 sm:text-xl">{form.tamilTitle}</h2>
                   <p className="mt-2 text-sm text-slate-600">{form.title}</p>
                 </div>
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-[#007cba]">
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
                   <FileText size={18} />
                 </span>
               </div>
-              <p className="mt-5 text-sm font-bold text-[#007cba]">திறக்கவும்</p>
+              <p className="mt-5 text-sm font-bold text-[#007cba]">திறக்கவும் →</p>
             </Link>
           ))}
         </div>
@@ -921,73 +889,100 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-3 py-4 text-slate-900 sm:px-5 sm:py-6">
-      <div className="mx-auto grid max-w-[1600px] gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
-        <DashboardSidebar
-          activeTab={activeTab}
-          collapsed={sidebarCollapsed}
-          onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
-          onLogout={handleLogout}
-          onNavigate={(tabId) => setActiveTab(tabId)}
-          user={user}
-        />
+    <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row text-slate-900">
+      <DashboardSidebar
+        activeTab={activeTab}
+        collapsed={sidebarCollapsed}
+        onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
+        onLogout={handleLogout}
+        onNavigate={(tabId) => setActiveTab(tabId)}
+        user={user}
+      />
 
-        <main className="min-w-0 space-y-6">
-          {activeTab === 'dashboard-overview' && (
-            <>
-              <section id="dashboard-overview" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">User Dashboard</p>
-                    <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">
-                      Welcome, {getUserDisplayName(user)}. {roleLabels[user?.role] || user?.role} access is active.
-                    </p>
-                    <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-                      {isAdmin ? roleScopeLabels[user?.role] : 'Manage your applications, track status and update your profile from one place.'}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                      onClick={() => setActiveTab('profile-image')}
-                      type="button"
-                    >
-                      <User size={16} />
-                      Profile Update
-                    </button>
-                    <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={() => window.location.reload()} type="button">
-                      <RefreshCw size={16} />
-                      Refresh
-                    </button>
-                  </div>
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+        {activeTab === 'dashboard-overview' && (
+          <>
+            {/* Header Banner */}
+            <section id="dashboard-overview" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
+                  <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span>. {roleLabels[user?.role] || user?.role} access active.
+                  </p>
+                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
+                    {isAdmin ? roleScopeLabels[user?.role] : 'Select an application form below, track submitted requests, or manage your profile.'}
+                  </p>
                 </div>
-              </section>
-
-              <section id="dashboard-work" className="space-y-6">
-                {isAdmin && <AdminPanel user={user} />}
-                {!isAdmin && <PartnerPanel user={user} />}
-              </section>
-            </>
-          )}
-
-          {activeTab === 'profile-image' && (
-            <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
-          )}
-
-          {activeTab === 'check-status' && (
-            <section id="check-status">
-              <CheckStatusPanel />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50"
+                    onClick={() => setActiveTab('profile-image')}
+                    type="button"
+                  >
+                    <User size={16} />
+                    Profile Update
+                  </button>
+                  <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => window.location.reload()} type="button">
+                    <RefreshCw size={16} />
+                    Refresh
+                  </button>
+                </div>
+              </div>
             </section>
-          )}
 
-          {activeTab === 'service-portal' && (
-            <section id="service-portal">
-              <ServicePortal />
+            {/* Selectable Application Forms Quick Bar */}
+            <Panel>
+              <PanelHeader
+                eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
+                title="Select Application Form / விண்ணப்பத்தை தேர்வு செய்க"
+              />
+              <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-3">
+                {applicationForms.map((form) => (
+                  <Link
+                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-white hover:shadow-md"
+                    key={form.id}
+                    to={`/app/forms/${form.id}`}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-base font-bold text-slate-950">{form.tamilTitle}</p>
+                      <p className="mt-1 text-xs text-slate-500">{form.title}</p>
+                      <p className="mt-3 text-xs font-bold text-[#007cba] group-hover:underline">
+                        Apply Form / விண்ணப்பிக்க →
+                      </p>
+                    </div>
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
+                      <FileText size={18} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </Panel>
+
+            <section id="dashboard-work" className="space-y-6">
+              {isAdmin && <AdminPanel user={user} />}
+              {!isAdmin && <PartnerPanel user={user} />}
             </section>
-          )}
-        </main>
-      </div>
+          </>
+        )}
+
+        {activeTab === 'profile-image' && (
+          <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
+        )}
+
+        {activeTab === 'check-status' && (
+          <section id="check-status">
+            <CheckStatusPanel />
+          </section>
+        )}
+
+        {activeTab === 'service-portal' && (
+          <section id="service-portal">
+            <ServicePortal />
+          </section>
+        )}
+      </main>
     </div>
   )
 }
