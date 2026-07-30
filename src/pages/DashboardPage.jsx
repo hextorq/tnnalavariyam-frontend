@@ -1,11 +1,11 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
-import { getSession, isAuthenticated } from '../lib/auth.js'
+import { clearSession, getSession, isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
-import { Link } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ClipboardCheck, FileText, History, Layers3, RefreshCw, ShieldCheck, Users } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, navigate } from '../lib/router.jsx'
+import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History, Layers3, LayoutDashboard, LogOut, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
 
@@ -84,6 +84,205 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
 
 function EmptyState({ children }) {
   return <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
+}
+
+function getUserDisplayName(user) {
+  if (!user) return 'User'
+  return user.firstName || user.name || user.username || user.email || 'User'
+}
+
+function getUserInitials(user) {
+  const displayName = getUserDisplayName(user)
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('')
+  return initials || 'U'
+}
+
+function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
+  const items = [
+    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary' },
+    { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
+    { id: 'service-portal', icon: FileText, label: 'Application', description: 'Open forms' },
+    { to: '/tracking', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
+  ]
+
+  return (
+    <aside className={`sticky top-4 self-start rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-80'}`}>
+      <div className="flex items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5">
+        <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-white/45">User Panel</p>
+          <p className="mt-2 text-2xl font-bold leading-tight">My Dashboard</p>
+          <p className="mt-2 text-sm leading-6 text-white/65">Manage profile, applications and status updates from one place.</p>
+        </div>
+        <button
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+          onClick={onCollapseToggle}
+          type="button"
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
+      </div>
+
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-slate-950">
+            {getUserInitials(user)}
+          </div>
+          <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+            <p className="truncate text-base font-bold">{getUserDisplayName(user)}</p>
+            <p className="truncate text-sm text-white/60">{user?.role || 'PARTNER'}</p>
+          </div>
+        </div>
+
+        <nav className="mt-4 grid gap-2">
+          {items.map((item) => {
+            const Icon = item.icon
+            const commonClasses = `flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${collapsed ? 'justify-center' : ''}`
+
+            if (item.to) {
+              return (
+                <Link className={`${commonClasses} text-white/80 hover:bg-white/10 hover:text-white`} key={item.label} to={item.to}>
+                  <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                    <Icon size={17} />
+                  </span>
+                  <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+                    <span className="block">{item.label}</span>
+                    <span className="block text-xs font-normal text-white/45">{item.description}</span>
+                  </span>
+                </Link>
+              )
+            }
+
+            return (
+              <button
+                className={`${commonClasses} text-white/80 hover:bg-white/10 hover:text-white`}
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                type="button"
+              >
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <Icon size={17} />
+                </span>
+                <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+                  <span className="block">{item.label}</span>
+                  <span className="block text-xs font-normal text-white/45">{item.description}</span>
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className={`mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 ${collapsed ? 'lg:hidden' : ''}`}>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/45">Quick Note</p>
+          <p className="mt-2 text-sm leading-6 text-white/70">Use the profile card to upload an image preview and the service portal to open application forms.</p>
+        </div>
+
+        <button
+          className={`mt-4 flex w-full items-center gap-3 rounded-2xl border border-white/10 px-3 py-3 text-left text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white ${collapsed ? 'justify-center' : ''}`}
+          onClick={onLogout}
+          type="button"
+        >
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+            <LogOut size={17} />
+          </span>
+          <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+            <span className="block">Logout</span>
+            <span className="block text-xs font-normal text-white/45">Sign out safely</span>
+          </span>
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+function UserImageCard({ user }) {
+  const inputRef = useRef(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+  }, [previewUrl])
+
+  function openPicker() {
+    inputRef.current?.click()
+  }
+
+  function clearImage() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl('')
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  function handleFileChange(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!file.type?.startsWith('image/')) {
+      return
+    }
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  return (
+    <section id="profile-image" className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Update</p>
+          <h2 className="mt-1 text-lg font-bold text-slate-950">Upload your image</h2>
+        </div>
+        <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={openPicker} type="button">
+          <Upload size={16} />
+          Choose image
+        </button>
+      </div>
+
+      <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <input ref={inputRef} accept="image/*" className="sr-only" onChange={handleFileChange} type="file" />
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+          {previewUrl ? (
+            <img alt="User profile preview" className="h-full min-h-64 w-full object-cover" src={previewUrl} />
+          ) : (
+            <div className="flex min-h-64 flex-col items-center justify-center gap-4 px-6 py-8 text-center text-slate-500">
+              <div className="flex size-20 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-200">
+                <User size={34} />
+              </div>
+              <div>
+                <p className="text-base font-bold text-slate-950">{getUserDisplayName(user)}</p>
+                <p className="mt-1 text-sm">Upload a JPG, PNG or WebP profile image.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid content-start gap-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Photo dashboard</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">This section gives the user a quick image upload area with instant preview, so the dashboard feels complete and personal.</p>
+          </div>
+
+          <div className="grid gap-3 sm:flex sm:flex-wrap">
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" onClick={openPicker} type="button">
+              <Upload size={16} />
+              Upload image
+            </button>
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:text-slate-950" onClick={clearImage} type="button">
+              Clear preview
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate-600">
+            Profile photo, application work and tracking shortcuts are now grouped into one dashboard flow.
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function SignupRejectedHistory({ history }) {
@@ -583,13 +782,60 @@ export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
   const user = getSession()?.user
   const isAdmin = adminRoles.has(user?.role)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  const scrollToSection = useCallback((sectionId) => {
+    const element = document.getElementById(sectionId)
+    element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
+  const handleLogout = useCallback(() => {
+    clearSession()
+    navigate('/login')
+  }, [])
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-3 py-8 text-slate-900 sm:p-6">
-      <div className="mx-auto grid max-w-7xl gap-8">
-        {isAdmin && <AdminPanel user={user} />}
-        {!isAdmin && <PartnerPanel user={user} />}
-        <ServicePortal />
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-3 py-4 text-slate-900 sm:px-5 sm:py-6">
+      <div className="mx-auto grid max-w-[1600px] gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
+        <DashboardSidebar
+          collapsed={sidebarCollapsed}
+          onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
+          onLogout={handleLogout}
+          onNavigate={scrollToSection}
+          user={user}
+        />
+
+        <main className="min-w-0 space-y-6">
+          <section id="dashboard-overview" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">User Dashboard</p>
+                <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Welcome, {getUserDisplayName(user)}. {roleLabels[user?.role] || user?.role} access is active.
+                </p>
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                  {isAdmin ? roleScopeLabels[user?.role] : 'Use your dashboard to upload an image, track your work and continue your applications.'}
+                </p>
+              </div>
+              <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={() => window.location.reload()} type="button">
+                <RefreshCw size={16} />
+                Refresh
+              </button>
+            </div>
+          </section>
+
+          <UserImageCard user={user} />
+
+          <section id="dashboard-work" className="space-y-6">
+            {isAdmin && <AdminPanel user={user} />}
+            {!isAdmin && <PartnerPanel user={user} />}
+          </section>
+
+          <section id="service-portal">
+            <ServicePortal />
+          </section>
+        </main>
       </div>
     </div>
   )
