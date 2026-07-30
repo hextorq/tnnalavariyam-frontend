@@ -73,13 +73,14 @@ function FormSection({ children, title }) {
   )
 }
 
-function PasswordInput({ onChange, placeholder, value }) {
+function PasswordInput({ minLength, onChange, placeholder, value }) {
   const [visible, setVisible] = useState(false)
 
   return (
     <div className="relative">
       <input
         className="min-w-0 w-full border border-neutral-300 px-4 py-3 pr-12"
+        minLength={minLength}
         onChange={onChange}
         placeholder={placeholder}
         required
@@ -563,7 +564,8 @@ export default function AccountPage({ mode }) {
                 </label>
                 <label className="grid gap-2">
                   <FieldLabel required>பயனர் பெயர் / Username</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Username" required value={signupForm.username} />
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" minLength={3} onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Minimum 3 characters" required value={signupForm.username} />
+                  <p className="text-xs text-neutral-500">குறைந்தது 3 எழுத்துகள் / Minimum 3 characters</p>
                 </label>
                 <label className="grid gap-2">
                   <FieldLabel required>தொலைபேசி எண் / Phone Number</FieldLabel>
@@ -699,14 +701,17 @@ export default function AccountPage({ mode }) {
                   <label className="grid gap-2">
                     <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
                     <PasswordInput
+                      minLength={6}
                       onChange={(event) => updateSignupField('password', event.target.value)}
-                      placeholder="Password"
+                      placeholder="Minimum 6 characters"
                       value={signupForm.password}
                     />
+                    <p className="text-xs text-neutral-500">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
                   </label>
                   <label className="grid gap-2">
                     <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
-                    <PasswordInput onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
+                    <PasswordInput minLength={6} onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
+                    <p className="text-xs text-neutral-500">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
                   </label>
                 </div>
               </FormSection>
