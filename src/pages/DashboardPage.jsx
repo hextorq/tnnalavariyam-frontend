@@ -1,7 +1,7 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
-import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
+import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, getUploadUrl, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { Activity, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
@@ -30,14 +30,6 @@ const roleScopeLabels = {
 function formatDate(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString('en-IN')
-}
-
-function getUploadUrl(path) {
-  if (!path) return ''
-  if (/^https?:\/\//i.test(path)) return path
-  const apiBase = api.defaults.baseURL || window.location.origin
-  const siteBase = apiBase.replace(/\/api\/?$/, '/')
-  return new URL(path, siteBase).href
 }
 
 function StatusPill({ status }) {
