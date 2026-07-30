@@ -55,10 +55,12 @@ export function NotificationsProvider({ children }) {
       actionLabel: notification.actionLabel || 'OK',
     }
 
-    setToasts((current) => [nextNotification, ...current].slice(0, 3))
-    window.setTimeout(() => removeToast(id), notification.duration || 6000)
+    if (notification.toast !== false) {
+      setToasts((current) => [nextNotification, ...current].slice(0, 3))
+      window.setTimeout(() => removeToast(id), notification.duration || 6000)
+    }
 
-    if (notification.popup !== false) {
+    if (notification.popup === true) {
       setPopup(nextNotification)
     }
   }, [removeToast])

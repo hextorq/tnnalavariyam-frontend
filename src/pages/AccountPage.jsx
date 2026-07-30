@@ -468,6 +468,8 @@ export default function AccountPage({ mode }) {
         title: 'Registration Submitted / பதிவு சமர்ப்பிக்கப்பட்டது',
         message,
         actionLabel: 'Request number noted',
+        popup: true,
+        toast: false,
       })
       setSignupForm(initialSignupForm)
       setDistrictCode('')
