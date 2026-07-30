@@ -30,6 +30,23 @@ function FieldLabel({ children }) {
   return <span className="text-sm font-semibold text-neutral-700">{children}</span>
 }
 
+function getConflictMessage(conflicts) {
+  const labels = {
+    username: 'பயனர் பெயர் / Username',
+    email: 'மின்னஞ்சல் / Email',
+    phone: 'தொலைபேசி எண் / Phone',
+  }
+  const conflictFields = Object.entries(conflicts || {})
+    .filter(([, conflict]) => !conflict.available)
+    .map(([field, conflict]) => {
+      const source = conflict.pendingRequest ? 'pending signup request' : 'approved account'
+      return `${labels[field]} already exists in ${source}`
+    })
+
+  if (!conflictFields.length) return ''
+  return `இந்த விவரங்கள் ஏற்கனவே உள்ளது. ${conflictFields.join(', ')}. வேறு விவரம் பயன்படுத்தவும்.`
+}
+
 export default function AccountPage({ mode }) {
   const title = mode === 'register' ? 'Register' : mode === 'reset' ? 'Forgot Password' : 'Login'
   const [signupForm, setSignupForm] = useState(initialSignupForm)
@@ -56,6 +73,23 @@ export default function AccountPage({ mode }) {
 
   function updateSignupField(field, value) {
     setSignupForm((current) => ({ ...current, [field]: value }))
+  }
+
+  async function checkSignupAvailability() {
+    const params = new URLSearchParams({
+      username: signupForm.username.trim(),
+      email: signupForm.email.trim(),
+      phone: signupForm.phone.trim(),
+    })
+    const response = await api.get(`/auth/availability?${params.toString()}`)
+    if (!response.data.available) {
+      setStatus({
+        type: 'error',
+        message: getConflictMessage(response.data.conflicts) || 'Username, email அல்லது phone ஏற்கனவே உள்ளது.',
+      })
+      return false
+    }
+    return true
   }
 
   async function handleSignupSubmit(event) {
@@ -85,6 +119,9 @@ export default function AccountPage({ mode }) {
 
     try {
       setSubmitting(true)
+      const available = await checkSignupAvailability()
+      if (!available) return
+
       const response = await api.post('/auth/register', payload)
       setStatus({
         type: 'success',
