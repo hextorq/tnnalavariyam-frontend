@@ -25,6 +25,30 @@ const initialSignupForm = {
   idProof: null,
 }
 
+const MB = 1024 * 1024
+const passportConfig = {
+  maxSize: 5 * MB,
+  accept: 'image/*',
+  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+  allowedMimePrefixes: ['image/'],
+  hint: 'Image only. Max 5 MB.',
+}
+const documentConfig = {
+  maxSize: 15 * MB,
+  accept: 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt',
+  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
+  allowedMimePrefixes: ['image/'],
+  allowedMimeTypes: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+  ],
+  hint: 'Image, PDF, Word, Excel or text document. Max 15 MB.',
+}
+
 function bilingualName(item) {
   if (!item) return ''
   const englishName = item.englishName || transliterateTamil(item.name)
@@ -141,7 +165,27 @@ function formatFileSize(size) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function DocumentUpload({ accept, file, label, onChange, required = false }) {
+function getFileExtension(file) {
+  return file?.name?.split('.').pop()?.toLowerCase() || ''
+}
+
+function validateFile(file, config) {
+  if (!file) return ''
+  const extension = getFileExtension(file)
+  const mimeAllowed = config.allowedMimePrefixes?.some((prefix) => file.type?.startsWith(prefix))
+    || config.allowedMimeTypes?.includes(file.type)
+  const extensionAllowed = config.allowedExtensions.includes(extension)
+
+  if (!mimeAllowed && !extensionAllowed) {
+    return `Invalid file type. Allowed: ${config.allowedExtensions.join(', ')}.`
+  }
+  if (file.size > config.maxSize) {
+    return `File is too large. Maximum allowed size is ${formatFileSize(config.maxSize)}.`
+  }
+  return ''
+}
+
+function DocumentUpload({ file, label, onChange, required = false, uploadConfig }) {
   const inputRef = useRef(null)
   const [previewUrl, setPreviewUrl] = useState('')
 
@@ -165,13 +209,24 @@ function DocumentUpload({ accept, file, label, onChange, required = false }) {
     onChange(null)
   }
 
+  function handleFileChange(event) {
+    const selectedFile = event.target.files?.[0] || null
+    const error = validateFile(selectedFile, uploadConfig)
+    if (error) {
+      event.target.value = ''
+      onChange(null, error)
+      return
+    }
+    onChange(selectedFile, '')
+  }
+
   return (
     <div className="grid gap-2 text-sm font-semibold text-neutral-700">
       <FieldLabel required={required}>{label}</FieldLabel>
       <input
-        accept={accept}
+        accept={uploadConfig.accept}
         className="sr-only"
-        onChange={(event) => onChange(event.target.files?.[0] || null)}
+        onChange={handleFileChange}
         ref={inputRef}
         required={required && !file}
         type="file"
@@ -213,7 +268,7 @@ function DocumentUpload({ accept, file, label, onChange, required = false }) {
               <Upload size={22} />
             </span>
             <span className="font-bold text-neutral-950">Choose file</span>
-            <span className="text-xs font-normal text-neutral-500">Image or document preview will appear here</span>
+            <span className="text-xs font-normal text-neutral-500">{uploadConfig.hint}</span>
           </button>
         )}
       </div>
@@ -296,6 +351,13 @@ export default function AccountPage({ mode }) {
 
   function updateSignupField(field, value) {
     setSignupForm((current) => ({ ...current, [field]: value }))
+  }
+
+  function updateSignupFile(field, file, error = '') {
+    setSignupForm((current) => ({ ...current, [field]: file }))
+    if (error) {
+      showStatus('warning', 'Invalid File / தவறான கோப்பு', error)
+    }
   }
 
   function showStatus(type, title, message) {
@@ -572,7 +634,7 @@ export default function AccountPage({ mode }) {
 
             <FormSection title="ஆவணங்கள் / Documents">
               <div className="grid gap-4 lg:grid-cols-2">
-                <DocumentUpload accept="image/*" file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file) => updateSignupField('photo', file)} required />
+                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => updateSignupFile('photo', file, error)} required uploadConfig={passportConfig} />
                 <div className="grid content-start gap-4">
                   <label className="grid gap-2">
                     <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
@@ -584,7 +646,7 @@ export default function AccountPage({ mode }) {
                   </label>
                 </div>
               </div>
-              <DocumentUpload accept="image/*,.pdf" file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file) => updateSignupField('idProof', file)} required />
+              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => updateSignupFile('idProof', file, error)} required uploadConfig={documentConfig} />
             </FormSection>
           </>
         )}
