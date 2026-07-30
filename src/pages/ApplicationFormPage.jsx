@@ -7,7 +7,7 @@ import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { ArrowLeft, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, Upload } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const dobProofOptions = [
   { value: 'voter-id', label: 'வாக்காளர் அட்டை / Voter ID' },
@@ -72,6 +72,185 @@ const workerJobOptions = [
   { value: 'Machine Operator', label: 'இயந்திர ஆபரேட்டர் / Machine Operator' },
   { value: 'Other', label: 'பிற தொழில் / Other' },
 ]
+
+function bilingualName(item) {
+  return `${item.nameTamil} / ${item.name}`
+}
+
+function SearchSelect({ disabled = false, onChange, options, placeholder, value }) {
+  const selectedOption = options.find((option) => option.value === value)
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const filteredOptions = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return options
+    return options.filter((option) => option.label.toLowerCase().includes(normalizedQuery))
+  }, [options, query])
+
+  useEffect(() => {
+    setQuery(selectedOption?.label || '')
+  }, [selectedOption?.label])
+
+  return (
+    <div className="relative">
+      <input
+        aria-expanded={open}
+        autoComplete="off"
+        className="min-w-0 w-full border border-neutral-300 px-4 py-3 disabled:bg-neutral-100"
+        disabled={disabled}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => {
+          setQuery('')
+          setOpen(true)
+        }}
+        placeholder={placeholder}
+        role="combobox"
+        value={open ? query : selectedOption?.label || ''}
+      />
+      {open && !disabled && (
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto border border-neutral-300 bg-white shadow-lg">
+          {filteredOptions.length ? (
+            filteredOptions.map((option) => (
+              <button
+                className="block w-full px-4 py-3 text-left text-sm hover:bg-[#eef8ff] focus:bg-[#eef8ff]"
+                key={option.value}
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  onChange(option.value)
+                  setQuery(option.label)
+                  setOpen(false)
+                }}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-sm text-neutral-500">No matching option</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DobInput({ value, onChange }) {
+  const parts = (value || '').split('-')
+  const year = parts[0] || ''
+  const month = parts[1] || ''
+  const day = parts[2] || ''
+
+  function update(y, m, d) {
+    const yStr = y || year, mStr = m || month, dStr = d || day
+    if (yStr && mStr && dStr) {
+      onChange(`${yStr}-${mStr.padStart(2, '0')}-${dStr.padStart(2, '0')}`)
+    } else {
+      onChange('')
+    }
+  }
+
+  return (
+    <div className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
+      <span>Date of Birth / பிறந்த தேதி</span>
+      <div className="grid grid-cols-3 gap-2">
+        <input
+          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
+          maxLength={2}
+          onChange={(e) => update(year, month, e.target.value.replace(/\D/g, '').slice(0, 2))}
+          placeholder="DD"
+          type="text"
+          value={day}
+        />
+        <input
+          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
+          maxLength={2}
+          onChange={(e) => update(year, e.target.value.replace(/\D/g, '').slice(0, 2), day)}
+          placeholder="MM"
+          type="text"
+          value={month}
+        />
+        <input
+          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
+          maxLength={4}
+          onChange={(e) => update(e.target.value.replace(/\D/g, '').slice(0, 4), month, day)}
+          placeholder="YYYY"
+          type="text"
+          value={year}
+        />
+      </div>
+    </div>
+  )
+}
+
+function CameraCapture({ preview, onCapture }) {
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const [stream, setStream] = useState(null)
+  const [captured, setCaptured] = useState(!!preview)
+
+  useEffect(() => {
+    if (captured) return
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
+      .then((s) => {
+        setStream(s)
+        if (videoRef.current) videoRef.current.srcObject = s
+      })
+      .catch(() => {})
+
+    return () => {
+      if (stream) stream.getTracks().forEach((t) => t.stop())
+    }
+  }, [captured])
+
+  function handleCapture() {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext('2d').drawImage(video, 0, 0)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+    onCapture(dataUrl)
+    setCaptured(true)
+    if (stream) stream.getTracks().forEach((t) => t.stop())
+  }
+
+  function handleRetake() {
+    setCaptured(false)
+    onCapture('')
+  }
+
+  if (captured && preview) {
+    return (
+      <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
+        <span>Live Photo / நேரடி புகைப்படம்</span>
+        <div className="relative rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden">
+          <img alt="Captured" className="w-full object-cover" src={preview} />
+          <button className="absolute bottom-2 right-2 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleRetake} type="button">
+            Retake / மீண்டும் பிடிக்க
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
+      <span>Live Photo / நேரடி புகைப்படம்</span>
+      <div className="relative rounded-lg border border-neutral-300 bg-black overflow-hidden">
+        <video autoPlay muted playsInline ref={videoRef} className="w-full" />
+        <canvas ref={canvasRef} className="hidden" />
+        <button className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-6 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleCapture} type="button">
+          Capture / பிடிக்கவும்
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function Section({ eyebrow, title, children }) {
   return (
@@ -180,6 +359,11 @@ export default function ApplicationFormPage({ formId }) {
 
   const [submitting, setSubmitting] = useState(false)
   const [submittedAppNo, setSubmittedAppNo] = useState('')
+
+  const districtOptions = useMemo(
+    () => tamilNaduDistricts.map((district) => ({ value: district.code, label: bilingualName(district) })),
+    [],
+  )
 
   function handleInputChange(field, value) {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -354,14 +538,15 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
-                  required
-                  value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
+                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
+                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
+                  <SearchSelect
+                    onChange={(value) => handleInputChange('district', value)}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={formData.district}
+                  />
+                </label>
 
                 <Field
                   {...phoneInputProps}
@@ -373,13 +558,10 @@ export default function ApplicationFormPage({ formId }) {
                   Phone no / அலைபேசி எண்
                 </Field>
 
-                <Field
-                  onChange={(e) => handleInputChange('dob', e.target.value)}
-                  type="date"
+                <DobInput
+                  onChange={(value) => handleInputChange('dob', value)}
                   value={formData.dob}
-                >
-                  Date of Birth / பிறந்த தேதி
-                </Field>
+                />
               </div>
 
               <div className="grid gap-5 md:grid-cols-2 items-start">
@@ -435,14 +617,15 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
-                  required
-                  value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
+                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
+                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
+                  <SearchSelect
+                    onChange={(value) => handleInputChange('district', value)}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={formData.district}
+                  />
+                </label>
 
                 <Field
                   {...phoneInputProps}
@@ -454,13 +637,10 @@ export default function ApplicationFormPage({ formId }) {
                   Phone no / அலைபேசி எண்
                 </Field>
 
-                <Field
-                  onChange={(e) => handleInputChange('dob', e.target.value)}
-                  type="date"
+                <DobInput
+                  onChange={(value) => handleInputChange('dob', value)}
                   value={formData.dob}
-                >
-                  Date of Birth / பிறந்த தேதி
-                </Field>
+                />
               </div>
 
               {/* Photos & DOB Proof in clean 2-column pairs */}
@@ -491,13 +671,12 @@ export default function ApplicationFormPage({ formId }) {
                   Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
                 </FileField>
 
-                <FileField
-                  accept="image/*"
-                  onChange={(e) => handleFileSelect('livePhoto', e)}
+                <CameraCapture
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
                   preview={previews.livePhoto}
-                >
-                  Live Photo / நேரடி புகைப்படம்
-                </FileField>
+                />
               </div>
 
               <div className="grid gap-5 md:grid-cols-3 items-start">
@@ -589,14 +768,6 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Signature / கையொப்பம்
                 </FileField>
-
-                <FileField
-                  accept="image/*,.pdf"
-                  onChange={(e) => handleFileSelect('registrationCard', e)}
-                  preview={previews.registrationCard}
-                >
-                  Worker Registration Card / தொழிலாளியின் பதிவு அட்டை
-                </FileField>
               </div>
             </Section>
           )}
@@ -615,14 +786,15 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
-                  required
-                  value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
+                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
+                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
+                  <SearchSelect
+                    onChange={(value) => handleInputChange('district', value)}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={formData.district}
+                  />
+                </label>
 
                 <Field
                   {...phoneInputProps}
