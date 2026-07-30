@@ -121,37 +121,43 @@ function SignupRejectedHistory({ history }) {
 
 function AdminSectionTabs({ activeSection, counts, onChange }) {
   const sections = [
-    { id: 'overview', label: 'Overview', tamil: 'மேலோட்டம்', count: null },
-    { id: 'signups', label: 'Signup Approvals', tamil: 'பதிவு அனுமதி', count: counts.signups },
-    { id: 'applications', label: 'Application Review', tamil: 'விண்ணப்ப பரிசீலனை', count: counts.applications },
-    { id: 'users', label: 'Users & Coverage', tamil: 'பயனர்கள் மற்றும் பகுதி', count: counts.users },
+    { id: 'overview', label: 'Overview', tamil: 'மேலோட்டம்', count: null, icon: Layers3 },
+    { id: 'signups', label: 'Signup Approvals', tamil: 'பதிவு அனுமதி', count: counts.signups, icon: ShieldCheck },
+    { id: 'applications', label: 'Application Review', tamil: 'விண்ணப்ப பரிசீலனை', count: counts.applications, icon: ClipboardCheck },
+    { id: 'users', label: 'Users & Coverage', tamil: 'பயனர்கள் மற்றும் பகுதி', count: counts.users, icon: Users },
   ]
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
-      <div className="flex min-w-max gap-2">
+    <aside className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm lg:sticky lg:top-24 lg:self-start">
+      <p className="px-2 pb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Admin Modules</p>
+      <div className="grid gap-2">
         {sections.map((section) => {
           const active = activeSection === section.id
+          const Icon = section.icon
           return (
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 text-left text-sm font-bold transition ${
+              className={`flex items-center justify-between gap-3 rounded-md px-3 py-3 text-left text-sm font-bold transition ${
                 active ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
               }`}
               key={section.id}
               onClick={() => onChange(section.id)}
               type="button"
             >
-              <span>{section.tamil} / {section.label}</span>
-              {section.count !== null && (
-                <span className={`rounded-full px-2 py-0.5 text-xs ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                  {section.count}
+              <span className="flex min-w-0 items-center gap-3">
+                <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/15' : 'bg-slate-100 text-slate-700'}`}>
+                  <Icon size={17} />
                 </span>
-              )}
+                <span className="min-w-0">
+                  <span className="block">{section.tamil}</span>
+                  <span className={`block text-xs ${active ? 'text-white/70' : 'text-slate-500'}`}>{section.label}</span>
+                </span>
+              </span>
+              {section.count !== null && <span className={`rounded-full px-2 py-0.5 text-xs ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-700'}`}>{section.count}</span>}
             </button>
           )
         })}
       </div>
-    </div>
+    </aside>
   )
 }
 
@@ -273,44 +279,49 @@ function AdminPanel({ user }) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(([label, value, Icon, tone]) => (
-          <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
-        ))}
-      </div>
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <AdminSectionTabs
+          activeSection={activeSection}
+          counts={{ applications: reviewApplicationCount, signups: pendingSignupCount, users: activeUsersCount }}
+          onChange={setActiveSection}
+        />
 
-      <AdminSectionTabs
-        activeSection={activeSection}
-        counts={{ applications: reviewApplicationCount, signups: pendingSignupCount, users: activeUsersCount }}
-        onChange={setActiveSection}
-      />
+        <div className="min-w-0">
 
       {activeSection === 'overview' && (
-        <div className="grid gap-6 xl:grid-cols-3">
-          <Panel>
-            <PanelHeader eyebrow="Priority" title="Pending Signup Requests" />
-            <div className="p-4 sm:p-5">
-              <p className="text-4xl font-bold text-slate-950">{pendingSignupCount}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">New role signup requests waiting for hierarchy approval.</p>
-              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('signups')} type="button">Open Signup Approvals</button>
-            </div>
-          </Panel>
-          <Panel>
-            <PanelHeader eyebrow="Priority" title="Applications for Review" />
-            <div className="p-4 sm:p-5">
-              <p className="text-4xl font-bold text-slate-950">{reviewApplicationCount}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Submitted and resubmitted welfare applications inside your RBAC scope.</p>
-              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('applications')} type="button">Open Application Review</button>
-            </div>
-          </Panel>
-          <Panel>
-            <PanelHeader eyebrow="Access" title="Active Users" />
-            <div className="p-4 sm:p-5">
-              <p className="text-4xl font-bold text-slate-950">{activeUsersCount}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Approved users under your assigned hierarchy level.</p>
-              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('users')} type="button">Open Users & Coverage</button>
-            </div>
-          </Panel>
+        <div className="grid gap-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {stats.map(([label, value, Icon, tone]) => (
+              <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
+            ))}
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-3">
+            <Panel>
+              <PanelHeader eyebrow="Priority" title="Pending Signup Requests" />
+              <div className="p-4 sm:p-5">
+                <p className="text-4xl font-bold text-slate-950">{pendingSignupCount}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">New role signup requests waiting for hierarchy approval.</p>
+                <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('signups')} type="button">Open Signup Approvals</button>
+              </div>
+            </Panel>
+            <Panel>
+              <PanelHeader eyebrow="Priority" title="Applications for Review" />
+              <div className="p-4 sm:p-5">
+                <p className="text-4xl font-bold text-slate-950">{reviewApplicationCount}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Submitted and resubmitted welfare applications inside your RBAC scope.</p>
+                <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('applications')} type="button">Open Application Review</button>
+              </div>
+            </Panel>
+            <Panel>
+              <PanelHeader eyebrow="Access" title="Active Users" />
+              <div className="p-4 sm:p-5">
+                <p className="text-4xl font-bold text-slate-950">{activeUsersCount}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Approved users under your assigned hierarchy level.</p>
+                <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('users')} type="button">Open Users & Coverage</button>
+              </div>
+            </Panel>
+          </div>
         </div>
       )}
 
@@ -438,6 +449,8 @@ function AdminPanel({ user }) {
           </div>
         </Panel>
       )}
+        </div>
+      </div>
     </section>
   )
 }
