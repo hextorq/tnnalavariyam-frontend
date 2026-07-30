@@ -1,5 +1,5 @@
 import Button from '../components/Button.jsx'
-import { Trash2, Upload } from 'lucide-react'
+import { Eye, EyeOff, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
@@ -45,6 +45,31 @@ function FormSection({ children, title }) {
       <h2 className="border-b border-neutral-200 pb-3 text-base font-bold text-neutral-950">{title}</h2>
       {children}
     </section>
+  )
+}
+
+function PasswordInput({ onChange, placeholder, value }) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="relative">
+      <input
+        className="min-w-0 w-full border border-neutral-300 px-4 py-3 pr-12"
+        onChange={onChange}
+        placeholder={placeholder}
+        required
+        type={visible ? 'text' : 'password'}
+        value={value}
+      />
+      <button
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center text-neutral-600 hover:text-neutral-950"
+        onClick={() => setVisible((current) => !current)}
+        type="button"
+      >
+        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
   )
 }
 
@@ -491,8 +516,8 @@ export default function AccountPage({ mode }) {
           <>
             <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email Address" />
             <input {...phoneInputProps} className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="10 digit phone number" />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="New Password" type="password" />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Confirm New Password" type="password" />
+            <PasswordInput placeholder="New Password" />
+            <PasswordInput placeholder="Confirm New Password" />
           </>
         ) : (
           <>
@@ -517,29 +542,23 @@ export default function AccountPage({ mode }) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="grid gap-2">
                     <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
-                    <input
-                      className="min-w-0 border border-neutral-300 px-4 py-3"
+                    <PasswordInput
                       onChange={(event) => updateSignupField('password', event.target.value)}
                       placeholder="Password"
-                      required
-                      type="password"
                       value={signupForm.password}
                     />
                   </label>
                   <label className="grid gap-2">
                     <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
-                    <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" required type="password" value={signupForm.confirmPassword} />
+                    <PasswordInput onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
                   </label>
                 </div>
               </FormSection>
             ) : (
               <label className="grid gap-2">
-                <input
-                  className="min-w-0 border border-neutral-300 px-4 py-3"
+                <PasswordInput
                   onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
                   placeholder="Password"
-                  required
-                  type="password"
                   value={loginForm.password}
                 />
               </label>
