@@ -1,6 +1,20 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { isAuthenticated } from '../lib/auth.js'
+import { normalizePhone, phoneInputProps } from '../lib/phone.js'
+
+function getFieldInputProps(field) {
+  if (/phone/i.test(field)) {
+    return {
+      ...phoneInputProps,
+      onChange: (event) => {
+        event.target.value = normalizePhone(event.target.value)
+      },
+      placeholder: '10 digit phone number',
+    }
+  }
+  return {}
+}
 
 export default function ApplicationFormPage({ formId }) {
   if (!isAuthenticated()) return <AuthRequired />
@@ -37,7 +51,7 @@ export default function ApplicationFormPage({ formId }) {
           {form.fields.map((field) => (
             <label className="grid gap-2 text-sm font-semibold" key={field}>
               {field}
-              <input className="min-w-0 border border-neutral-300 px-4 py-3 font-normal" />
+              <input className="min-w-0 border border-neutral-300 px-4 py-3 font-normal" {...getFieldInputProps(field)} />
             </label>
           ))}
           <label className="grid gap-2 text-sm font-semibold">

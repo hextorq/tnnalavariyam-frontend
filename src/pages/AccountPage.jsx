@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
+import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
 
@@ -330,7 +331,14 @@ export default function AccountPage({ mode }) {
             </label>
             <label className="grid gap-2">
               <FieldLabel>தொலைபேசி எண் / Phone Number</FieldLabel>
-              <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('phone', event.target.value)} placeholder="Phone Number" required value={signupForm.phone} />
+              <input
+                {...phoneInputProps}
+                className="min-w-0 border border-neutral-300 px-4 py-3"
+                onChange={(event) => updateSignupField('phone', normalizePhone(event.target.value))}
+                placeholder="10 digit phone number"
+                required
+                value={signupForm.phone}
+              />
             </label>
             <label className="grid gap-2">
               <FieldLabel>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
@@ -414,7 +422,7 @@ export default function AccountPage({ mode }) {
         {mode === 'reset' ? (
           <>
             <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email Address" />
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Phone Number" />
+            <input {...phoneInputProps} className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="10 digit phone number" />
             <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="New Password" type="password" />
             <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Confirm New Password" type="password" />
           </>

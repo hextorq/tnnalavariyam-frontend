@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
+import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 
 export default function TrackingPage() {
   const [mode, setMode] = useState('application')
@@ -88,9 +89,10 @@ export default function TrackingPage() {
           <label className="mt-4 grid gap-2 text-sm font-bold text-neutral-800">
             Mobile Number
             <input
+              {...phoneInputProps}
               className="min-w-0 border border-neutral-300 px-4 py-3 font-normal"
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="Registered phone number"
+              onChange={(event) => setPhone(normalizePhone(event.target.value))}
+              placeholder="10 digit registered mobile number"
               value={phone}
             />
           </label>
