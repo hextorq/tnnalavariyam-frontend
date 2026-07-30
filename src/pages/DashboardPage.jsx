@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { getSession, isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ClipboardCheck, FileText, Layers3, RefreshCw, ShieldCheck, Users } from 'lucide-react'
+import { Activity, BadgeCheck, BriefcaseBusiness, ClipboardCheck, FileText, History, Layers3, RefreshCw, ShieldCheck, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -84,6 +84,39 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
 
 function EmptyState({ children }) {
   return <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
+}
+
+function SignupRejectedHistory({ history }) {
+  if (!history?.count) return null
+
+  return (
+    <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+      <div className="flex items-start gap-2">
+        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-white text-rose-700 ring-1 ring-rose-200">
+          <History size={15} />
+        </span>
+        <div className="min-w-0">
+          <p className="font-bold">Already rejected {history.count} time{history.count === 1 ? '' : 's'}</p>
+          <div className="mt-2 grid gap-2">
+            {history.items.slice(0, 3).map((item) => (
+              <div className="border-t border-rose-200 pt-2" key={item.id}>
+                <p className="text-xs font-bold uppercase text-rose-700">
+                  {formatDate(item.rejectedAt || item.requestedAt)} - Matched {item.matchedFields.join(', ')}
+                </p>
+                <p className="mt-1 break-words">{item.reason || 'No rejection reason recorded'}</p>
+                {item.reviewedBy && (
+                  <p className="mt-1 text-xs text-rose-700">
+                    Reviewed by {item.reviewedBy.username} ({roleLabels[item.reviewedBy.role] || item.reviewedBy.role})
+                  </p>
+                )}
+              </div>
+            ))}
+            {history.count > 3 && <p className="text-xs font-semibold text-rose-700">+{history.count - 3} older rejection{history.count - 3 === 1 ? '' : 's'}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function AdminPanel({ user }) {
@@ -275,6 +308,7 @@ function AdminPanel({ user }) {
                   </div>
                   <StatusPill status={request.status} />
                 </div>
+                <SignupRejectedHistory history={request.rejectedHistory} />
                 {request.status === 'PENDING' && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewSignup(request, 'APPROVED')} type="button">Approve</button>
