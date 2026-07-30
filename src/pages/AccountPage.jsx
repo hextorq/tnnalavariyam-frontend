@@ -346,15 +346,30 @@ function getConflictMessage(conflicts) {
   return `இந்த விவரங்கள் ஏற்கனவே உள்ளது. ${conflictFields.join(', ')}. வேறு விவரம் பயன்படுத்தவும்.`
 }
 
+function getValidationIssueMessage(issue) {
+  const field = issue.path?.[0]
+  const messages = {
+    username: 'பயனர் பெயர் குறைந்தது 3 எழுத்துகள் வேண்டும். / Username must be at least 3 characters.',
+    password: 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் வேண்டும். / Password must be at least 6 characters.',
+    confirmPassword: 'Password மற்றும் Confirm Password ஒன்றாக இல்லை.',
+    email: 'சரியான மின்னஞ்சல் முகவரி உள்ளிடவும். / Enter a valid email address.',
+    phone: '10 இலக்க தொலைபேசி எண் தேவை. / 10 digit phone number is required.',
+    pincode: '6 இலக்க அஞ்சல் குறியீடு தேவை. / 6 digit pincode is required.',
+    fullName: 'முழு பெயர் குறைந்தது 2 எழுத்துகள் வேண்டும். / Full Name must be at least 2 characters.',
+    addressLine: 'முழு முகவரி குறைந்தது 5 எழுத்துகள் வேண்டும். / Full Address must be at least 5 characters.',
+    district: 'மாவட்டம் தேர்வு செய்யவும். / Select District.',
+    taluk: 'தாலுகா தேர்வு செய்யவும். / Select Taluk.',
+    village: 'கிராமம் தேர்வு செய்யவும். / Select Village.',
+    photoPath: 'பாஸ்போர்ட் புகைப்படம் தேர்வு செய்யவும். / Passport photo is required.',
+    idProofPath: 'அடையாள ஆவண படம் தேர்வு செய்யவும். / ID proof document is required.',
+  }
+  return messages[field] || issue.message || 'தவறான விவரம். / Invalid detail.'
+}
+
 function getApiErrorMessage(error, fallback) {
   const issues = error.response?.data?.issues
   if (Array.isArray(issues) && issues.length) {
-    return issues
-      .map((issue) => {
-        const field = issue.path?.join('.') || 'Field'
-        return `${field}: ${issue.message}`
-      })
-      .join(', ')
+    return [...new Set(issues.map(getValidationIssueMessage))].join(' ')
   }
   return error.response?.data?.message || fallback
 }
@@ -542,6 +557,19 @@ export default function AccountPage({ mode }) {
   }
 
   async function checkSignupAvailability() {
+    if (signupForm.username.trim().length < 3) {
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', 'பயனர் பெயர் குறைந்தது 3 எழுத்துகள் வேண்டும். / Username must be at least 3 characters.')
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupForm.email.trim())) {
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', 'சரியான மின்னஞ்சல் முகவரி உள்ளிடவும். / Enter a valid email address.')
+      return false
+    }
+    if (signupForm.phone.trim().length !== 10) {
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', '10 இலக்க தொலைபேசி எண் தேவை. / 10 digit phone number is required.')
+      return false
+    }
+
     const params = new URLSearchParams({
       username: signupForm.username.trim(),
       email: signupForm.email.trim(),
