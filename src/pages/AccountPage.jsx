@@ -4,6 +4,7 @@ import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } fr
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
 import { Link, navigate } from '../lib/router.jsx'
+import { transliterateTamil } from '../lib/tamilTransliteration.js'
 
 const initialSignupForm = {
   fullName: '',
@@ -23,7 +24,8 @@ const initialSignupForm = {
 
 function bilingualName(item) {
   if (!item) return ''
-  return item.englishName ? `${item.name} / ${item.englishName}` : item.name
+  const englishName = item.englishName || transliterateTamil(item.name)
+  return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
 }
 
 function FieldLabel({ children }) {
