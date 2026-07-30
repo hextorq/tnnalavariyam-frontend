@@ -127,11 +127,12 @@ function getUserInitials(user) {
   return initials || 'U'
 }
 
-function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
+function DashboardSidebar({ activeSection, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
   const [formsExpanded, setFormsExpanded] = useState(true)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary' },
     { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
+    { id: 'dashboard-work', icon: ShieldCheck, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
@@ -185,12 +186,12 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
 
             return (
               <button
-                className={`${commonClasses} text-white/80 hover:bg-white/10 hover:text-white`}
+                className={`${commonClasses} ${activeSection === item.id ? 'bg-white text-slate-950 shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 type="button"
               >
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full ${activeSection === item.id ? 'bg-slate-950 text-white' : 'bg-white/10'}`}>
                   <Icon size={17} />
                 </span>
                 <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
@@ -203,7 +204,7 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
             <button
-              className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white ${collapsed ? 'justify-center' : ''}`}
+              className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${activeSection === 'service-portal' ? 'bg-white text-slate-950 shadow-lg' : 'text-white/80 hover:bg-white/10 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
               onClick={() => {
                 if (collapsed) {
                   onCollapseToggle()
@@ -215,12 +216,12 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
               }}
               type="button"
             >
-              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+              <span className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full ${activeSection === 'service-portal' ? 'bg-slate-950 text-white' : 'bg-white/10'}`}>
                 <FileText size={17} />
               </span>
               <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
                 <span className="block">Application Forms</span>
-                <span className="block text-xs font-normal text-white/45">6 welfare forms</span>
+                <span className={`block text-xs font-normal ${activeSection === 'service-portal' ? 'text-slate-500' : 'text-white/45'}`}>6 welfare forms</span>
               </span>
               <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={16} />
             </button>
@@ -1174,11 +1175,57 @@ function ServicePortal() {
   )
 }
 
+function DashboardOverview({ isAdmin, user }) {
+  return (
+    <section className="grid gap-6">
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">User Dashboard</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Welcome, {getUserDisplayName(user)}. {roleLabels[user?.role] || user?.role} access is active.
+            </p>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+              {isAdmin ? roleScopeLabels[user?.role] : 'Use your dashboard to upload an image, track your work and continue your applications.'}
+            </p>
+          </div>
+          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={() => window.location.reload()} type="button">
+            <RefreshCw size={16} />
+            Refresh
+          </button>
+        </div>
+      </section>
+
+      <Panel>
+        <PanelHeader eyebrow="Apply Now" title="Application Shortcuts" />
+        <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-3">
+          {applicationForms.map((form) => (
+            <Link className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:shadow-md" key={form.id} to={`/app/forms/${form.id}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-slate-950">{form.tamilTitle}</p>
+                  <p className="mt-1 text-sm text-slate-600">{form.title}</p>
+                  <p className="mt-3 text-sm font-bold text-[#007cba]">Apply / விண்ணப்பிக்க</p>
+                </div>
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-[#007cba]">
+                  <FileText size={18} />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Panel>
+    </section>
+  )
+}
+
 export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
   const user = getSession()?.user
   const isAdmin = adminRoles.has(user?.role)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [activePortalSection, setActivePortalSection] = useState('dashboard-overview')
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => getProfilePhoto(user))
 
   useEffect(() => {
@@ -1192,11 +1239,6 @@ export default function DashboardPage() {
     }
   }, [user])
 
-  const scrollToSection = useCallback((sectionId) => {
-    const element = document.getElementById(sectionId)
-    element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
-
   const handleLogout = useCallback(() => {
     clearSession()
     navigate('/login')
@@ -1206,47 +1248,25 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-2 py-4 text-slate-900 sm:px-4 sm:py-6">
       <div className="grid w-full gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
         <DashboardSidebar
+          activeSection={activePortalSection}
           collapsed={sidebarCollapsed}
           onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
           onLogout={handleLogout}
-          onNavigate={scrollToSection}
+          onNavigate={setActivePortalSection}
           user={user}
         />
 
         <main className="min-w-0 space-y-6">
-          <section id="dashboard-overview" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">User Dashboard</p>
-                <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Welcome, {getUserDisplayName(user)}. {roleLabels[user?.role] || user?.role} access is active.
-                </p>
-                <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-                  {isAdmin ? roleScopeLabels[user?.role] : 'Use your dashboard to upload an image, track your work and continue your applications.'}
-                </p>
-              </div>
-              <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm" onClick={() => window.location.reload()} type="button">
-                <RefreshCw size={16} />
-                Refresh
-              </button>
-            </div>
-          </section>
-
-          <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
-
-          <section id="check-status">
-            <CheckStatusPanel />
-          </section>
-
-          <section id="dashboard-work" className="space-y-6">
-            {isAdmin && <AdminPanel user={user} />}
-            {!isAdmin && <PartnerPanel user={user} />}
-          </section>
-
-          <section id="service-portal">
-            <ServicePortal />
-          </section>
+          {activePortalSection === 'dashboard-overview' && <DashboardOverview isAdmin={isAdmin} user={user} />}
+          {activePortalSection === 'profile-image' && <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />}
+          {activePortalSection === 'check-status' && <CheckStatusPanel />}
+          {activePortalSection === 'service-portal' && <ServicePortal />}
+          {activePortalSection === 'dashboard-work' && (
+            <section className="space-y-6">
+              {isAdmin && <AdminPanel user={user} />}
+              {!isAdmin && <PartnerPanel user={user} />}
+            </section>
+          )}
         </main>
       </div>
     </div>
