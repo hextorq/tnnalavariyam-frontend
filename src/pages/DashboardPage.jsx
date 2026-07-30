@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -94,6 +94,23 @@ function EmptyState({ children }) {
   return <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
 }
 
+function StatusFilter({ active, options, onChange }) {
+  return (
+    <div className="flex gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-2">
+      {options.map((option) => (
+        <button
+          className={`whitespace-nowrap rounded-md px-3 py-2 text-xs font-bold transition ${active === option.value ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function getUserDisplayName(user) {
   if (!user) return 'User'
   return user.firstName || user.name || user.username || user.email || 'User'
@@ -111,10 +128,10 @@ function getUserInitials(user) {
 }
 
 function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
+  const [formsExpanded, setFormsExpanded] = useState(true)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary' },
     { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
-    { id: 'service-portal', icon: FileText, label: 'Application', description: 'Open forms' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
@@ -183,6 +200,51 @@ function DashboardSidebar({ collapsed, onCollapseToggle, onLogout, onNavigate, u
               </button>
             )
           })}
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
+            <button
+              className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white ${collapsed ? 'justify-center' : ''}`}
+              onClick={() => {
+                if (collapsed) {
+                  onCollapseToggle()
+                  setFormsExpanded(true)
+                } else {
+                  setFormsExpanded((current) => !current)
+                }
+                onNavigate('service-portal')
+              }}
+              type="button"
+            >
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <FileText size={17} />
+              </span>
+              <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
+                <span className="block">Application Forms</span>
+                <span className="block text-xs font-normal text-white/45">6 welfare forms</span>
+              </span>
+              <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={16} />
+            </button>
+
+            {formsExpanded && !collapsed && (
+              <div className="grid gap-1 px-3 pb-3">
+                {applicationForms.map((form, index) => (
+                  <Link
+                    className="group flex min-w-0 items-start gap-2 rounded-xl px-3 py-2 text-left text-xs text-white/65 transition hover:bg-white/10 hover:text-white"
+                    key={form.id}
+                    to={`/app/forms/${form.id}`}
+                  >
+                    <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-white/70 group-hover:text-white">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold">{form.tamilTitle}</span>
+                      <span className="block truncate text-white/45">{form.title}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className={`mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 ${collapsed ? 'lg:hidden' : ''}`}>
@@ -623,6 +685,8 @@ function AdminPanel({ user }) {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('overview')
   const [selectedSignupId, setSelectedSignupId] = useState(null)
+  const [signupStatusFilter, setSignupStatusFilter] = useState('ALL')
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState('ALL')
   const { notify } = useNotifications()
 
   const loadDashboard = useCallback(async () => {
@@ -696,6 +760,28 @@ function AdminPanel({ user }) {
     }
   }
 
+  async function updateUserLoginStatus(targetUser, isActive) {
+    const action = isActive ? 'unblock' : 'block'
+    const confirmed = window.confirm(`${action === 'block' ? 'Block' : 'Unblock'} login for ${targetUser.username}?`)
+    if (!confirmed) return
+
+    try {
+      await api.patch(`/admin/users/${targetUser.id}/login-status`, { isActive })
+      notify({
+        type: 'success',
+        title: isActive ? 'Login Unblocked' : 'Login Blocked',
+        message: `${targetUser.username} login access has been ${isActive ? 'enabled' : 'blocked'}.`,
+      })
+      loadDashboard()
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Login Access Update Failed',
+        message: error.response?.data?.message || 'Unable to update login access.',
+      })
+    }
+  }
+
   const stats = useMemo(() => {
     const pendingSignups = signupRequests.filter((request) => request.status === 'PENDING').length
     const pendingApplications = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
@@ -714,8 +800,11 @@ function AdminPanel({ user }) {
   const pendingSignupCount = signupRequests.filter((request) => request.status === 'PENDING').length
   const reviewApplicationCount = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
   const activeUsersCount = overview?.users?.active ?? 0
-  const activeRecentUsers = (overview?.users?.recent || []).filter((recentUser) => recentUser.isActive)
+  const visibleUsers = overview?.users?.recent || []
   const selectedSignupRequest = signupRequests.find((request) => request.id === selectedSignupId) || signupRequests[0] || null
+  const filteredSignupRequests = signupStatusFilter === 'ALL' ? signupRequests : signupRequests.filter((request) => request.status === signupStatusFilter)
+  const filteredSubmissions = applicationStatusFilter === 'ALL' ? submissions : submissions.filter((submission) => submission.status === applicationStatusFilter)
+  const visibleSignupRequest = filteredSignupRequests.find((request) => request.id === selectedSignupRequest?.id) || filteredSignupRequests[0] || null
 
   return (
     <section className="grid gap-6">
@@ -797,7 +886,7 @@ function AdminPanel({ user }) {
             ))}
           </div>
           <div className="overflow-x-auto px-4 pb-4 sm:px-5 sm:pb-5">
-            <table className="w-full min-w-[920px] text-left text-sm">
+            <table className="w-full min-w-[1040px] text-left text-sm">
               <thead className="bg-slate-100 text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-3 py-3">User</th>
@@ -807,10 +896,11 @@ function AdminPanel({ user }) {
                   <th className="px-3 py-3">Last Login Time</th>
                   <th className="px-3 py-3">Latest Activity</th>
                   <th className="px-3 py-3">Created</th>
+                  <th className="px-3 py-3">Login Access</th>
                 </tr>
               </thead>
               <tbody>
-                {activeRecentUsers.map((recentUser) => (
+                {visibleUsers.map((recentUser) => (
                   <tr className="border-b border-slate-100" key={recentUser.id}>
                     <td className="px-3 py-3">
                       <p className="font-bold text-slate-950">{recentUser.username}</p>
@@ -827,11 +917,20 @@ function AdminPanel({ user }) {
                       <p className="mt-1 text-xs text-slate-500">{formatDate(recentUser.latestActivity?.at)}</p>
                     </td>
                     <td className="px-3 py-3">{formatDate(recentUser.createdAt)}</td>
+                    <td className="px-3 py-3">
+                      <button
+                        className={`rounded-md px-3 py-2 text-xs font-bold text-white ${recentUser.isActive ? 'bg-rose-600' : 'bg-emerald-600'}`}
+                        onClick={() => updateUserLoginStatus(recentUser, !recentUser.isActive)}
+                        type="button"
+                      >
+                        {recentUser.isActive ? 'Block Login' : 'Unblock Login'}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {!activeRecentUsers.length && <EmptyState>No active users found.</EmptyState>}
+            {!visibleUsers.length && <EmptyState>No users found.</EmptyState>}
           </div>
         </Panel>
 
@@ -857,9 +956,21 @@ function AdminPanel({ user }) {
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           <Panel>
             <PanelHeader eyebrow="Approvals" title="Signup Requests" />
-            <div className="grid max-h-[calc(100vh-260px)] gap-2 overflow-y-auto p-4 sm:p-5">
-              {signupRequests.length ? signupRequests.map((request) => {
-                const selected = selectedSignupRequest?.id === request.id
+            <div className="grid gap-3 p-4 sm:p-5">
+              <StatusFilter
+                active={signupStatusFilter}
+                onChange={setSignupStatusFilter}
+                options={[
+                  { value: 'ALL', label: 'அனைத்தும் / All' },
+                  { value: 'PENDING', label: 'நிலுவை / Pending' },
+                  { value: 'APPROVED', label: 'அனுமதி / Approved' },
+                  { value: 'REJECTED', label: 'நிராகரிப்பு / Rejected' },
+                ]}
+              />
+            </div>
+            <div className="grid max-h-[calc(100vh-330px)] gap-2 overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
+              {filteredSignupRequests.length ? filteredSignupRequests.map((request) => {
+                const selected = visibleSignupRequest?.id === request.id
                 return (
                   <button
                     className={`rounded-lg border p-3 text-left transition ${selected ? 'border-[#007cba] bg-[#eef8ff] shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
@@ -888,7 +999,7 @@ function AdminPanel({ user }) {
             </div>
           </Panel>
 
-          <SignupRequestDetail request={selectedSignupRequest} onReview={reviewSignup} />
+          <SignupRequestDetail request={visibleSignupRequest} onReview={reviewSignup} />
         </div>
       )}
 
@@ -896,7 +1007,20 @@ function AdminPanel({ user }) {
         <Panel>
           <PanelHeader eyebrow="Review Queue" title="Application Review" />
           <div className="grid gap-3 p-4 sm:p-5">
-            {submissions.length ? submissions.map((submission) => (
+            <StatusFilter
+              active={applicationStatusFilter}
+              onChange={setApplicationStatusFilter}
+              options={[
+                { value: 'ALL', label: 'அனைத்தும் / All' },
+                { value: 'SUBMITTED', label: 'சமர்ப்பிப்பு / Submitted' },
+                { value: 'UNDER_REVIEW', label: 'பரிசீலனை / Under Review' },
+                { value: 'NEEDS_CORRECTION', label: 'திருத்தம் / Returned' },
+                { value: 'RESUBMITTED', label: 'மீண்டும் / Resubmitted' },
+                { value: 'APPROVED', label: 'அனுமதி / Approved' },
+                { value: 'REJECTED', label: 'நிராகரிப்பு / Rejected' },
+              ]}
+            />
+            {filteredSubmissions.length ? filteredSubmissions.map((submission) => (
               <div className="rounded-lg border border-slate-200 p-3" key={submission.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
@@ -1079,8 +1203,8 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-3 py-4 text-slate-900 sm:px-5 sm:py-6">
-      <div className="mx-auto grid max-w-[1600px] gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-2 py-4 text-slate-900 sm:px-4 sm:py-6">
+      <div className="grid w-full gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
         <DashboardSidebar
           collapsed={sidebarCollapsed}
           onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
