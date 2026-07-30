@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, getUploadUrl, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -103,7 +103,6 @@ function getUserInitials(user) {
 }
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
-  const [formsExpanded, setFormsExpanded] = useState(false)
   const profilePhoto = getProfilePhoto(user)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
@@ -150,51 +149,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
               </button>
             )
           })}
-
-          <div className="rounded-xl border border-slate-800 bg-slate-900/40">
-            <button
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${activeTab === 'service-portal' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
-              onClick={() => {
-                if (collapsed) {
-                  onCollapseToggle()
-                  setFormsExpanded(true)
-                } else {
-                  setFormsExpanded((current) => !current)
-                }
-                onNavigate('service-portal')
-              }}
-              type="button"
-            >
-              <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${activeTab === 'service-portal' ? 'bg-white/20' : 'bg-slate-800'}`}>
-                <FileText size={16} />
-              </span>
-              <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
-                <span className="block text-sm leading-tight">Application Forms</span>
-                <span className={`block text-[11px] font-normal ${activeTab === 'service-portal' ? 'text-white/80' : 'text-slate-500'}`}>6 welfare forms</span>
-              </span>
-              <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={15} />
-            </button>
-
-            {formsExpanded && !collapsed && (
-              <div className="grid gap-1 px-2 pb-2 pt-1">
-                {applicationForms.map((form, index) => (
-                  <Link
-                    className="group flex min-w-0 items-start gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-400 transition hover:bg-slate-800 hover:text-white"
-                    key={form.id}
-                    to={`/app/forms/${form.id}`}
-                  >
-                    <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-md bg-slate-800 text-[10px] font-bold text-slate-300 group-hover:text-white">
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-bold">{form.tamilTitle}</span>
-                      <span className="block truncate text-slate-500">{form.title}</span>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </nav>
 
