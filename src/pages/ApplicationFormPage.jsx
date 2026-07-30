@@ -7,7 +7,7 @@ import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { ArrowLeft, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, Upload } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const dobProofOptions = [
   { value: 'voter-id', label: 'வாக்காளர் அட்டை / Voter ID' },
