@@ -1,22 +1,22 @@
 const independentVowels = {
   அ: 'A',
-  ஆ: 'Aa',
+  ஆ: 'A',
   இ: 'I',
-  ஈ: 'Ee',
+  ஈ: 'I',
   உ: 'U',
-  ஊ: 'Oo',
+  ஊ: 'U',
   எ: 'E',
-  ஏ: 'Ae',
+  ஏ: 'E',
   ஐ: 'Ai',
   ஒ: 'O',
-  ஓ: 'Oa',
+  ஓ: 'O',
   ஔ: 'Au',
 }
 
 const consonants = {
   க: 'k',
   ங: 'ng',
-  ச: 's',
+  ச: 'ch',
   ஞ: 'ny',
   ட: 't',
   ண: 'n',
@@ -39,20 +39,66 @@ const consonants = {
 }
 
 const vowelMarks = {
-  'ா': 'aa',
+  'ா': 'a',
   'ி': 'i',
-  'ீ': 'ee',
+  'ீ': 'i',
   'ு': 'u',
-  'ூ': 'oo',
+  'ூ': 'u',
   'ெ': 'e',
-  'ே': 'ae',
+  'ே': 'e',
   'ை': 'ai',
   'ொ': 'o',
-  'ோ': 'oa',
+  'ோ': 'o',
   'ௌ': 'au',
 }
 
+const commonNames = {
+  காஞ்சிபுரம்: 'Kanchipuram',
+  செங்கல்பட்டு: 'Chengalpattu',
+  திருவள்ளூர்: 'Tiruvallur',
+  திருவள்ளுர்: 'Tiruvallur',
+  சென்னை: 'Chennai',
+  இராணிப்பேட்டை: 'Ranipet',
+  ராணிப்பேட்டை: 'Ranipet',
+  வேலூர்: 'Vellore',
+  திருப்பத்தூர்: 'Tirupathur',
+  திருவண்ணாமலை: 'Thiruvannamalai',
+  விழுப்புரம்: 'Villupuram',
+  கள்ளக்குறிச்சி: 'Kallakurichi',
+  சேலம்: 'Salem',
+  நாமக்கல்: 'Namakkal',
+  தர்மபுரி: 'Dharmapuri',
+  கிருஷ்ணகிரி: 'Krishnagiri',
+  ஈரோடு: 'Erode',
+  திருப்பூர்: 'Tiruppur',
+  கோயம்புத்தூர்: 'Coimbatore',
+  நீலகிரி: 'Nilgiris',
+  கடலூர்: 'Cuddalore',
+  மயிலாடுதுறை: 'Mayiladuthurai',
+  நாகப்பட்டினம்: 'Nagapattinam',
+  திருவாரூர்: 'Thiruvarur',
+  தஞ்சாவூர்: 'Thanjavur',
+  திருச்சிராப்பள்ளி: 'Tiruchirappalli',
+  கரூர்: 'Karur',
+  பெரம்பலூர்: 'Perambalur',
+  அரியலூர்: 'Ariyalur',
+  புதுக்கோட்டை: 'Pudukkottai',
+  மதுரை: 'Madurai',
+  தேனி: 'Theni',
+  திண்டுக்கல்: 'Dindigul',
+  இராமநாதபுரம்: 'Ramanathapuram',
+  விருதுநகர்: 'Virudhunagar',
+  சிவகங்கை: 'Sivaganga',
+  தூத்துக்குடி: 'Thoothukudi',
+  திருநெல்வேலி: 'Tirunelveli',
+  தென்காசி: 'Tenkasi',
+  கன்னியாகுமரி: 'Kanniyakumari',
+  போளுர்: 'Polur',
+}
+
 export function transliterateTamil(text = '') {
+  if (commonNames[text]) return commonNames[text]
+
   let output = ''
 
   for (let index = 0; index < text.length; index += 1) {
@@ -85,5 +131,6 @@ export function transliterateTamil(text = '') {
   return output
     .replace(/\s+/g, ' ')
     .trim()
+    .replace(/a\b/gi, '')
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }

@@ -32,6 +32,67 @@ function FieldLabel({ children }) {
   return <span className="text-sm font-semibold text-neutral-700">{children}</span>
 }
 
+function SearchSelect({ disabled = false, onChange, options, placeholder, value }) {
+  const selectedOption = options.find((option) => option.value === value)
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const filteredOptions = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return options
+    return options.filter((option) => option.label.toLowerCase().includes(normalizedQuery))
+  }, [options, query])
+
+  useEffect(() => {
+    setQuery(selectedOption?.label || '')
+  }, [selectedOption?.label])
+
+  return (
+    <div className="relative">
+      <input
+        aria-expanded={open}
+        autoComplete="off"
+        className="min-w-0 w-full border border-neutral-300 px-4 py-3 disabled:bg-neutral-100"
+        disabled={disabled}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => {
+          setQuery('')
+          setOpen(true)
+        }}
+        placeholder={placeholder}
+        role="combobox"
+        value={open ? query : selectedOption?.label || ''}
+      />
+      {open && !disabled && (
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto border border-neutral-300 bg-white shadow-lg">
+          {filteredOptions.length ? (
+            filteredOptions.map((option) => (
+              <button
+                className="block w-full px-4 py-3 text-left text-sm hover:bg-[#eef8ff] focus:bg-[#eef8ff]"
+                key={option.value}
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  onChange(option.value)
+                  setQuery(option.label)
+                  setOpen(false)
+                }}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-sm text-neutral-500">No matching option</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function formatFileSize(size) {
   if (!size) return ''
   if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`
@@ -112,6 +173,37 @@ export default function AccountPage({ mode }) {
     () => villages.find((village) => village.code === villageCode),
     [villageCode, villages],
   )
+  const needsTaluk = ['TALUK_ADMIN', 'VILLAGE_ADMIN', 'PARTNER'].includes(signupForm.requestedRole)
+  const needsVillage = ['VILLAGE_ADMIN', 'PARTNER'].includes(signupForm.requestedRole)
+  const roleOptions = useMemo(
+    () => requestedRoles.map((role) => ({ value: role.value, label: role.label })),
+    [],
+  )
+  const districtOptions = useMemo(
+    () => tamilNaduDistricts.map((district) => ({ value: district.code, label: bilingualName(district) })),
+    [],
+  )
+  const talukOptions = useMemo(
+    () => taluks.map((taluk) => ({ value: taluk.code, label: bilingualName(taluk) })),
+    [taluks],
+  )
+  const villageOptions = useMemo(
+    () => villages.map((village) => ({ value: village.code, label: bilingualName(village) })),
+    [villages],
+  )
+  const proofOptions = useMemo(
+    () => idProofOptions.map((proof) => ({ value: proof.value, label: proof.label })),
+    [],
+  )
+
+  useEffect(() => {
+    if (!needsTaluk) {
+      setTalukCode('')
+      setVillageCode('')
+    } else if (!needsVillage) {
+      setVillageCode('')
+    }
+  }, [needsTaluk, needsVillage])
 
   function updateSignupField(field, value) {
     setSignupForm((current) => ({ ...current, [field]: value }))
@@ -138,8 +230,16 @@ export default function AccountPage({ mode }) {
     event.preventDefault()
     setStatus({ type: '', message: '' })
 
-    if (!selectedDistrict || !selectedTaluk || !selectedVillage) {
-      setStatus({ type: 'error', message: 'மாவட்டம், தாலுகா, கிராமம் தேர்வு செய்யவும்.' })
+    if (!selectedDistrict) {
+      setStatus({ type: 'error', message: 'மாவட்டம் தேர்வு செய்யவும். / Select District.' })
+      return
+    }
+    if (needsTaluk && !selectedTaluk) {
+      setStatus({ type: 'error', message: 'தாலுகா தேர்வு செய்யவும். / Select Taluk.' })
+      return
+    }
+    if (needsVillage && !selectedVillage) {
+      setStatus({ type: 'error', message: 'கிராமம் தேர்வு செய்யவும். / Select Village.' })
       return
     }
     if (signupForm.password !== signupForm.confirmPassword) {
@@ -153,11 +253,11 @@ export default function AccountPage({ mode }) {
     })
     payload.append('state', 'Tamil Nadu')
     payload.append('district', selectedDistrict.name)
-    payload.append('taluk', selectedTaluk.name)
-    payload.append('village', selectedVillage.name)
+    payload.append('taluk', selectedTaluk?.name || '')
+    payload.append('village', selectedVillage?.name || '')
     payload.append('districtCode', selectedDistrict.code)
-    payload.append('talukCode', selectedTaluk.code)
-    payload.append('villageCode', selectedVillage.code)
+    payload.append('talukCode', selectedTaluk?.code || '')
+    payload.append('villageCode', selectedVillage?.code || '')
 
     try {
       setSubmitting(true)
@@ -239,10 +339,7 @@ export default function AccountPage({ mode }) {
             </div>
             <label className="grid gap-2">
               <FieldLabel>பங்கு / Requested Role</FieldLabel>
-              <select className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('requestedRole', event.target.value)} required value={signupForm.requestedRole}>
-                <option disabled value="">பங்கு தேர்வு செய்யவும் / Select Role</option>
-                {requestedRoles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-              </select>
+              <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
             </label>
             <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
@@ -251,43 +348,38 @@ export default function AccountPage({ mode }) {
             </label>
             <label className="grid gap-2">
               <FieldLabel>மாவட்டம் / District</FieldLabel>
-              <select
-                className="min-w-0 border border-neutral-300 px-4 py-3"
-                onChange={(event) => {
-                  setDistrictCode(event.target.value)
+              <SearchSelect
+                onChange={(value) => {
+                  setDistrictCode(value)
                   setTalukCode('')
                   setVillageCode('')
                 }}
-                required
+                options={districtOptions}
+                placeholder="மாவட்டம் தேடவும் / Search district"
                 value={districtCode}
-              >
-                <option disabled value="">மாவட்டம் தேர்வு செய்யவும் / Select District</option>
-                {tamilNaduDistricts.map((district) => <option key={district.code} value={district.code}>{bilingualName(district)}</option>)}
-              </select>
+              />
             </label>
-            <label className="grid gap-2">
-              <FieldLabel>தாலுகா / Taluk</FieldLabel>
-              <select
-                className="min-w-0 border border-neutral-300 px-4 py-3"
-                disabled={!districtCode}
-                onChange={(event) => {
-                  setTalukCode(event.target.value)
-                  setVillageCode('')
-                }}
-                required
-                value={talukCode}
-              >
-                <option disabled value="">தாலுகா தேர்வு செய்யவும் / Select Taluk</option>
-                {taluks.map((taluk) => <option key={taluk.code} value={taluk.code}>{bilingualName(taluk)}</option>)}
-              </select>
-            </label>
-            <label className="grid gap-2">
-              <FieldLabel>கிராமம் / Village</FieldLabel>
-              <select className="min-w-0 border border-neutral-300 px-4 py-3" disabled={!talukCode} onChange={(event) => setVillageCode(event.target.value)} required value={villageCode}>
-                <option disabled value="">கிராமம் தேர்வு செய்யவும் / Select Village</option>
-                {villages.map((village) => <option key={village.code} value={village.code}>{bilingualName(village)}</option>)}
-              </select>
-            </label>
+            {needsTaluk && (
+              <label className="grid gap-2">
+                <FieldLabel>தாலுகா / Taluk</FieldLabel>
+                <SearchSelect
+                  disabled={!districtCode}
+                  onChange={(value) => {
+                    setTalukCode(value)
+                    setVillageCode('')
+                  }}
+                  options={talukOptions}
+                  placeholder="தாலுகா தேடவும் / Search taluk"
+                  value={talukCode}
+                />
+              </label>
+            )}
+            {needsVillage && (
+              <label className="grid gap-2">
+                <FieldLabel>கிராமம் / Village</FieldLabel>
+                <SearchSelect disabled={!talukCode} onChange={setVillageCode} options={villageOptions} placeholder="கிராமம் தேடவும் / Search village" value={villageCode} />
+              </label>
+            )}
             </div>
             <label className="grid gap-2">
               <FieldLabel>அஞ்சல் குறியீடு / Pincode</FieldLabel>
@@ -305,10 +397,7 @@ export default function AccountPage({ mode }) {
             </label>
             <label className="grid gap-2 self-end">
               <FieldLabel>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
-              <select className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofType', event.target.value)} required value={signupForm.idProofType}>
-                <option disabled value="">அடையாள ஆவணம் தேர்வு / Select ID Proof</option>
-                {idProofOptions.map((proof) => <option key={proof.value} value={proof.value}>{proof.label}</option>)}
-              </select>
+              <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
             </label>
             </div>
             <label className="grid gap-2">

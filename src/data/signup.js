@@ -27,7 +27,6 @@ export const requestedRoles = [
   { value: 'VILLAGE_ADMIN', label: 'கிராம பொறுப்பாளர் / Village Admin' },
   { value: 'TALUK_ADMIN', label: 'தாலுகா பொறுப்பாளர் / Taluk Admin' },
   { value: 'DISTRICT_ADMIN', label: 'மாவட்ட பொறுப்பாளர் / District Admin' },
-  { value: 'STATE_ADMIN', label: 'மாநில பொறுப்பாளர் / State Admin' },
 ]
 
 export const idProofOptions = [
