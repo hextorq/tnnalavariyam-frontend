@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History, Layers3, LayoutDashboard, LogOut, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -30,6 +30,14 @@ const roleScopeLabels = {
 function formatDate(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString('en-IN')
+}
+
+function getUploadUrl(path) {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path)) return path
+  const apiBase = api.defaults.baseURL || window.location.origin
+  const siteBase = apiBase.replace(/\/api\/?$/, '/')
+  return new URL(path, siteBase).href
 }
 
 function StatusPill({ status }) {
@@ -451,6 +459,115 @@ function SignupRejectedHistory({ history }) {
   )
 }
 
+function SignupDetailRow({ label, value }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-950">{value || '-'}</p>
+    </div>
+  )
+}
+
+function SignupDocumentCard({ icon: Icon, label, path }) {
+  const url = getUploadUrl(path)
+  const isImage = /\.(jpg|jpeg|png|webp)$/i.test(path || '')
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-[#eef8ff] text-[#007cba]">
+            <Icon size={17} />
+          </span>
+          <p className="font-bold text-slate-950">{label}</p>
+        </div>
+        {url && (
+          <a className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" href={url} rel="noreferrer" target="_blank">
+            Open <ExternalLink size={13} />
+          </a>
+        )}
+      </div>
+      {url && isImage ? (
+        <a href={url} rel="noreferrer" target="_blank">
+          <img alt={label} className="max-h-72 w-full bg-slate-50 object-contain p-3" src={url} />
+        </a>
+      ) : (
+        <div className="p-5 text-sm font-semibold text-slate-600">{url ? 'Document uploaded. Open to view.' : 'No document uploaded.'}</div>
+      )}
+    </div>
+  )
+}
+
+function SignupRequestDetail({ request, onReview }) {
+  if (!request) {
+    return (
+      <Panel>
+        <PanelHeader eyebrow="Details" title="Signup Request Details" />
+        <div className="p-4 sm:p-5">
+          <EmptyState>Select a signup request to view full details and documents.</EmptyState>
+        </div>
+      </Panel>
+    )
+  }
+
+  return (
+    <Panel>
+      <PanelHeader
+        action={<StatusPill status={request.status} />}
+        eyebrow="Details"
+        title={request.fullName || 'Signup Request'}
+      />
+      <div className="grid gap-5 p-4 sm:p-5">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SignupDetailRow label="Request No" value={request.requestNo} />
+          <SignupDetailRow label="Requested Role" value={roleLabels[request.requestedRole] || request.requestedRole} />
+          <SignupDetailRow label="Username" value={request.username} />
+          <SignupDetailRow label="Phone" value={request.phone} />
+          <SignupDetailRow label="Email" value={request.email} />
+          <SignupDetailRow label="Pincode" value={request.pincode} />
+          <SignupDetailRow label="ID Proof Type" value={request.idProofType?.replaceAll('_', ' ')} />
+          <SignupDetailRow label="ID Proof No" value={request.idProofNumber} />
+          <SignupDetailRow label="Submitted" value={formatDate(request.createdAt)} />
+          <SignupDetailRow label="Reviewed" value={formatDate(request.reviewedAt)} />
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <MapPin size={14} />
+            Address and Scope
+          </div>
+          <p className="mt-2 text-sm font-semibold text-slate-950">{request.addressLine || '-'}</p>
+          <p className="mt-2 text-sm text-slate-600">
+            {[request.village, request.taluk, request.district, request.state].filter(Boolean).join(', ')}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">Scope: {request.scope?.name || '-'}</p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SignupDocumentCard icon={ImageIcon} label="Passport Photo" path={request.photoPath} />
+          <SignupDocumentCard icon={IdCard} label="ID Proof Document" path={request.idProofPath} />
+        </div>
+
+        {request.reviewReason && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+            <p className="font-bold">Rejection Reason</p>
+            <p className="mt-1">{request.reviewReason}</p>
+          </div>
+        )}
+
+        <SignupRejectedHistory history={request.rejectedHistory} />
+
+        {request.status === 'PENDING' && (
+          <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            <button className="rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white" onClick={() => onReview(request, 'APPROVED')} type="button">Approve</button>
+            <button className="rounded-md bg-rose-600 px-4 py-2.5 text-sm font-bold text-white" onClick={() => onReview(request, 'REJECTED')} type="button">Reject</button>
+          </div>
+        )}
+      </div>
+    </Panel>
+  )
+}
+
 function AdminSectionTabs({ activeSection, counts, onChange }) {
   const sections = [
     { id: 'overview', label: 'Overview', tamil: 'மேலோட்டம்', count: null, icon: Layers3 },
@@ -499,6 +616,7 @@ function AdminPanel({ user }) {
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('overview')
+  const [selectedSignupId, setSelectedSignupId] = useState(null)
   const { notify } = useNotifications()
 
   const loadDashboard = useCallback(async () => {
@@ -510,7 +628,9 @@ function AdminPanel({ user }) {
         api.get('/applications/submissions'),
       ])
       setOverview(overviewResponse.data.overview || null)
-      setSignupRequests(signupResponse.data.requests || [])
+      const nextSignupRequests = signupResponse.data.requests || []
+      setSignupRequests(nextSignupRequests)
+      setSelectedSignupId((current) => (nextSignupRequests.some((request) => request.id === current) ? current : nextSignupRequests[0]?.id || null))
       setSubmissions(submissionsResponse.data.submissions || [])
     } catch (error) {
       notify({
@@ -589,6 +709,7 @@ function AdminPanel({ user }) {
   const reviewApplicationCount = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
   const activeUsersCount = overview?.users?.active ?? 0
   const activeRecentUsers = (overview?.users?.recent || []).filter((recentUser) => recentUser.isActive)
+  const selectedSignupRequest = signupRequests.find((request) => request.id === selectedSignupId) || signupRequests[0] || null
 
   return (
     <section className="grid gap-6">
@@ -660,7 +781,7 @@ function AdminPanel({ user }) {
       {activeSection === 'users' && (
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)]">
         <Panel>
-          <PanelHeader eyebrow="Access" title="Active Users & Activity" />
+          <PanelHeader eyebrow="Access" title="Active Users - Last Login & Activity" />
           <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
             {(overview?.users?.byRole || []).map((item) => (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" key={item.role}>
@@ -677,7 +798,7 @@ function AdminPanel({ user }) {
                   <th className="px-3 py-3">Role</th>
                   <th className="px-3 py-3">Scope</th>
                   <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Last Login</th>
+                  <th className="px-3 py-3">Last Login Time</th>
                   <th className="px-3 py-3">Latest Activity</th>
                   <th className="px-3 py-3">Created</th>
                 </tr>
@@ -692,7 +813,9 @@ function AdminPanel({ user }) {
                     <td className="px-3 py-3">{roleLabels[recentUser.role] || recentUser.role}</td>
                     <td className="px-3 py-3">{recentUser.scope?.name || 'All Tamil Nadu'}</td>
                     <td className="px-3 py-3"><StatusPill status={recentUser.isActive ? 'ACTIVE' : 'INACTIVE'} /></td>
-                    <td className="px-3 py-3">{formatDate(recentUser.lastLoginAt)}</td>
+                    <td className="px-3 py-3">
+                      <p className="font-bold text-slate-950">{recentUser.lastLoginAt ? formatDate(recentUser.lastLoginAt) : 'Never logged in'}</p>
+                    </td>
                     <td className="px-3 py-3">
                       <p className="font-semibold text-slate-800">{recentUser.latestActivity?.label || '-'}</p>
                       <p className="mt-1 text-xs text-slate-500">{formatDate(recentUser.latestActivity?.at)}</p>
@@ -725,32 +848,42 @@ function AdminPanel({ user }) {
       )}
 
       {activeSection === 'signups' && (
-        <Panel>
-          <PanelHeader eyebrow="Approvals" title="Signup Approvals" />
-          <div className="grid gap-3 p-4 sm:p-5">
-            {signupRequests.length ? signupRequests.map((request) => (
-              <div className="rounded-lg border border-slate-200 p-3" key={request.id}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-950">{request.fullName}</p>
-                    <p className="mt-1 text-sm text-slate-600">{request.phone} - {request.email}</p>
-                    <p className="mt-1 text-sm text-slate-600">{roleLabels[request.requestedRole] || request.requestedRole} - {request.scope?.name || request.village || request.taluk || request.district}</p>
-                  </div>
-                  <StatusPill status={request.status} />
-                </div>
-                <SignupRejectedHistory history={request.rejectedHistory} />
-                {request.status === 'PENDING' && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewSignup(request, 'APPROVED')} type="button">Approve</button>
-                    <button className="rounded-md bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewSignup(request, 'REJECTED')} type="button">Reject</button>
-                  </div>
-                )}
-              </div>
-            )) : (
-              <EmptyState>No signup requests found.</EmptyState>
-            )}
-          </div>
-        </Panel>
+        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <Panel>
+            <PanelHeader eyebrow="Approvals" title="Signup Requests" />
+            <div className="grid max-h-[calc(100vh-260px)] gap-2 overflow-y-auto p-4 sm:p-5">
+              {signupRequests.length ? signupRequests.map((request) => {
+                const selected = selectedSignupRequest?.id === request.id
+                return (
+                  <button
+                    className={`rounded-lg border p-3 text-left transition ${selected ? 'border-[#007cba] bg-[#eef8ff] shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
+                    key={request.id}
+                    onClick={() => setSelectedSignupId(request.id)}
+                    type="button"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-slate-950">{request.fullName}</p>
+                        <p className="mt-1 truncate text-sm text-slate-600">{request.phone}</p>
+                        <p className="mt-1 truncate text-sm text-slate-600">{request.email}</p>
+                      </div>
+                      <StatusPill status={request.status} />
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-slate-700">{roleLabels[request.requestedRole] || request.requestedRole}</p>
+                    <p className="mt-1 truncate text-xs text-slate-500">{request.scope?.name || request.village || request.taluk || request.district}</p>
+                    {request.rejectedHistory?.count > 0 && (
+                      <p className="mt-2 rounded-md bg-rose-50 px-2 py-1 text-xs font-bold text-rose-700">Rejected before: {request.rejectedHistory.count}</p>
+                    )}
+                  </button>
+                )
+              }) : (
+                <EmptyState>No signup requests found.</EmptyState>
+              )}
+            </div>
+          </Panel>
+
+          <SignupRequestDetail request={selectedSignupRequest} onReview={reviewSignup} />
+        </div>
       )}
 
       {activeSection === 'applications' && (
