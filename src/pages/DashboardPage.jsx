@@ -648,7 +648,7 @@ function AdminPanel({ user }) {
       {activeSection === 'users' && (
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)]">
         <Panel>
-          <PanelHeader eyebrow="Access" title="Active Users & Activity" />
+          <PanelHeader eyebrow="Access" title="Active Users - Last Login & Activity" />
           <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
             {(overview?.users?.byRole || []).map((item) => (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" key={item.role}>
@@ -665,7 +665,7 @@ function AdminPanel({ user }) {
                   <th className="px-3 py-3">Role</th>
                   <th className="px-3 py-3">Scope</th>
                   <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Last Login</th>
+                  <th className="px-3 py-3">Last Login Time</th>
                   <th className="px-3 py-3">Latest Activity</th>
                   <th className="px-3 py-3">Created</th>
                 </tr>
@@ -680,7 +680,9 @@ function AdminPanel({ user }) {
                     <td className="px-3 py-3">{roleLabels[recentUser.role] || recentUser.role}</td>
                     <td className="px-3 py-3">{recentUser.scope?.name || 'All Tamil Nadu'}</td>
                     <td className="px-3 py-3"><StatusPill status={recentUser.isActive ? 'ACTIVE' : 'INACTIVE'} /></td>
-                    <td className="px-3 py-3">{formatDate(recentUser.lastLoginAt)}</td>
+                    <td className="px-3 py-3">
+                      <p className="font-bold text-slate-950">{recentUser.lastLoginAt ? formatDate(recentUser.lastLoginAt) : 'Never logged in'}</p>
+                    </td>
                     <td className="px-3 py-3">
                       <p className="font-semibold text-slate-800">{recentUser.latestActivity?.label || '-'}</p>
                       <p className="mt-1 text-xs text-slate-500">{formatDate(recentUser.latestActivity?.at)}</p>
