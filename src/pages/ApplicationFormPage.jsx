@@ -283,7 +283,7 @@ export default function ApplicationFormPage({ formId }) {
         <div className="mt-8 grid gap-8">
           {/* Dedicated Renewal Form View */}
           {isRenewal && (
-            <Section eyebrow="Renewal Details" title="Renewal / புதுப்பித்தல் விவரங்கள்">
+            <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
               <div className="grid gap-4 md:grid-cols-2">
                 <Field
                   onChange={(e) => handleInputChange('workerName', e.target.value)}
@@ -313,9 +313,94 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Phone no / அலைபேசி எண்
                 </Field>
+
+                <Field
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  type="date"
+                  value={formData.dob}
+                >
+                  Date of Birth / பிறந்த தேதி
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('photo', e)}
+                  preview={previews.photo}
+                >
+                  Photo / புகைப்படம்
+                </FileField>
+
+                <div className="grid gap-4">
+                  <SelectField
+                    onChange={(e) => handleInputChange('dobProofType', e.target.value)}
+                    options={dobProofOptions}
+                    value={formData.dobProofType}
+                  >
+                    Document for Date of Birth / பிறந்த தேதிக்கான ஆவணம் (Select Proof Type / ஆவண வகையைத் தேர்ந்தெடுக்கவும்)
+                  </SelectField>
+
+                  <FileField
+                    accept="image/*,.pdf,.doc,.docx"
+                    onChange={(e) => handleFileSelect('dobDocument', e)}
+                    preview={previews.dobDocument}
+                  >
+                    Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
+                  </FileField>
+                </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
+                <Field
+                  onChange={(e) => handleInputChange('religion', e.target.value)}
+                  placeholder="மதம்"
+                  type="text"
+                  value={formData.religion}
+                >
+                  Religion / மதம்
+                </Field>
+
+                <Field
+                  onChange={(e) => handleInputChange('caste', e.target.value)}
+                  placeholder="ஜாதி"
+                  type="text"
+                  value={formData.caste}
+                >
+                  Caste / ஜாதி
+                </Field>
+
+                <Field
+                  onChange={(e) => handleInputChange('subCaste', e.target.value)}
+                  placeholder="உட்பிரிவு"
+                  type="text"
+                  value={formData.subCaste}
+                >
+                  Sub-Caste / உட்பிரிவு
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  onChange={(e) => handleInputChange('workerJob', e.target.value)}
+                  placeholder="தொழிலாளியின் வேலை"
+                  type="text"
+                  value={formData.workerJob}
+                >
+                  Worker's job / தொழிலாளியின் வேலை
+                </Field>
+
+                <Field
+                  onChange={(e) => handleInputChange('nomineeName', e.target.value)}
+                  placeholder="நாமினி பெயர்"
+                  type="text"
+                  value={formData.nomineeName}
+                >
+                  Nominee Name / நாமினி பெயர்
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
                 <FileField
                   accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('registrationCard', e)}
@@ -327,6 +412,16 @@ export default function ApplicationFormPage({ formId }) {
 
                 <FileField
                   accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('bankPassbook', e)}
+                  preview={previews.bankPassbook}
+                >
+                  Bank Passbook / வங்கி புத்தகம்
+                </FileField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('aadharCard', e)}
                   preview={previews.aadharCard}
                 >
@@ -335,10 +430,38 @@ export default function ApplicationFormPage({ formId }) {
 
                 <FileField
                   accept="image/*,.pdf"
-                  onChange={(e) => handleFileSelect('bankPassbook', e)}
-                  preview={previews.bankPassbook}
+                  onChange={(e) => handleFileSelect('rationCard', e)}
+                  preview={previews.rationCard}
                 >
-                  Bank Passbook / வங்கி புத்தகம்
+                  Ration card / குடும்ப அட்டை
+                </FileField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('nomineeAadhar', e)}
+                  preview={previews.nomineeAadhar}
+                >
+                  Nominee's Aadhar Card File / நாமினி ஆதார் அட்டை
+                </FileField>
+
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('signature', e)}
+                  preview={previews.signature}
+                >
+                  Signature / கையொப்பம்
+                </FileField>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('livePhoto', e)}
+                  preview={previews.livePhoto}
+                >
+                  Live Photo / நேரடி புகைப்படம்
                 </FileField>
               </div>
             </Section>
@@ -576,7 +699,7 @@ export default function ApplicationFormPage({ formId }) {
                 <img
                   alt="Registration QR Code"
                   className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-white object-contain p-2 shadow-xs"
-                  src="https://tnthozhilalarservice.com/uploads/qrcodes/68c6543910e47-nv%20qr.jpg"
+                  src=""
                 />
                 <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
                   Pay the amount ₹{form.fee || 150} / ₹{form.fee || 150} தொகையை செலுத்தவும்
