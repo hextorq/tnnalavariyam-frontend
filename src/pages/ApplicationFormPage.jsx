@@ -2,6 +2,8 @@ import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { isAuthenticated } from '../lib/auth.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
+import { Link } from '../lib/router.jsx'
+import { ArrowLeft } from 'lucide-react'
 
 function getFieldInputProps(field) {
   if (/phone/i.test(field)) {
@@ -26,9 +28,17 @@ export default function ApplicationFormPage({ formId }) {
   return (
     <div className="min-h-screen bg-neutral-100 px-3 py-8 sm:px-5 sm:py-10">
       <form className="mx-auto max-w-4xl bg-white p-3 shadow-sm sm:p-8">
-        <p className="text-sm font-bold text-[#007cba]">Application Form</p>
-        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{form.tamilTitle}</h1>
-        <p className="mt-2 text-neutral-600">{form.title}</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-bold text-[#007cba]">Application Form</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{form.tamilTitle}</h1>
+            <p className="mt-2 text-neutral-600">{form.title}</p>
+          </div>
+          <Link className="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm font-bold text-neutral-800 shadow-sm hover:border-[#007cba] hover:text-[#007cba]" to="/app">
+            <ArrowLeft size={16} />
+            <span>திரும்ப / Back</span>
+          </Link>
+        </div>
         <div className="mt-6 grid gap-4 border border-neutral-200 bg-neutral-50 p-3 sm:p-5 md:grid-cols-3">
           <div>
             <p className="text-xs font-bold uppercase text-neutral-500">Application No</p>
