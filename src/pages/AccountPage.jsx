@@ -5,6 +5,7 @@ import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } fr
 import { api } from '../lib/api.js'
 import { saveSession } from '../lib/auth.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
+import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
 
@@ -246,6 +247,7 @@ export default function AccountPage({ mode }) {
   const [status, setStatus] = useState({ type: '', message: '' })
   const [loginForm, setLoginForm] = useState({ identifier: '', password: '' })
   const [submitting, setSubmitting] = useState(false)
+  const { notify } = useNotifications()
   const selectedDistrict = useMemo(
     () => tamilNaduDistricts.find((district) => district.code === districtCode),
     [districtCode],
@@ -296,6 +298,33 @@ export default function AccountPage({ mode }) {
     setSignupForm((current) => ({ ...current, [field]: value }))
   }
 
+  function showStatus(type, title, message) {
+    setStatus({ type: type === 'warning' ? 'error' : type, message })
+    notify({ type, title, message })
+  }
+
+  function validateSignupForm() {
+    const requiredFields = [
+      [signupForm.fullName.trim(), 'முழு பெயர் தேவை. / Full Name is required.'],
+      [signupForm.username.trim(), 'பயனர் பெயர் தேவை. / Username is required.'],
+      [signupForm.phone.length === 10, '10 இலக்க தொலைபேசி எண் தேவை. / 10 digit phone number is required.'],
+      [signupForm.email.trim(), 'மின்னஞ்சல் முகவரி தேவை. / Email Address is required.'],
+      [signupForm.requestedRole, 'பங்கு தேர்வு செய்யவும். / Select Role.'],
+      [signupForm.pincode.trim(), 'அஞ்சல் குறியீடு தேவை. / Pincode is required.'],
+      [signupForm.addressLine.trim(), 'முழு முகவரி தேவை. / Full Address is required.'],
+      [signupForm.photo, 'பாஸ்போர்ட் புகைப்படம் தேர்வு செய்யவும். / Passport photo is required.'],
+      [signupForm.idProofType, 'அடையாள ஆவணம் தேர்வு செய்யவும். / Select ID Proof.'],
+      [signupForm.idProof, 'அடையாள ஆவண படம் தேர்வு செய்யவும். / ID proof document is required.'],
+      [signupForm.password, 'கடவுச்சொல் தேவை. / Password is required.'],
+      [signupForm.confirmPassword, 'கடவுச்சொல் உறுதி தேவை. / Confirm Password is required.'],
+    ]
+    const missingField = requiredFields.find(([valid]) => !valid)
+    if (missingField) return missingField[1]
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupForm.email.trim())) return 'சரியான மின்னஞ்சல் முகவரி உள்ளிடவும். / Enter a valid email address.'
+    if (signupForm.password.length < 6) return 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் வேண்டும். / Password must be at least 6 characters.'
+    return ''
+  }
+
   async function checkSignupAvailability() {
     const params = new URLSearchParams({
       username: signupForm.username.trim(),
@@ -304,9 +333,15 @@ export default function AccountPage({ mode }) {
     })
     const response = await api.get(`/auth/availability?${params.toString()}`)
     if (!response.data.available) {
+      const message = getConflictMessage(response.data.conflicts) || 'Username, email அல்லது phone ஏற்கனவே உள்ளது.'
       setStatus({
         type: 'error',
-        message: getConflictMessage(response.data.conflicts) || 'Username, email அல்லது phone ஏற்கனவே உள்ளது.',
+        message,
+      })
+      notify({
+        type: 'error',
+        title: 'Already Exists / ஏற்கனவே உள்ளது',
+        message,
       })
       return false
     }
@@ -317,20 +352,29 @@ export default function AccountPage({ mode }) {
     event.preventDefault()
     setStatus({ type: '', message: '' })
 
+    const validationMessage = validateSignupForm()
+    if (validationMessage) {
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', validationMessage)
+      return
+    }
     if (!selectedDistrict) {
-      setStatus({ type: 'error', message: 'மாவட்டம் தேர்வு செய்யவும். / Select District.' })
+      const message = 'மாவட்டம் தேர்வு செய்யவும். / Select District.'
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', message)
       return
     }
     if (needsTaluk && !selectedTaluk) {
-      setStatus({ type: 'error', message: 'தாலுகா தேர்வு செய்யவும். / Select Taluk.' })
+      const message = 'தாலுகா தேர்வு செய்யவும். / Select Taluk.'
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', message)
       return
     }
     if (needsVillage && !selectedVillage) {
-      setStatus({ type: 'error', message: 'கிராமம் தேர்வு செய்யவும். / Select Village.' })
+      const message = 'கிராமம் தேர்வு செய்யவும். / Select Village.'
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', message)
       return
     }
     if (signupForm.password !== signupForm.confirmPassword) {
-      setStatus({ type: 'error', message: 'Password மற்றும் Confirm Password ஒன்றாக இல்லை.' })
+      const message = 'Password மற்றும் Confirm Password ஒன்றாக இல்லை.'
+      showStatus('warning', 'Password Mismatch / கடவுச்சொல் பொருந்தவில்லை', message)
       return
     }
 
@@ -352,18 +396,31 @@ export default function AccountPage({ mode }) {
       if (!available) return
 
       const response = await api.post('/auth/register', payload)
+      const message = `பதிவு கோரிக்கை சமர்ப்பிக்கப்பட்டது. Request No: ${response.data.signupRequest.requestNo}`
       setStatus({
         type: 'success',
-        message: `பதிவு கோரிக்கை சமர்ப்பிக்கப்பட்டது. Request No: ${response.data.signupRequest.requestNo}`,
+        message,
+      })
+      notify({
+        type: 'success',
+        title: 'Registration Submitted / பதிவு சமர்ப்பிக்கப்பட்டது',
+        message,
+        actionLabel: 'Request number noted',
       })
       setSignupForm(initialSignupForm)
       setDistrictCode('')
       setTalukCode('')
       setVillageCode('')
     } catch (error) {
+      const message = error.response?.data?.message || 'பதிவு கோரிக்கை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.'
       setStatus({
         type: 'error',
-        message: error.response?.data?.message || 'பதிவு கோரிக்கை சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+        message,
+      })
+      notify({
+        type: 'error',
+        title: 'Registration Failed / பதிவு தோல்வியடைந்தது',
+        message,
       })
     } finally {
       setSubmitting(false)
@@ -374,15 +431,26 @@ export default function AccountPage({ mode }) {
     event.preventDefault()
     setStatus({ type: '', message: '' })
 
+    if (!loginForm.identifier.trim() || !loginForm.password) {
+      showStatus('warning', 'Required Field / அவசியமான விவரம்', 'Email / Phone / Username மற்றும் Password இரண்டும் தேவை.')
+      return
+    }
+
     try {
       setSubmitting(true)
       const response = await api.post('/auth/login', loginForm)
       saveSession({ token: response.data.token, user: response.data.user })
       navigate('/app')
     } catch (error) {
+      const message = error.response?.data?.message || 'உள்நுழைய முடியவில்லை. அனுமதி பெற்ற கணக்கு விவரங்களை சரிபார்க்கவும்.'
       setStatus({
         type: 'error',
-        message: error.response?.data?.message || 'உள்நுழைய முடியவில்லை. அனுமதி பெற்ற கணக்கு விவரங்களை சரிபார்க்கவும்.',
+        message,
+      })
+      notify({
+        type: 'error',
+        title: 'Login Failed / உள்நுழைவு தோல்வி',
+        message,
       })
     } finally {
       setSubmitting(false)
@@ -394,6 +462,7 @@ export default function AccountPage({ mode }) {
       <h1 className="text-center text-2xl font-bold sm:text-4xl">{title}</h1>
       <form
         className="mt-6 grid gap-4 border border-neutral-200 p-3 sm:mt-10 sm:gap-5 sm:p-8"
+        noValidate
         onSubmit={mode === 'register' ? handleSignupSubmit : mode === 'login' ? handleLoginSubmit : undefined}
       >
         {mode === 'register' && (
