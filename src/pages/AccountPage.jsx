@@ -25,6 +25,11 @@ const initialSignupForm = {
   idProof: null,
 }
 
+const initialPreuploads = {
+  photo: { error: '', path: '', progress: 0, status: 'idle' },
+  idProof: { error: '', path: '', progress: 0, status: 'idle' },
+}
+
 const MB = 1024 * 1024
 const passportConfig = {
   maxSize: 5 * MB,
@@ -194,7 +199,7 @@ function validateFile(file, config) {
   return ''
 }
 
-function DocumentUpload({ file, label, onChange, required = false, uploadConfig }) {
+function DocumentUpload({ file, label, onChange, required = false, uploadConfig, uploadState }) {
   const inputRef = useRef(null)
   const [previewUrl, setPreviewUrl] = useState('')
 
@@ -249,6 +254,15 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
                 <p className="mt-1 text-xs font-normal text-neutral-600">
                   {file.type || 'Selected file'}{file.size ? ` - ${formatFileSize(file.size)}` : ''}
                 </p>
+                {uploadState?.status === 'uploading' && (
+                  <p className="mt-1 text-xs font-bold text-[#007cba]">Preparing file... {uploadState.progress || 0}%</p>
+                )}
+                {uploadState?.status === 'ready' && (
+                  <p className="mt-1 text-xs font-bold text-emerald-700">Ready for instant submission</p>
+                )}
+                {uploadState?.status === 'error' && (
+                  <p className="mt-1 text-xs font-bold text-red-700">{uploadState.error || 'File preparation failed'}</p>
+                )}
               </div>
               <div className="flex shrink-0 gap-2">
                 <button className="inline-flex items-center gap-2 border border-neutral-300 px-3 py-2 text-xs font-bold" onClick={openPicker} type="button">
@@ -367,6 +381,9 @@ export default function AccountPage({ mode }) {
   const [submitting, setSubmitting] = useState(false)
   const [uploadPhase, setUploadPhase] = useState('')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [preuploads, setPreuploads] = useState(initialPreuploads)
+  const uploadTokensRef = useRef({})
+  const uploadPromisesRef = useRef({})
   const { notify } = useNotifications()
   const selectedDistrict = useMemo(
     () => tamilNaduDistricts.find((district) => district.code === districtCode),
@@ -423,6 +440,86 @@ export default function AccountPage({ mode }) {
     if (error) {
       showStatus('warning', 'Invalid File / தவறான கோப்பு', error)
     }
+  }
+
+  function resetPreupload(field, overrides = {}) {
+    setPreuploads((current) => ({
+      ...current,
+      [field]: { ...initialPreuploads[field], ...overrides },
+    }))
+  }
+
+  async function deletePreuploadedPath(path) {
+    if (!path) return
+    try {
+      await api.delete('/auth/uploads/signup-temp', { data: { path } })
+    } catch (error) {
+      console.warn('[signup upload cleanup failed]', error.response?.data?.message || error.message)
+    }
+  }
+
+  function startBackgroundUpload(field, file) {
+    const token = Symbol(field)
+    uploadTokensRef.current[field] = token
+
+    const payload = new FormData()
+    payload.append(field, file)
+    resetPreupload(field, { status: 'uploading', progress: 0 })
+
+    const uploadPromise = api.post('/auth/uploads/signup-temp', payload, {
+      onUploadProgress: (progressEvent) => {
+        if (uploadTokensRef.current[field] !== token) return
+        const percent = progressEvent.total
+          ? Math.min(100, Math.round((progressEvent.loaded * 100) / progressEvent.total))
+          : 0
+        setPreuploads((current) => ({
+          ...current,
+          [field]: { ...current[field], progress: percent, status: 'uploading' },
+        }))
+      },
+    }).then((response) => {
+      const uploadedPath = response.data.upload?.path || ''
+      if (uploadTokensRef.current[field] !== token) {
+        deletePreuploadedPath(uploadedPath)
+        return null
+      }
+      setPreuploads((current) => ({
+        ...current,
+        [field]: { error: '', path: uploadedPath, progress: 100, status: 'ready' },
+      }))
+      return uploadedPath
+    }).catch((error) => {
+      if (uploadTokensRef.current[field] === token) {
+        setPreuploads((current) => ({
+          ...current,
+          [field]: {
+            error: error.response?.data?.message || 'File preparation failed. It will be uploaded during submit.',
+            path: '',
+            progress: 0,
+            status: 'error',
+          },
+        }))
+      }
+      return null
+    })
+
+    uploadPromisesRef.current[field] = uploadPromise
+    return uploadPromise
+  }
+
+  function handleSignupFileChange(field, file, error = '') {
+    const previousPath = preuploads[field]?.path
+    uploadTokensRef.current[field] = Symbol(`${field}-reset`)
+    updateSignupFile(field, file, error)
+    if (previousPath) deletePreuploadedPath(previousPath)
+
+    if (error || !file) {
+      resetPreupload(field)
+      uploadPromisesRef.current[field] = null
+      return
+    }
+
+    startBackgroundUpload(field, file)
   }
 
   function showStatus(type, title, message) {
@@ -510,18 +607,6 @@ export default function AccountPage({ mode }) {
       return
     }
 
-    const payload = new FormData()
-    Object.entries(signupForm).forEach(([key, value]) => {
-      if (value) payload.append(key, value)
-    })
-    payload.append('state', 'Tamil Nadu')
-    payload.append('district', selectedDistrict.name)
-    payload.append('taluk', selectedTaluk?.name || '')
-    payload.append('village', selectedVillage?.name || '')
-    payload.append('districtCode', selectedDistrict.code)
-    payload.append('talukCode', selectedTaluk?.code || '')
-    payload.append('villageCode', selectedVillage?.code || '')
-
     try {
       setSubmitting(true)
       setUploadPhase('checking')
@@ -533,9 +618,27 @@ export default function AccountPage({ mode }) {
       }
 
       setUploadPhase('photo')
-      await new Promise((resolve) => window.setTimeout(resolve, 150))
+      const preparedPhotoPath = preuploads.photo.path || await uploadPromisesRef.current.photo
       setUploadPhase('document')
-      await new Promise((resolve) => window.setTimeout(resolve, 150))
+      const preparedIdProofPath = preuploads.idProof.path || await uploadPromisesRef.current.idProof
+
+      const payload = new FormData()
+      Object.entries(signupForm).forEach(([key, value]) => {
+        if (!value) return
+        if (key === 'photo' && preparedPhotoPath) return
+        if (key === 'idProof' && preparedIdProofPath) return
+        payload.append(key, value)
+      })
+      if (preparedPhotoPath) payload.append('photoPath', preparedPhotoPath)
+      if (preparedIdProofPath) payload.append('idProofPath', preparedIdProofPath)
+      payload.append('state', 'Tamil Nadu')
+      payload.append('district', selectedDistrict.name)
+      payload.append('taluk', selectedTaluk?.name || '')
+      payload.append('village', selectedVillage?.name || '')
+      payload.append('districtCode', selectedDistrict.code)
+      payload.append('talukCode', selectedTaluk?.code || '')
+      payload.append('villageCode', selectedVillage?.code || '')
+
       setUploadPhase('uploading')
       const response = await api.post('/auth/register', payload, {
         onUploadProgress: (progressEvent) => {
@@ -564,6 +667,7 @@ export default function AccountPage({ mode }) {
       setDistrictCode('')
       setTalukCode('')
       setVillageCode('')
+      setPreuploads(initialPreuploads)
       setUploadPhase('')
       setUploadProgress(0)
     } catch (error) {
@@ -730,7 +834,7 @@ export default function AccountPage({ mode }) {
 
             <FormSection title="ஆவணங்கள் / Documents">
               <div className="grid gap-4 lg:grid-cols-2">
-                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => updateSignupFile('photo', file, error)} required uploadConfig={passportConfig} />
+                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} uploadState={preuploads.photo} />
                 <div className="grid content-start gap-4">
                   <label className="grid gap-2">
                     <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
@@ -742,7 +846,7 @@ export default function AccountPage({ mode }) {
                   </label>
                 </div>
               </div>
-              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => updateSignupFile('idProof', file, error)} required uploadConfig={documentConfig} />
+              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} uploadState={preuploads.idProof} />
             </FormSection>
           </>
         )}
