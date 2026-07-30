@@ -17,6 +17,15 @@ const roleLabels = {
   PARTNER: 'Village Partner',
 }
 
+const roleScopeLabels = {
+  SUPER_ADMIN: 'All Tamil Nadu - every state, district, taluk, village and partner',
+  STATE_ADMIN: 'Assigned state and all child districts, taluks, villages and partners',
+  DISTRICT_ADMIN: 'Assigned district and all child taluks, villages and partners',
+  TALUK_ADMIN: 'Assigned taluk and all child villages and partners',
+  VILLAGE_ADMIN: 'Assigned village and all village partners',
+  PARTNER: 'Only applications submitted from this partner account',
+}
+
 function formatDate(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString('en-IN')
@@ -132,6 +141,9 @@ function AdminPanel({ user }) {
             <h1 className="text-2xl font-bold text-neutral-950 sm:text-3xl">நிர்வாக டாஷ்போர்டு</h1>
             <p className="mt-2 text-sm leading-6 text-neutral-600">
               {user?.username || user?.email} - {roleLabels[user?.role] || user?.role}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-neutral-600">
+              {roleScopeLabels[user?.role]}
             </p>
           </div>
           <button className="border border-neutral-300 px-4 py-2 text-sm font-bold" onClick={loadDashboard} type="button">
@@ -264,6 +276,97 @@ function AdminPanel({ user }) {
   )
 }
 
+function PartnerPanel({ user }) {
+  const [submissions, setSubmissions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const { notify } = useNotifications()
+
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await api.get('/applications/submissions')
+      setSubmissions(response.data.submissions || [])
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Dashboard Load Failed',
+        message: error.response?.data?.message || 'Partner dashboard details could not be loaded.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [notify])
+
+  useEffect(() => {
+    loadDashboard()
+  }, [loadDashboard])
+
+  const stats = useMemo(() => {
+    const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
+    const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
+    const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+    return [
+      ['My Applications', submissions.length],
+      ['In Progress', inProgress],
+      ['Needs Correction', needsCorrection],
+      ['Approved', approved],
+    ]
+  }, [submissions])
+
+  return (
+    <section className="grid gap-6">
+      <div className="bg-white p-4 shadow-sm sm:p-6">
+        <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Partner Dashboard</p>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-950 sm:text-3xl">என் விண்ணப்ப டாஷ்போர்டு</h1>
+            <p className="mt-2 text-sm leading-6 text-neutral-600">
+              {user?.username || user?.email} - {roleLabels[user?.role] || user?.role}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-neutral-600">{roleScopeLabels.PARTNER}</p>
+          </div>
+          <button className="border border-neutral-300 px-4 py-2 text-sm font-bold" onClick={loadDashboard} type="button">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map(([label, value]) => (
+          <div className="bg-white p-4 shadow-sm" key={label}>
+            <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p>
+            <p className="mt-2 text-3xl font-bold text-neutral-950">{loading ? '-' : value}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="min-w-0 bg-white p-4 shadow-sm sm:p-6">
+        <h2 className="text-lg font-bold text-neutral-950">My Recent Applications</h2>
+        <div className="mt-4 grid gap-3">
+          {submissions.length ? submissions.slice(0, 10).map((submission) => (
+            <div className="border border-neutral-200 p-3" key={submission.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="break-all font-bold text-neutral-950">{submission.applicationNo}</p>
+                  <p className="mt-1 text-sm text-neutral-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                  <p className="mt-1 text-sm text-neutral-600">{submission.geoUnit?.name || '-'}</p>
+                  {submission.currentReviewReason && (
+                    <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
+                  )}
+                  <p className="mt-1 text-xs text-neutral-500">{formatDate(submission.updatedAt)}</p>
+                </div>
+                <StatusPill status={submission.status} />
+              </div>
+            </div>
+          )) : (
+            <p className="border border-dashed border-neutral-300 p-4 text-sm text-neutral-600">No applications submitted yet.</p>
+          )}
+        </div>
+      </section>
+    </section>
+  )
+}
+
 function ServicePortal() {
   return (
     <section className="grid gap-8">
@@ -301,6 +404,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-neutral-100 px-3 py-8 sm:p-6">
       <div className="mx-auto grid max-w-7xl gap-8">
         {isAdmin && <AdminPanel user={user} />}
+        {!isAdmin && <PartnerPanel user={user} />}
         <ServicePortal />
       </div>
     </div>
