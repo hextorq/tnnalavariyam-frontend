@@ -119,11 +119,48 @@ function SignupRejectedHistory({ history }) {
   )
 }
 
+function AdminSectionTabs({ activeSection, counts, onChange }) {
+  const sections = [
+    { id: 'overview', label: 'Overview', tamil: 'மேலோட்டம்', count: null },
+    { id: 'signups', label: 'Signup Approvals', tamil: 'பதிவு அனுமதி', count: counts.signups },
+    { id: 'applications', label: 'Application Review', tamil: 'விண்ணப்ப பரிசீலனை', count: counts.applications },
+    { id: 'users', label: 'Users & Coverage', tamil: 'பயனர்கள் மற்றும் பகுதி', count: counts.users },
+  ]
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
+      <div className="flex min-w-max gap-2">
+        {sections.map((section) => {
+          const active = activeSection === section.id
+          return (
+            <button
+              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 text-left text-sm font-bold transition ${
+                active ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+              }`}
+              key={section.id}
+              onClick={() => onChange(section.id)}
+              type="button"
+            >
+              <span>{section.tamil} / {section.label}</span>
+              {section.count !== null && (
+                <span className={`rounded-full px-2 py-0.5 text-xs ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                  {section.count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function AdminPanel({ user }) {
   const [overview, setOverview] = useState(null)
   const [signupRequests, setSignupRequests] = useState([])
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeSection, setActiveSection] = useState('overview')
   const { notify } = useNotifications()
 
   const loadDashboard = useCallback(async () => {
@@ -210,6 +247,10 @@ function AdminPanel({ user }) {
     ]
   }, [overview, signupRequests, submissions])
 
+  const pendingSignupCount = signupRequests.filter((request) => request.status === 'PENDING').length
+  const reviewApplicationCount = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+  const activeUsersCount = overview?.users?.active ?? 0
+
   return (
     <section className="grid gap-6">
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
@@ -237,6 +278,42 @@ function AdminPanel({ user }) {
         ))}
       </div>
 
+      <AdminSectionTabs
+        activeSection={activeSection}
+        counts={{ applications: reviewApplicationCount, signups: pendingSignupCount, users: activeUsersCount }}
+        onChange={setActiveSection}
+      />
+
+      {activeSection === 'overview' && (
+        <div className="grid gap-6 xl:grid-cols-3">
+          <Panel>
+            <PanelHeader eyebrow="Priority" title="Pending Signup Requests" />
+            <div className="p-4 sm:p-5">
+              <p className="text-4xl font-bold text-slate-950">{pendingSignupCount}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">New role signup requests waiting for hierarchy approval.</p>
+              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('signups')} type="button">Open Signup Approvals</button>
+            </div>
+          </Panel>
+          <Panel>
+            <PanelHeader eyebrow="Priority" title="Applications for Review" />
+            <div className="p-4 sm:p-5">
+              <p className="text-4xl font-bold text-slate-950">{reviewApplicationCount}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Submitted and resubmitted welfare applications inside your RBAC scope.</p>
+              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('applications')} type="button">Open Application Review</button>
+            </div>
+          </Panel>
+          <Panel>
+            <PanelHeader eyebrow="Access" title="Active Users" />
+            <div className="p-4 sm:p-5">
+              <p className="text-4xl font-bold text-slate-950">{activeUsersCount}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Approved users under your assigned hierarchy level.</p>
+              <button className="mt-4 rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={() => setActiveSection('users')} type="button">Open Users & Coverage</button>
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {activeSection === 'users' && (
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)]">
         <Panel>
           <PanelHeader eyebrow="Access" title="User Control Overview" />
@@ -293,12 +370,13 @@ function AdminPanel({ user }) {
           </div>
         </Panel>
       </div>
+      )}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {activeSection === 'signups' && (
         <Panel>
           <PanelHeader eyebrow="Approvals" title="Signup Approvals" />
           <div className="grid gap-3 p-4 sm:p-5">
-            {signupRequests.length ? signupRequests.slice(0, 8).map((request) => (
+            {signupRequests.length ? signupRequests.map((request) => (
               <div className="rounded-lg border border-slate-200 p-3" key={request.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
@@ -321,11 +399,13 @@ function AdminPanel({ user }) {
             )}
           </div>
         </Panel>
+      )}
 
+      {activeSection === 'applications' && (
         <Panel>
           <PanelHeader eyebrow="Review Queue" title="Application Review" />
           <div className="grid gap-3 p-4 sm:p-5">
-            {submissions.length ? submissions.slice(0, 8).map((submission) => (
+            {submissions.length ? submissions.map((submission) => (
               <div className="rounded-lg border border-slate-200 p-3" key={submission.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
@@ -348,7 +428,7 @@ function AdminPanel({ user }) {
             )}
           </div>
         </Panel>
-      </div>
+      )}
     </section>
   )
 }
