@@ -112,132 +112,128 @@ function getUserInitials(user) {
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
   const [formsExpanded, setFormsExpanded] = useState(false)
+  const profilePhoto = getProfilePhoto(user)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
-    { id: 'profile-image', icon: User, label: 'Profile Update', description: 'Upload image' },
-    { id: 'service-portal', icon: FileText, label: 'Application Forms', description: '6 welfare forms' },
+    { id: 'dashboard-work', icon: ShieldCheck, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
-  const profilePhoto = getProfilePhoto(user)
-
   return (
-    <aside className={`sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex flex-col justify-between overflow-y-auto ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
-      <div className="flex flex-col flex-1 p-4">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
-            <p className="mt-0.5 text-lg font-bold leading-tight text-white">User Portal</p>
+    <aside className={`sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-slate-800 p-4">
+        <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+          <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
+        </div>
+        <button
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          onClick={onCollapseToggle}
+          type="button"
+        >
+          {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+        </button>
+      </div>
+
+      <nav className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="grid gap-1.5">
+          {items.map((item) => {
+            const Icon = item.icon
+            const isActive = activeTab === item.id
+            return (
+              <button
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${isActive ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                type="button"
+              >
+                <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800'}`}>
+                  <Icon size={16} />
+                </span>
+                <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+                  <span className="block text-sm leading-tight">{item.label}</span>
+                  <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-500'}`}>{item.description}</span>
+                </span>
+              </button>
+            )
+          })}
+
+          <div className="rounded-xl border border-slate-800 bg-slate-900/40">
+            <button
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${activeTab === 'service-portal' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+              onClick={() => {
+                if (collapsed) {
+                  onCollapseToggle()
+                  setFormsExpanded(true)
+                } else {
+                  setFormsExpanded((current) => !current)
+                }
+                onNavigate('service-portal')
+              }}
+              type="button"
+            >
+              <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${activeTab === 'service-portal' ? 'bg-white/20' : 'bg-slate-800'}`}>
+                <FileText size={16} />
+              </span>
+              <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
+                <span className="block text-sm leading-tight">Application Forms</span>
+                <span className={`block text-[11px] font-normal ${activeTab === 'service-portal' ? 'text-white/80' : 'text-slate-500'}`}>6 welfare forms</span>
+              </span>
+              <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={15} />
+            </button>
+
+            {formsExpanded && !collapsed && (
+              <div className="grid gap-1 px-2 pb-2 pt-1">
+                {applicationForms.map((form, index) => (
+                  <Link
+                    className="group flex min-w-0 items-start gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                    key={form.id}
+                    to={`/app/forms/${form.id}`}
+                  >
+                    <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-md bg-slate-800 text-[10px] font-bold text-slate-300 group-hover:text-white">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold">{form.tamilTitle}</span>
+                      <span className="block truncate text-slate-500">{form.title}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-          <button
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-            onClick={onCollapseToggle}
-            type="button"
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
         </div>
+      </nav>
 
-        <div className="mt-4">
-          <div className={`flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
-            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
-              {profilePhoto ? (
-                <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
-              ) : (
-                <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
-              )}
-            </div>
-            <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
-              <p className="truncate text-xs text-slate-400">{roleLabels[user?.role] || user?.role || 'PARTNER'}</p>
-            </div>
-          </div>
+      <div className="border-t border-slate-800 p-4">
+        <button
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
+          onClick={() => onNavigate('profile-image')}
+          type="button"
+        >
+          <span className={`inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full ${activeTab === 'profile-image' ? 'bg-white/20 text-white' : 'bg-white text-slate-950'}`}>
+            {profilePhoto ? <img alt="Profile" className="h-full w-full object-cover" src={profilePhoto} /> : <span className="font-bold">{getUserInitials(user)}</span>}
+          </span>
+          <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+            <span className="block truncate text-sm leading-tight">{getUserDisplayName(user)}</span>
+            <span className={`block truncate text-[11px] font-normal ${activeTab === 'profile-image' ? 'text-white/80' : 'text-slate-500'}`}>Profile update</span>
+          </span>
+        </button>
 
-          <nav className="mt-4 grid gap-1.5">
-            {items.map((item) => {
-              const Icon = item.icon
-              const isActive = activeTab === item.id
-              const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                isActive
-                  ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
-                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-              } ${collapsed ? 'justify-center' : ''}`
-
-              if (item.id === 'service-portal') {
-                return (
-                  <div className="rounded-xl border border-slate-800/60 bg-slate-900/30" key={item.id}>
-                    <button
-                      className={`${commonClasses} w-full`}
-                      onClick={() => {
-                        onNavigate('service-portal')
-                        setFormsExpanded((prev) => !prev)
-                      }}
-                      type="button"
-                    >
-                      <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
-                        <Icon size={16} />
-                      </span>
-                      <span className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
-                        <span className="block text-sm leading-tight">{item.label}</span>
-                        <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
-                      </span>
-                      <ChevronDown className={`shrink-0 transition ${formsExpanded ? 'rotate-180' : ''} ${collapsed ? 'lg:hidden' : ''}`} size={16} />
-                    </button>
-                    {formsExpanded && !collapsed && (
-                      <div className="grid gap-1 px-3 pb-3 pt-1 border-t border-slate-800/50 mt-1">
-                        {applicationForms.map((form) => (
-                          <Link
-                            className="block rounded-lg px-3 py-1.5 text-xs text-slate-300 transition hover:bg-[#007cba]/20 hover:text-white"
-                            key={form.id}
-                            to={`/app/forms/${form.id}`}
-                          >
-                            {form.tamilTitle}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              }
-
-              return (
-                <button
-                  className={commonClasses}
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  type="button"
-                >
-                  <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
-                    <Icon size={16} />
-                  </span>
-                  <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-                    <span className="block text-sm leading-tight">{item.label}</span>
-                    <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-slate-800">
-          <button
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200 ${
-              collapsed ? 'justify-center' : ''
-            }`}
-            onClick={onLogout}
-            type="button"
-          >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-300">
-              <LogOut size={16} />
-            </span>
-            <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <span className="block text-sm leading-tight">Logout</span>
-              <span className="block text-[11px] font-normal text-slate-400">Sign out safely</span>
-            </span>
-          </button>
-        </div>
+        <button
+          className={`mt-2 flex w-full items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200 ${collapsed ? 'justify-center' : ''}`}
+          onClick={onLogout}
+          type="button"
+        >
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-800">
+            <LogOut size={17} />
+          </span>
+          <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+            <span className="block text-sm leading-tight">Logout</span>
+            <span className="block text-[11px] font-normal text-slate-500">Sign out safely</span>
+          </span>
+        </button>
       </div>
     </aside>
   )
