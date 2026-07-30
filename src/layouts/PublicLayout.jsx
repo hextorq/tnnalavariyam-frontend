@@ -22,19 +22,19 @@ export default function PublicLayout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4">
-          <Link className="flex min-w-0 flex-1 items-center gap-2 text-left sm:gap-3 xl:max-w-xl" to="/">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-3 sm:px-5 sm:py-4">
+          <Link className="flex min-w-0 max-w-[72vw] shrink items-center gap-2 text-left sm:gap-3 lg:max-w-md xl:max-w-lg" to="/">
             <img className="h-9 w-9 shrink-0 rounded-full object-cover sm:h-12 sm:w-12" src={images.logoLeft} alt="" decoding="async" />
-            <span className="min-w-0">
-              <span className="block text-[11px] font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
-              <span className="hidden text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
+            <span className="min-w-0 overflow-hidden">
+              <span className="block truncate whitespace-nowrap text-[11px] font-bold leading-snug text-black sm:text-sm md:text-base">{brandName}</span>
+              <span className="hidden truncate whitespace-nowrap text-xs font-semibold text-neutral-500 md:block">{associationName}</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-5 xl:flex">
+          <nav className="hidden shrink-0 items-center gap-3 xl:flex 2xl:gap-5">
             {navItems.map((item) => (
               <NavLink
                 className={({ isActive }) =>
-                  `text-sm font-semibold transition hover:text-[#007cba] ${isActive ? 'text-[#007cba]' : 'text-black'}`
+                  `whitespace-nowrap text-xs font-semibold leading-tight transition hover:text-[#007cba] 2xl:text-sm ${isActive ? 'text-[#007cba]' : 'text-black'}`
                 }
                 key={item.to}
                 to={item.to}
