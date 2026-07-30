@@ -152,34 +152,31 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
         </div>
       </nav>
 
-      <div className="border-t border-slate-800 p-4">
-        <button
-          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'} ${collapsed ? 'justify-center' : ''}`}
-          onClick={() => onNavigate('profile-image')}
-          type="button"
-        >
-          <span className={`inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full ${activeTab === 'profile-image' ? 'bg-white/20 text-white' : 'bg-white text-slate-950'}`}>
-            {profilePhoto ? <img alt="Profile" className="h-full w-full object-cover" src={profilePhoto} /> : <span className="font-bold">{getUserInitials(user)}</span>}
-          </span>
-          <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-            <span className="block truncate text-sm leading-tight">{getUserDisplayName(user)}</span>
-            <span className={`block truncate text-[11px] font-normal ${activeTab === 'profile-image' ? 'text-white/80' : 'text-slate-500'}`}>Profile update</span>
-          </span>
-        </button>
+      <div className="border-t border-slate-800 p-3">
+        <div className={`flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 p-2 ${collapsed ? 'justify-center' : ''}`}>
+          <button
+            className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-semibold transition ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-800 hover:text-white'} ${collapsed ? 'hidden lg:flex lg:justify-center' : ''}`}
+            onClick={() => onNavigate('profile-image')}
+            type="button"
+          >
+            <span className={`inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full ${activeTab === 'profile-image' ? 'bg-white/20 text-white' : 'bg-white text-slate-950'}`}>
+              {profilePhoto ? <img alt="Profile" className="h-full w-full object-cover" src={profilePhoto} /> : <span className="font-bold">{getUserInitials(user)}</span>}
+            </span>
+            <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+              <span className="block truncate text-sm leading-tight">{getUserDisplayName(user)}</span>
+              <span className={`block truncate text-[11px] font-normal ${activeTab === 'profile-image' ? 'text-white/80' : 'text-slate-500'}`}>Profile update</span>
+            </span>
+          </button>
 
-        <button
-          className={`mt-2 flex w-full items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-left text-sm font-semibold text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200 ${collapsed ? 'justify-center' : ''}`}
-          onClick={onLogout}
-          type="button"
-        >
-          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-800">
+          <button
+            aria-label="Logout"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-slate-800 text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-200"
+            onClick={onLogout}
+            type="button"
+          >
             <LogOut size={17} />
-          </span>
-          <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-            <span className="block text-sm leading-tight">Logout</span>
-            <span className="block text-[11px] font-normal text-slate-500">Sign out safely</span>
-          </span>
-        </button>
+          </button>
+        </div>
       </div>
     </aside>
   )
