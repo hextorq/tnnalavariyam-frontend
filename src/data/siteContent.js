@@ -3,13 +3,13 @@ export const associationName =
   'கட்டுமான தொழிலாளர்களின் உரிமை, நலம் மற்றும் பாதுகாப்புக்கான சேவை அமைப்பு'
 
 export const navItems = [
-  { label: 'Home', to: '/' },
-  { label: 'About', to: '/about' },
-  { label: 'Services', to: '/services' },
-  { label: 'Tracking', to: '/tracking' },
-  { label: 'Contact', to: '/contact' },
-  { label: 'Login', to: '/login' },
-  { label: 'Register', to: '/register' },
+  { label: 'முகப்பு / Home', to: '/' },
+  { label: 'எங்களை பற்றி / About', to: '/about' },
+  { label: 'சேவைகள் / Services', to: '/services' },
+  { label: 'நிலை பார்க்க / Tracking', to: '/tracking' },
+  { label: 'தொடர்பு / Contact', to: '/contact' },
+  { label: 'உள்நுழைவு / Login', to: '/login' },
+  { label: 'பதிவு / Register', to: '/register' },
 ]
 
 export const images = {
@@ -112,33 +112,33 @@ export const contactDetails = {
 }
 
 export const homeStats = [
-  ['4+', 'Years of Experience'],
-  ['226+', 'Happy Customers'],
-  ['02+', 'Award Winning'],
+  ['4+', 'அனுபவ ஆண்டுகள் / Years of Experience'],
+  ['226+', 'திருப்தியான உறுப்பினர்கள் / Happy Customers'],
+  ['02+', 'விருது பெற்றவை / Award Winning'],
 ]
 
 export const aboutStats = [
-  ['10', 'Years of Experience'],
-  ['0+', 'Happy Customers'],
-  ['00+', 'Award Winning'],
-  ['0%', 'Customer Satisfaction'],
+  ['10', 'அனுபவ ஆண்டுகள் / Years of Experience'],
+  ['0+', 'திருப்தியான உறுப்பினர்கள் / Happy Customers'],
+  ['00+', 'விருது பெற்றவை / Award Winning'],
+  ['0%', 'வாடிக்கையாளர் திருப்தி / Customer Satisfaction'],
 ]
 
 export const whyChooseUs = [
   {
     number: '01',
-    title: 'Community Focus',
-    text: 'We are deeply embedded in communities, ensuring timely aid and resources reach those who need them most.',
+    title: 'சமூக கவனம் / Community Focus',
+    text: 'உதவி தேவைப்படுபவர்களுக்கு சரியான நேரத்தில் ஆதரவு கிடைக்க சமூகத்துடன் இணைந்து செயல்படுகிறோம். / We work closely with communities to provide timely support.',
   },
   {
     number: '02',
-    title: 'Expert Guidance',
-    text: 'Our experienced team offers professional advice on labor rights and welfare schemes tailored for workers.',
+    title: 'நிபுணர் வழிகாட்டல் / Expert Guidance',
+    text: 'தொழிலாளர் உரிமைகள் மற்றும் நலத்திட்டங்களுக்கு அனுபவமுள்ள குழுவின் வழிகாட்டலை வழங்குகிறோம். / Our team guides workers on rights and welfare schemes.',
   },
   {
     number: '03',
-    title: 'Inclusive Services',
-    text: 'We provide various support programs addressing education, health, and financial needs for all workers and their families.',
+    title: 'அனைவருக்கும் சேவை / Inclusive Services',
+    text: 'கல்வி, ஆரோக்கியம் மற்றும் நிதி தேவைகளுக்கான ஆதரவு சேவைகளை தொழிலாளர்கள் மற்றும் குடும்பங்களுக்கு வழங்குகிறோம். / We support education, health and financial needs.',
   },
 ]
 
@@ -146,12 +146,12 @@ export const testimonials = [
   {
     name: 'Arun Kumar',
     image: images.testimonialOne,
-    text: 'Joining this association has transformed my life. Their support in financial matters and education for my children has been invaluable. I feel empowered and secure.',
+    text: 'இந்த சங்கத்தில் சேர்ந்தது என் வாழ்க்கைக்கு உதவியாக இருந்தது. குழந்தைகளின் கல்வி மற்றும் நிதி உதவியில் நல்ல ஆதரவு கிடைத்தது. / Joining this association helped my family with education and financial support.',
   },
   {
     name: 'Ravi Suresh',
     image: images.testimonialTwo,
-    text: 'The assistance provided during tough times has been a blessing. I appreciate the help with healthcare and welfare schemes that protect my family and me.',
+    text: 'கஷ்டமான நேரங்களில் கிடைத்த உதவி மிகவும் பயனுள்ளதாக இருந்தது. மருத்துவம் மற்றும் நலத்திட்ட உதவிக்கு நன்றி. / The support during difficult times helped with health and welfare needs.',
   },
 ]
 

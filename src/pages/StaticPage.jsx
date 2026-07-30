@@ -21,7 +21,7 @@ export default function StaticPage({ type }) {
           ))}
         </div>
         <div className="mt-10 rounded-2xl border border-neutral-200 bg-[#f7fbff] p-4 sm:mt-12 sm:rounded-3xl sm:p-6">
-          <h2 className="text-xl font-bold sm:text-2xl">Available Online Applications</h2>
+          <h2 className="text-xl font-bold sm:text-2xl">ஆன்லைன் விண்ணப்பங்கள் / Available Online Applications</h2>
           <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {applicationForms.map((form) => (
               <div className="rounded-xl bg-white p-4 shadow-sm" key={form.id}>
@@ -33,13 +33,13 @@ export default function StaticPage({ type }) {
         </div>
         <div className="mt-12 grid gap-8 rounded-2xl bg-neutral-950 p-5 text-white sm:p-8 md:grid-cols-[1fr_0.8fr] md:items-center">
           <div>
-            <p className="text-sm font-bold uppercase text-[#f0ad4e]">Get Involved</p>
-            <h2 className="mt-3 text-2xl font-bold sm:text-3xl">Support Our Cause for Workers’ Rights</h2>
+            <p className="text-sm font-bold uppercase text-[#f0ad4e]">இணைந்து செயல்படுங்கள் / Get Involved</p>
+            <h2 className="mt-3 text-2xl font-bold sm:text-3xl">தொழிலாளர்களின் உரிமைக்கான ஆதரவு / Support Our Cause for Workers’ Rights</h2>
             <p className="mt-4 leading-7 text-white/70">
-              Join our movement to protect the rights and welfare of construction workers across Tamil Nadu. Your support can make a difference.
+              தமிழ்நாடு முழுவதும் கட்டுமான தொழிலாளர்களின் உரிமை மற்றும் நலனை பாதுகாக்க எங்களுடன் இணையுங்கள். / Join us to protect workers’ rights and welfare.
             </p>
           </div>
-          <Button to="/contact">Get Support</Button>
+          <Button to="/contact">உதவி பெற / Get Support</Button>
         </div>
       </section>
     )
@@ -47,12 +47,12 @@ export default function StaticPage({ type }) {
 
   return (
     <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
-      <SectionHeader eyebrow="Welcome to" title="The Voice of Construction Workers" />
+      <SectionHeader eyebrow="வரவேற்கிறோம் / Welcome to" title="கட்டுமான தொழிலாளர்களின் குரல் / The Voice of Construction Workers" />
       <div className="grid gap-8 md:grid-cols-2 md:items-center lg:gap-12">
         <div>
-          <SectionHeader eyebrow="Our Commitment" title="Dedicated to the Welfare of Laborers in Tamil Nadu" />
+          <SectionHeader eyebrow="எங்கள் உறுதி / Our Commitment" title="தமிழ்நாடு தொழிலாளர்களின் நலனுக்கான அர்ப்பணிப்பு / Dedicated to Labor Welfare" />
           <p className="mt-6 text-base leading-7 text-neutral-700 sm:text-lg sm:leading-8">
-            For over 15 years, our organization has tirelessly worked to amplify the voices of construction workers. Through our extensive network across Tamil Nadu, we have provided essential support and numerous welfare initiatives, improving the quality of life for countless laborers and their families.
+            15 ஆண்டுகளுக்கும் மேலாக கட்டுமான தொழிலாளர்களின் குரலாக செயல்பட்டு, நலத்திட்டங்கள் மற்றும் ஆதரவை வழங்கி வருகிறோம். / For over 15 years, we have worked for construction workers’ welfare across Tamil Nadu.
           </p>
         </div>
         <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[520px] lg:rounded-3xl" src={images.about} alt="" decoding="async" loading="lazy" />
@@ -70,26 +70,26 @@ export default function StaticPage({ type }) {
       <div className="mt-12 grid gap-8 md:grid-cols-2 md:items-center lg:gap-12">
         <img className="h-56 w-full rounded-xl object-cover sm:h-80 sm:rounded-2xl lg:h-[420px] lg:rounded-3xl" src={images.story} alt="" decoding="async" loading="lazy" />
         <div>
-          <SectionHeader eyebrow="Our Journey" title="From Inception to Impactful Presence" />
+          <SectionHeader eyebrow="எங்கள் பயணம் / Our Journey" title="தொடக்கத்திலிருந்து தாக்கமுள்ள சேவை வரை / From Inception to Impact" />
           <p className="mt-6 text-base leading-7 text-neutral-700 sm:text-lg sm:leading-8">
-            Founded on November 24, 2011, ‘{brandName}’ has emerged as a significant force in advocating for construction workers’ rights. Over the years, we have launched various initiatives and services, catering to the needs of workers from rural to urban areas, ensuring their welfare and social security.
+            நவம்பர் 24, 2011 அன்று தொடங்கப்பட்ட ‘{brandName}’ கட்டுமான தொழிலாளர்களின் உரிமை மற்றும் சமூக பாதுகாப்புக்காக செயல்படுகிறது. / Founded on November 24, 2011, this association supports workers’ rights and welfare.
           </p>
         </div>
       </div>
 
       <div className="mt-12 rounded-2xl bg-neutral-50 p-4 sm:mt-16 sm:rounded-3xl sm:p-8">
-        <SectionHeader eyebrow="Our Core Beliefs" title="Mission and Values for Labor Welfare" />
+        <SectionHeader eyebrow="எங்கள் அடிப்படை நம்பிக்கைகள் / Our Core Beliefs" title="தொழிலாளர் நலனுக்கான பணி மற்றும் மதிப்புகள் / Mission and Values" />
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <article className="rounded-xl bg-white p-5 shadow-sm">
-            <h3 className="text-xl font-bold">Our Mission</h3>
+            <h3 className="text-xl font-bold">எங்கள் பணி / Our Mission</h3>
             <p className="mt-4 leading-7 text-neutral-700">
-              Our mission is to protect the rights and improve the social security of construction workers. We are dedicated to providing immediate assistance, welfare programs, and financial support for their education, healthcare, and family welfare, ensuring a safer and more secure future for laborers and their families.
+              கட்டுமான தொழிலாளர்களின் உரிமை, சமூக பாதுகாப்பு, கல்வி, மருத்துவம் மற்றும் குடும்ப நலனுக்கான ஆதரவை வழங்குவது எங்கள் பணி. / Our mission is to protect rights and improve worker welfare.
             </p>
           </article>
           <article className="rounded-xl bg-white p-5 shadow-sm">
-            <h3 className="text-xl font-bold">Our Values</h3>
+            <h3 className="text-xl font-bold">எங்கள் மதிப்புகள் / Our Values</h3>
             <p className="mt-4 leading-7 text-neutral-700">
-              We uphold the values of integrity, compassion, and empowerment. We believe in fostering a supportive community for laborers, advocating for their rights, and ensuring accountability in our initiatives, dedicating ourselves to the betterment of every worker’s life.
+              நேர்மை, கருணை, பொறுப்பு மற்றும் அதிகாரமளித்தல் என்ற மதிப்புகளை பின்பற்றி தொழிலாளர்களுக்கான ஆதரவு சமூகத்தை உருவாக்குகிறோம். / We value integrity, compassion, accountability and empowerment.
             </p>
           </article>
         </div>
@@ -97,13 +97,13 @@ export default function StaticPage({ type }) {
 
       <div className="mt-12 grid gap-8 rounded-2xl bg-neutral-950 p-5 text-white sm:p-8 md:grid-cols-[1fr_0.8fr] md:items-center">
         <div>
-          <p className="text-sm font-bold uppercase text-[#f0ad4e]">Get Involved</p>
-          <h2 className="mt-3 text-2xl font-bold sm:text-3xl">Support Our Cause for Workers’ Rights</h2>
+          <p className="text-sm font-bold uppercase text-[#f0ad4e]">இணைந்து செயல்படுங்கள் / Get Involved</p>
+          <h2 className="mt-3 text-2xl font-bold sm:text-3xl">தொழிலாளர்களின் உரிமைக்கான ஆதரவு / Support Our Cause for Workers’ Rights</h2>
           <p className="mt-4 leading-7 text-white/70">
-            Join our movement to protect the rights and welfare of construction workers across Tamil Nadu. Your support can make a difference.
+            தமிழ்நாடு முழுவதும் தொழிலாளர்களின் உரிமை மற்றும் நலனை பாதுகாக்க எங்களுடன் இணையுங்கள். / Join us to protect workers’ rights and welfare.
           </p>
         </div>
-        <Button to="/contact">Get Support</Button>
+        <Button to="/contact">உதவி பெற / Get Support</Button>
       </div>
     </section>
   )
