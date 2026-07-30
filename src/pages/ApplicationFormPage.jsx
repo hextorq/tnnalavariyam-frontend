@@ -18,6 +18,61 @@ const dobProofOptions = [
   { value: 'transfer-certificate', label: 'பரிமாற்று சான்றிதழ் / Transfer Certificate' },
 ]
 
+const religionOptions = [
+  'இந்து / Hindu',
+  'இஸ்லாம் / Muslim',
+  'கிறிஸ்துவர் / Christian',
+  'சீக்கியர் / Sikh',
+  'புத்தம் / Buddhist',
+  'சமணம் / Jain',
+  'பிற மதம் / Other',
+]
+
+const casteOptions = [
+  'பொது பிரிவு / General',
+  'பிற்படுத்தப்பட்டோர் / BC',
+  'மிகவும் பிற்படுத்தப்பட்டோர் / MBC',
+  'சீர் மரபினர் / DNC',
+  'பட்டியல் சாதி / SC',
+  'பட்டியல் பழங்குடி / ST',
+  'பிற பிரிவு / Other',
+]
+
+const subCasteOptions = [
+  'ஆதிதிராவிடர் / Adi Dravidar',
+  'அருந்ததியர் / Arunthathiyar',
+  'வன்னியர் / Vanniyar',
+  'நாடார் / Nadar',
+  'யாதவர் / Yadava',
+  'தேவர் / Thevar',
+  'கவுண்டர் / Gounder',
+  'நாயுடு / Naidu',
+  'முதலியார் / Mudaliar',
+  'பிள்ளை / Pillai',
+  'செட்டியார் / Chettiar',
+  'முஸ்லிம் சமூக பிரிவு / Muslim Community',
+  'கிறிஸ்துவர் சமூக பிரிவு / Christian Community',
+  'பிற உட்பிரிவு / Other',
+]
+
+const workerJobOptions = [
+  'கட்டிட மேஸ்திரி / Mason',
+  'கட்டிட உதவியாளர் / Construction Helper',
+  'பெயிண்டர் / Painter',
+  'தச்சர் / Carpenter',
+  'மின்சார தொழிலாளர் / Electrician',
+  'குழாய் தொழிலாளர் / Plumber',
+  'வெல்டர் / Welder',
+  'டைல்ஸ் தொழிலாளர் / Tiles Worker',
+  'கம்பி கட்டுபவர் / Bar Bender',
+  'சென்டரிங் தொழிலாளர் / Centering Worker',
+  'சாலை தொழிலாளர் / Road Worker',
+  'மண் வேலை தொழிலாளர் / Earthwork Labour',
+  'கான்கிரீட் தொழிலாளர் / Concrete Worker',
+  'இயந்திர ஆபரேட்டர் / Machine Operator',
+  'பிற தொழில் / Other',
+]
+
 function Section({ eyebrow, title, children }) {
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
@@ -25,6 +80,30 @@ function Section({ eyebrow, title, children }) {
       <h2 className="mt-2 text-lg font-bold text-neutral-950 sm:text-xl">{title}</h2>
       <div className="mt-5 grid gap-4">{children}</div>
     </section>
+  )
+}
+
+function SearchableTextField({ children, options, hint = 'Select from list or type your own value / பட்டியலில் தேர்வு செய்யவும் அல்லது தனியாக உள்ளிடவும்', inputId, className = '', required = false, ...props }) {
+  const listId = `${inputId}-options`
+
+  return (
+    <label className={`grid gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
+      <span>
+        {children}
+        {required && <span className="ml-1 text-red-600">*</span>}
+      </span>
+      <input
+        className="min-w-0 rounded-lg border border-neutral-300 px-4 py-3 font-normal outline-none transition focus:border-[#007cba]"
+        list={listId}
+        {...props}
+      />
+      <datalist id={listId}>
+        {options.map((option) => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
+      <span className="text-xs font-medium leading-5 text-neutral-500">{hint}</span>
+    </label>
   )
 }
 
@@ -415,43 +494,51 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <Field
+                <SearchableTextField
+                  inputId="religion"
                   onChange={(e) => handleInputChange('religion', e.target.value)}
-                  placeholder="மதம்"
+                  options={religionOptions}
+                  placeholder="மதம் / Religion"
                   type="text"
                   value={formData.religion}
                 >
                   Religion / மதம்
-                </Field>
+                </SearchableTextField>
 
-                <Field
+                <SearchableTextField
+                  inputId="caste"
                   onChange={(e) => handleInputChange('caste', e.target.value)}
-                  placeholder="ஜாதி"
+                  options={casteOptions}
+                  placeholder="ஜாதி / Caste"
                   type="text"
                   value={formData.caste}
                 >
                   Caste / ஜாதி
-                </Field>
+                </SearchableTextField>
 
-                <Field
+                <SearchableTextField
+                  inputId="sub-caste"
                   onChange={(e) => handleInputChange('subCaste', e.target.value)}
-                  placeholder="உட்பிரிவு"
+                  options={subCasteOptions}
+                  placeholder="உட்பிரிவு / Sub-Caste"
                   type="text"
                   value={formData.subCaste}
                 >
                   Sub-Caste / உட்பிரிவு
-                </Field>
+                </SearchableTextField>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field
+                <SearchableTextField
+                  inputId="worker-job"
                   onChange={(e) => handleInputChange('workerJob', e.target.value)}
-                  placeholder="தொழிலாளியின் வேலை"
+                  options={workerJobOptions}
+                  placeholder="தொழிலாளியின் வேலை / Worker's job"
                   type="text"
                   value={formData.workerJob}
                 >
                   Worker's job / தொழிலாளியின் வேலை
-                </Field>
+                </SearchableTextField>
 
                 <Field
                   onChange={(e) => handleInputChange('nomineeName', e.target.value)}
