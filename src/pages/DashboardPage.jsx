@@ -342,9 +342,10 @@ function UserImageCard({ onProfilePhotoChange, user }) {
             Changes to your profile image update instantly across your dashboard, sidebar, and application submissions.
           </div>
         </div>
-      </section>
-    )
-  }
+      </div>
+    </section>
+  )
+}
 
 function CheckStatusPanel() {
   const [appNo, setAppNo] = useState('')

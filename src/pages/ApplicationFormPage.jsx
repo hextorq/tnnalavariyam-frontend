@@ -394,6 +394,8 @@ export default function ApplicationFormPage({ formId }) {
     photo: '',
     dobDocument: '',
     bankPassbook: '',
+    bankPassbookFront: '',
+    bankPassbookLast: '',
     aadharCard: '',
     rationCard: '',
     registrationCard: '',
@@ -401,6 +403,9 @@ export default function ApplicationFormPage({ formId }) {
     signature: '',
     livePhoto: '',
     paymentScreenshot: '',
+    childAadhar: '',
+    bonafide: '',
+    markSheet: '',
   })
 
   const [submitting, setSubmitting] = useState(false)
@@ -607,7 +612,35 @@ export default function ApplicationFormPage({ formId }) {
                 </Field>
               </div>
 
+              {/* DOB Proof Combo Row */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleInputChange('dobProofType', e.target.value)}
+                  options={dobProofOptions}
+                  value={formData.dobProofType}
+                >
+                  Document for Date of Birth / பிறந்த தேதிக்கான ஆவணம்
+                </SelectField>
+
+                <FileField
+                  accept="image/*,.pdf,.doc,.docx"
+                  onChange={(e) => handleFileSelect('dobDocument', e)}
+                  preview={previews.dobDocument}
+                >
+                  Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
+                </FileField>
+              </div>
+
+              {/* Photo & Registration Card Row */}
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('photo', e)}
+                  preview={previews.photo}
+                >
+                  Photo / புகைப்படம்
+                </FileField>
+
                 <FileField
                   accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('registrationCard', e)}
@@ -616,7 +649,54 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Worker Registration Card / தொழிலாளியின் பதிவு அட்டை
                 </FileField>
+              </div>
 
+              <div className="grid gap-5 md:grid-cols-3 items-start">
+                <SelectField
+                  onChange={(e) => handleInputChange('religion', e.target.value)}
+                  options={religionOptions}
+                  value={formData.religion}
+                >
+                  Religion / மதம்
+                </SelectField>
+
+                <SelectField
+                  onChange={(e) => handleInputChange('caste', e.target.value)}
+                  options={casteOptions}
+                  value={formData.caste}
+                >
+                  Caste / ஜாதி
+                </SelectField>
+
+                <SelectField
+                  onChange={(e) => handleInputChange('subCaste', e.target.value)}
+                  options={subCasteOptions}
+                  value={formData.subCaste}
+                >
+                  Sub-Caste / உட்பிரிவு
+                </SelectField>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleInputChange('workerJob', e.target.value)}
+                  options={workerJobOptions}
+                  value={formData.workerJob}
+                >
+                  Worker's job / தொழிலாளியின் வேலை
+                </SelectField>
+
+                <Field
+                  onChange={(e) => handleInputChange('nomineeName', e.target.value)}
+                  placeholder="நாமினி பெயர்"
+                  type="text"
+                  value={formData.nomineeName}
+                >
+                  Nominee Name / நாமினி பெயர்
+                </Field>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 items-start">
                 <FileField
                   accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('bankPassbook', e)}
@@ -624,9 +704,7 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Bank Passbook / வங்கி புத்தகம்
                 </FileField>
-              </div>
 
-              <div className="grid gap-5 md:grid-cols-2 items-start">
                 <FileField
                   accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('aadharCard', e)}
@@ -634,7 +712,9 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Aadhar Card / ஆதார் அட்டை
                 </FileField>
+              </div>
 
+              <div className="grid gap-5 md:grid-cols-2 items-start">
                 <FileField
                   accept="image/*,.pdf"
                   onChange={(e) => handleFileSelect('rationCard', e)}
@@ -642,6 +722,34 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Ration card / குடும்ப அட்டை
                 </FileField>
+
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('nomineeAadhar', e)}
+                  preview={previews.nomineeAadhar}
+                >
+                  Nominee's Aadhar Card File / நாமினி ஆதார் அட்டை
+                </FileField>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('signature', e)}
+                  preview={previews.signature}
+                >
+                  Signature / கையொப்பம்
+                </FileField>
+              </div>
+
+              {/* Dedicated Full-Width Live Photo Section */}
+              <div className="grid gap-5 grid-cols-1">
+                <LivePhotoSection
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
+                  preview={previews.livePhoto}
+                />
               </div>
             </Section>
           )}
