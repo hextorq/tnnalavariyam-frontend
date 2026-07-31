@@ -1,4 +1,5 @@
 import AuthRequired from '../components/AuthRequired.jsx'
+import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
@@ -1337,7 +1338,9 @@ export default function DashboardPage() {
       />
 
       <main className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto p-3 sm:p-5 lg:h-screen lg:p-6 xl:p-8">
-        {activeTab === 'dashboard-overview' && (
+        {loading && activeTab === 'dashboard-overview' ? (
+          <DashboardSkeleton />
+        ) : activeTab === 'dashboard-overview' && (
           <>
             {/* Header Banner */}
             <section id="dashboard-overview" className="w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-7 shadow-xs">

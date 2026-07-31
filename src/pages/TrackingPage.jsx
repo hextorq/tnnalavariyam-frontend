@@ -1,5 +1,6 @@
 import { CheckCircle2, Search } from 'lucide-react'
 import { useState } from 'react'
+import { TrackingSkeleton } from '../components/SkeletonLoader.jsx'
 import { api } from '../lib/api.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
@@ -204,7 +205,16 @@ export default function TrackingPage() {
 
         <div className="min-w-0 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-lg font-bold text-neutral-950 sm:text-xl">நிலை விவரம்</h2>
-          {tracking ? (
+          {loading ? (
+            <div className="mt-5 space-y-4">
+              <div className="animate-pulse h-16 w-full rounded-2xl bg-neutral-200" />
+              <div className="grid gap-4 md:grid-cols-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div className="animate-pulse h-20 rounded-xl bg-neutral-100" key={i} />
+                ))}
+              </div>
+            </div>
+          ) : tracking ? (
             <div className="mt-5">
               {mode === 'application' && <ApprovalFlowStepper status={tracking.status} />}
               <div className="grid gap-4 md:grid-cols-2">

@@ -1,4 +1,5 @@
 import AuthRequired from '../components/AuthRequired.jsx'
+import { FormSkeleton } from '../components/SkeletonLoader.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { tamilNaduDistrictOptions } from '../data/signup.js'
 import { api } from '../lib/api.js'
@@ -467,6 +468,14 @@ export default function ApplicationFormPage({ formId }) {
 
   const [submitting, setSubmitting] = useState(false)
   const [submittedAppNo, setSubmittedAppNo] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 300)
+    return () => clearTimeout(timer)
+  }, [formId])
+
+  if (loading) return <FormSkeleton />
 
   function handleInputChange(field, value) {
     let sanitizedValue = value
