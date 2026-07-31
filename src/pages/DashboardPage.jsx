@@ -1185,10 +1185,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
     }
   }
 
-  async function reviewApplication(submission, status) {
-    const reason = window.prompt(`Enter review note/reason for status ${status}:`, submission.currentReviewReason || '')
-    if (reason === null) return
-
+  async function reviewApplication(submission, status, reason = '') {
     try {
       await api.post(`/applications/submissions/${submission.id}/review`, {
         action: status === 'APPROVED' ? 'APPROVED' : status === 'NEEDS_CORRECTION' ? 'CORRECTION_REQUESTED' : status === 'REJECTED' ? 'REJECTED' : 'REVIEW_STARTED',
@@ -1199,6 +1196,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
       await onRefresh?.()
     } catch (error) {
       notify({ type: 'error', title: 'Review Failed', message: error.response?.data?.message || 'Application review could not be updated.' })
+      throw error
     }
   }
 
@@ -1330,17 +1328,15 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <StatusPill status={submission.status} />
-                  <button className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]" onClick={() => onSelectSubmission(submission)} type="button">
-                    <FileText size={14} />
-                    <span>View Application / விவரங்களை காண்க</span>
+                  <button
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                    onClick={() => onSelectSubmission(submission)}
+                    type="button"
+                  >
+                    <FileText size={15} />
+                    <span>View & Review Application / விவரங்களை காண்க</span>
                   </button>
                 </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
-                <button className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'APPROVED')} type="button">Approve</button>
-                <button className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950" onClick={() => reviewApplication(submission, 'NEEDS_CORRECTION')} type="button">Return</button>
-                <button className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'REJECTED')} type="button">Reject</button>
               </div>
             </div>
           )) : (
