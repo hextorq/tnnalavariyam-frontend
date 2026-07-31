@@ -73,6 +73,48 @@ const workerJobOptions = [
   { value: 'Other', label: 'பிற தொழில் / Other' },
 ]
 
+const standardOptions = [
+  { value: '6', label: '6ம் வகுப்பு / 6th Standard' },
+  { value: '7', label: '7ம் வகுப்பு / 7th Standard' },
+  { value: '8', label: '8ம் வகுப்பு / 8th Standard' },
+  { value: '9', label: '9ம் வகுப்பு / 9th Standard' },
+]
+
+const girlsStandardOptions = [
+  { value: '10', label: '10ம் வகுப்பு / 10th Standard' },
+  { value: '11', label: '11ம் வகுப்பு / 11th Standard' },
+  { value: '12', label: '12ம் வகுப்பு / 12th Standard' },
+]
+
+const examPassedOptions = [
+  { value: '10', label: '10ம் வகுப்பு தேர்ச்சி / 10th Pass' },
+  { value: '12', label: '12ம் வகுப்பு தேர்ச்சி / 12th Pass' },
+]
+
+const courseTypeOptions = [
+  { value: 'ITI', label: 'தொழிற்பயிற்சி / ITI' },
+  { value: 'Diploma', label: 'டிப்ளமோ / Diploma' },
+  { value: 'UG', label: 'இளநிலை பட்டப்படிப்பு / UG Degree' },
+  { value: 'PG', label: 'முதுநிலை பட்டப்படிப்பு / PG Degree' },
+  { value: 'Professional', label: 'தொழில்முறை படிப்பு / Professional Course' },
+  { value: 'Other', label: 'பிற படிப்பு / Other' },
+]
+
+const applyingYearOptions = [
+  { value: '1', label: 'முதல் ஆண்டு / First Year' },
+  { value: '2', label: 'இரண்டாம் ஆண்டு / Second Year' },
+  { value: '3', label: 'மூன்றாம் ஆண்டு / Third Year' },
+  { value: '4', label: 'நான்காம் ஆண்டு / Fourth Year' },
+  { value: '5', label: 'ஐந்தாம் ஆண்டு / Fifth Year' },
+]
+
+const currentYear = new Date().getFullYear()
+const academicYearOptions = Array.from({ length: 6 }, (_, offset) => {
+  const start = currentYear - 1 + offset
+  const value = `${start}-${start + 1}`
+  return { value, label: value }
+})
+
 function Section({ eyebrow, title, children }) {
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
@@ -151,7 +193,7 @@ function FileField({ children, className = '', preview = '', onChange, required 
   )
 }
 
-function LivePhotoSection({ preview, onCapture }) {
+function LivePhotoSection({ preview, onCapture, label = 'Live Photo / நேரடி புகைப்படம்', required = true }) {
   const videoRef = useRef(null)
   const [stream, setStream] = useState(null)
   const [mode, setMode] = useState(preview ? 'captured' : 'idle')
@@ -217,7 +259,7 @@ function LivePhotoSection({ preview, onCapture }) {
   return (
     <div className="col-span-1 flex flex-col gap-2 text-sm font-semibold text-neutral-700 md:col-span-2">
       <span>
-        Live Photo / நேரடி புகைப்படம் <span className="ml-1 text-red-600">*</span>
+        {label} {required && <span className="ml-1 text-red-600">*</span>}
       </span>
 
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6">

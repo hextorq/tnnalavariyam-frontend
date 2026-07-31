@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowUpRight, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -38,6 +38,19 @@ function getUploadUrl(path) {
   const apiBase = api.defaults.baseURL || window.location.origin
   const siteBase = apiBase.replace(/\/api\/?$/, '/')
   return new URL(path, siteBase).href
+}
+
+function getUserLocationDetails(user) {
+  if (!user) return 'Not available'
+  const parts = []
+  if (user.village) parts.push(`Village: ${user.village}`)
+  if (user.taluk) parts.push(`Taluk: ${user.taluk}`)
+  if (user.district) parts.push(`District: ${user.district}`)
+  if (user.state) parts.push(`State: ${user.state}`)
+
+  if (parts.length > 0) return parts.join(' • ')
+  if (user.geoUnit?.name) return `Assigned Jurisdiction: ${user.geoUnit.name}`
+  return roleScopeLabels[user.role] || 'Assigned Jurisdiction'
 }
 
 function StatusPill({ status }) {
@@ -114,9 +127,6 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
         <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ring-1 ${t.badge}`}>
           {subtitle}
         </span>
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 group-hover:text-[#007cba] transition">
-          Live metric <ArrowUpRight size={12} />
-        </span>
       </div>
     </div>
   )
@@ -145,7 +155,7 @@ function getUserInitials(user) {
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
-    { id: 'profile-image', icon: User, label: 'Work Panel', description: 'Admin or partner' },
+    { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
@@ -200,34 +210,42 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
           </nav>
         </div>
 
+        {/* Sidebar Footer User & Dedicated Profile Update Button */}
         <div className="mt-auto border-t border-slate-800 pt-4">
-          <div className={`flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
-            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
-              {profilePhoto ? (
-                <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
-              ) : (
-                <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
-              )}
-            </div>
-            <div className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
-              <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
+          <div className={`flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:items-center' : ''}`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
+                {profilePhoto ? (
+                  <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
+                ) : (
+                  <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
+                )}
+              </div>
+              <div className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
+                <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
+                <p className="truncate text-xs text-slate-400">{roleLabels[user?.role] || user?.role}</p>
+              </div>
               <button
-                className="block truncate text-left text-xs text-[#007cba] hover:underline"
-                onClick={() => onNavigate('profile-image')}
+                aria-label="Logout"
+                className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
+                  collapsed ? 'lg:hidden' : ''
+                }`}
+                onClick={onLogout}
                 type="button"
               >
-                Profile update
+                <LogOut size={15} />
               </button>
             </div>
+
             <button
-              aria-label="Logout"
-              className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
-                collapsed ? 'lg:hidden' : ''
+              className={`inline-flex items-center justify-center gap-2 rounded-lg bg-[#007cba] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#006090] ${
+                collapsed ? 'w-full lg:px-0' : 'w-full'
               }`}
-              onClick={onLogout}
+              onClick={() => onNavigate('profile-image')}
               type="button"
             >
-              <LogOut size={15} />
+              <User size={14} />
+              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update</span>
             </button>
           </div>
         </div>
@@ -277,7 +295,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
     <section id="profile-image" className="w-full rounded-2xl border border-slate-200 bg-white shadow-xs">
       <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Update</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Settings</p>
           <h2 className="mt-1 text-lg font-bold text-slate-950">Update Profile Photo</h2>
         </div>
         <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={openPicker} type="button">
@@ -324,139 +342,183 @@ function UserImageCard({ onProfilePhotoChange, user }) {
             Changes to your profile image update instantly across your dashboard, sidebar, and application submissions.
           </div>
         </div>
-      </div>
-    </section>
-  )
-}
+      </section>
+    )
+  }
 
 function CheckStatusPanel() {
-  const [mode, setMode] = useState('application')
-  const [applicationNo, setApplicationNo] = useState('')
-  const [requestNo, setRequestNo] = useState('')
-  const [phone, setPhone] = useState('')
-  const [tracking, setTracking] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [appNo, setAppNo] = useState('')
+  const [appPhone, setAppPhone] = useState('')
+  const [appTracking, setAppTracking] = useState(null)
+  const [appLoading, setAppLoading] = useState(false)
+
+  const [reqNo, setReqNo] = useState('')
+  const [reqPhone, setReqPhone] = useState('')
+  const [reqTracking, setReqTracking] = useState(null)
+  const [reqLoading, setReqLoading] = useState(false)
+
   const { notify } = useNotifications()
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-
-    const trackingNumber = mode === 'signup' ? requestNo.trim() : applicationNo.trim()
-    if (!trackingNumber) {
-      notify({ type: 'warning', title: 'Tracking Number Required / எண் தேவை', message: mode === 'signup' ? 'Signup request number உள்ளிடவும்.' : 'Application number உள்ளிடவும்.' })
+  async function handleAppTrack(e) {
+    e.preventDefault()
+    if (!appNo.trim()) {
+      notify({ type: 'warning', title: 'Number Required', message: 'Application number உள்ளிடவும்.' })
       return
     }
-
     try {
-      setLoading(true)
-      setTracking(null)
-      const params = mode === 'signup'
-        ? { requestNo: trackingNumber, ...(phone ? { phone } : {}) }
-        : { applicationNo: trackingNumber, ...(phone ? { phone } : {}) }
-      const endpoint = mode === 'signup' ? '/auth/signup-requests/track' : '/applications/track'
-      const response = await api.get(endpoint, { params })
-      setTracking(response.data.tracking)
-      notify({ type: 'success', title: 'Status Found / நிலை கிடைத்தது', message: 'உங்கள் விண்ணப்ப நிலை கீழே காட்டப்பட்டுள்ளது.', popup: false })
-    } catch (error) {
-      notify({ type: 'error', title: 'Status Not Found / நிலை கிடைக்கவில்லை', message: error.response?.data?.message || 'Tracking details கிடைக்கவில்லை.' })
+      setAppLoading(true)
+      setAppTracking(null)
+      const res = await api.get('/applications/track', { params: { applicationNo: appNo.trim(), ...(appPhone ? { phone: appPhone } : {}) } })
+      setAppTracking(res.data.tracking)
+      notify({ type: 'success', title: 'Status Found', message: 'விண்ணப்ப நிலை கீழே காட்டப்பட்டுள்ளது.', popup: false })
+    } catch (err) {
+      notify({ type: 'error', title: 'Not Found', message: err.response?.data?.message || 'Application status கிடைக்கவில்லை.' })
     } finally {
-      setLoading(false)
+      setAppLoading(false)
     }
   }
 
-  function formatTrackDate(value) {
-    if (!value) return '-'
-    return new Date(value).toLocaleString('en-IN')
+  async function handleReqTrack(e) {
+    e.preventDefault()
+    if (!reqNo.trim()) {
+      notify({ type: 'warning', title: 'Number Required', message: 'Signup request number உள்ளிடவும்.' })
+      return
+    }
+    try {
+      setReqLoading(true)
+      setReqTracking(null)
+      const res = await api.get('/auth/signup-requests/track', { params: { requestNo: reqNo.trim(), ...(reqPhone ? { phone: reqPhone } : {}) } })
+      setReqTracking(res.data.tracking)
+      notify({ type: 'success', title: 'Status Found', message: 'பதிவு கோரிக்கை நிலை கீழே காட்டப்பட்டுள்ளது.', popup: false })
+    } catch (err) {
+      notify({ type: 'error', title: 'Not Found', message: err.response?.data?.message || 'Signup request status கிடைக்கவில்லை.' })
+    } finally {
+      setReqLoading(false)
+    }
   }
 
   return (
-    <Panel>
-      <PanelHeader eyebrow="Check Status" title="Track your request here" />
-      <div className="grid gap-4 p-4 sm:p-5">
-        <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-          {[
-            ['application', 'Application'],
-            ['signup', 'Signup'],
-          ].map(([value, label]) => {
-            const active = mode === value
-            return (
-              <button
-                className={`px-4 py-3 text-sm font-bold ${active ? 'bg-slate-950 text-white' : 'bg-transparent text-slate-700'}`}
-                key={value}
-                onClick={() => {
-                  setMode(value)
-                  setTracking(null)
-                }}
-                type="button"
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
-
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-          {mode === 'application' ? (
-            <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
-              <span>Application Number</span>
-              <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setApplicationNo(event.target.value)} placeholder="TNW-20260729-0001" value={applicationNo} />
+    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
+      {/* Widget 1: Application Tracker */}
+      <Panel>
+        <PanelHeader eyebrow="Application Tracker" title="Track Application Status / விண்ணப்ப நிலை" />
+        <div className="grid gap-4 p-4 sm:p-5">
+          <form className="grid gap-4" onSubmit={handleAppTrack}>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              <span>Application Number / விண்ணப்ப எண்</span>
+              <input
+                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                onChange={(e) => setAppNo(e.target.value)}
+                placeholder="e.g. TNW-20260729-0001"
+                value={appNo}
+              />
             </label>
-          ) : (
-            <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
-              <span>Signup Request Number</span>
-              <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setRequestNo(event.target.value)} placeholder="TNSU-20260729-0001" value={requestNo} />
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              <span>Registered Mobile Number / அலைபேசி எண்</span>
+              <input
+                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                onChange={(e) => setAppPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10 digit mobile number"
+                value={appPhone}
+              />
             </label>
-          )}
 
-          <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
-            <span>Registered Mobile Number</span>
-            <input className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]" onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10 digit mobile number" value={phone} />
-          </label>
-
-          <div className="md:col-span-2">
-            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" disabled={loading} type="submit">
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
+              disabled={appLoading}
+              type="submit"
+            >
               <ClipboardCheck size={16} />
-              {loading ? 'Checking...' : 'Track Status'}
+              {appLoading ? 'Checking...' : 'Track Application / நிலை அறிய'}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
-          {tracking ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              {(mode === 'signup'
-                ? [
-                    ['Request No', tracking.requestNo],
-                    ['Requested Role', tracking.requestedRole],
-                    ['Scope', tracking.scope],
-                    ['Status', tracking.status],
-                    ['Reason', tracking.reason || '-'],
-                    ['Reviewed By', tracking.reviewedBy?.username || '-'],
-                    ['Reviewed At', formatTrackDate(tracking.reviewedAt)],
-                    ['Created At', formatTrackDate(tracking.createdAt)],
-                  ]
-                : [
-                    ['Application No', tracking.applicationNo],
-                    ['Form', tracking.tamilFormTitle || tracking.formTitle],
-                    ['Applicant', tracking.applicantName || '-'],
-                    ['Scope', tracking.scope || '-'],
-                    ['Status', tracking.status],
-                    ['Payment Status', tracking.paymentStatus],
-                    ['Payment Reference', tracking.paymentReference || '-'],
-                    ['Last Updated', formatTrackDate(tracking.updatedAt)],
-                  ]).map(([label, value]) => (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" key={label}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
-                  <p className="mt-2 text-sm font-bold text-slate-950">{value}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm leading-6 text-slate-600">Track your signup request or application from this dashboard without leaving the page.</p>
-          )}
+          {/* Results Box at Bottom of Widget 1 */}
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+            {appTracking ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  ['Application No', appTracking.applicationNo],
+                  ['Form Title', appTracking.tamilFormTitle || appTracking.formTitle],
+                  ['Applicant', appTracking.applicantName || '-'],
+                  ['Status', appTracking.status],
+                  ['Payment Reference', appTracking.paymentReference || '-'],
+                  ['Last Updated', formatDate(appTracking.updatedAt)],
+                ].map(([lbl, val]) => (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" key={lbl}>
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{lbl}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-950">{val}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 text-center">Enter application number above to view status.</p>
+            )}
+          </div>
         </div>
-      </div>
-    </Panel>
+      </Panel>
+
+      {/* Widget 2: Signup Tracker */}
+      <Panel>
+        <PanelHeader eyebrow="Signup Tracker" title="Track Signup Request Status / பதிவு கோரிக்கை நிலை" />
+        <div className="grid gap-4 p-4 sm:p-5">
+          <form className="grid gap-4" onSubmit={handleReqTrack}>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              <span>Signup Request Number / பதிவு கோரிக்கை எண்</span>
+              <input
+                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                onChange={(e) => setReqNo(e.target.value)}
+                placeholder="e.g. TNSU-20260729-0001"
+                value={reqNo}
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+              <span>Registered Mobile Number / அலைபேசி எண்</span>
+              <input
+                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                onChange={(e) => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10 digit mobile number"
+                value={reqPhone}
+              />
+            </label>
+
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 shadow-md transition hover:bg-[#f78a0c]"
+              disabled={reqLoading}
+              type="submit"
+            >
+              <ClipboardCheck size={16} />
+              {reqLoading ? 'Checking...' : 'Track Signup Status / நிலை அறிய'}
+            </button>
+          </form>
+
+          {/* Results Box at Bottom of Widget 2 */}
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+            {reqTracking ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  ['Request No', reqTracking.requestNo],
+                  ['Requested Role', roleLabels[reqTracking.requestedRole] || reqTracking.requestedRole],
+                  ['Status', reqTracking.status],
+                  ['Reason', reqTracking.reason || '-'],
+                  ['Created At', formatDate(reqTracking.createdAt)],
+                  ['Reviewed At', formatDate(reqTracking.reviewedAt)],
+                ].map(([lbl, val]) => (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3" key={lbl}>
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{lbl}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-950">{val}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 text-center">Enter signup request number above to view status.</p>
+            )}
+          </div>
+        </div>
+      </Panel>
+    </div>
   )
 }
 
@@ -570,7 +632,111 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   )
 }
 
-function AdminWorkPanels({ loading, signupRequests, submissions, onRefresh }) {
+function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupRequests, submissions }) {
+  const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
+  const recentSignups = useMemo(() => pendingRequests.slice(0, 5), [pendingRequests])
+  const recentSubmissions = useMemo(() => submissions.slice(0, 5), [submissions])
+
+  if (!isAdmin) {
+    return (
+      <Panel>
+        <PanelHeader
+          action={
+            <button className="inline-flex items-center gap-1.5 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
+              View All Applications <ArrowRight size={14} />
+            </button>
+          }
+          eyebrow="Recent Work"
+          title="Recent Applications (Latest 5)"
+        />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {recentSubmissions.length ? (
+            recentSubmissions.map((submission) => (
+              <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                    <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                    <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+                  </div>
+                  <StatusPill status={submission.status} />
+                </div>
+              </div>
+            ))
+          ) : (
+            <EmptyState>No applications submitted yet.</EmptyState>
+          )}
+        </div>
+      </Panel>
+    )
+  }
+
+  return (
+    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
+      <Panel>
+        <PanelHeader
+          action={
+            <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
+              Work Panel ({pendingRequests.length}) <ArrowRight size={14} />
+            </button>
+          }
+          eyebrow="Signup Approval"
+          title="User Signup Requests (Recent 5)"
+        />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {recentSignups.length ? (
+            recentSignups.map((request) => (
+              <div className="rounded-xl border border-slate-200 p-3.5" key={request.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-950">{request.fullName}</p>
+                    <p className="mt-0.5 text-xs text-slate-600">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                  </div>
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-200">Pending</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <EmptyState>No pending signup requests for your scope.</EmptyState>
+          )}
+        </div>
+      </Panel>
+
+      <Panel>
+        <PanelHeader
+          action={
+            <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
+              Work Panel <ArrowRight size={14} />
+            </button>
+          }
+          eyebrow="Work Queue"
+          title="Applications Queue (Recent 5)"
+        />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {recentSubmissions.length ? (
+            recentSubmissions.map((submission) => (
+              <div className="rounded-xl border border-slate-200 p-3.5" key={submission.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                    <p className="mt-0.5 text-xs text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">{submission.user?.firstName || submission.user?.username || 'Applicant'}</p>
+                  </div>
+                  <StatusPill status={submission.status} />
+                </div>
+              </div>
+            ))
+          ) : (
+            <EmptyState>No applications found.</EmptyState>
+          )}
+        </div>
+      </Panel>
+    </div>
+  )
+}
+
+function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submissions }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -626,13 +792,41 @@ function AdminWorkPanels({ loading, signupRequests, submissions, onRefresh }) {
     }
   }
 
+  if (!isAdmin) {
+    return (
+      <Panel>
+        <PanelHeader eyebrow="Work Panel" title="All My Submitted Applications" />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {submissions.length ? submissions.map((submission) => (
+            <div className="rounded-xl border border-slate-200 p-4" key={submission.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                  <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">{submission.geoUnit?.name || '-'}</p>
+                  {submission.currentReviewReason && (
+                    <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+                </div>
+                <StatusPill status={submission.status} />
+              </div>
+            </div>
+          )) : (
+            <EmptyState>No applications submitted yet.</EmptyState>
+          )}
+        </div>
+      </Panel>
+    )
+  }
+
   return (
     <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
       <Panel>
         <PanelHeader
           action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
           eyebrow="Signup Approval"
-          title="User Signup Requests"
+          title="All User Signup Requests"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {pendingRequests.length ? (
@@ -659,10 +853,10 @@ function AdminWorkPanels({ loading, signupRequests, submissions, onRefresh }) {
       </Panel>
 
       <Panel>
-        <PanelHeader eyebrow="Work Queue" title="Applications Review Queue" />
+        <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
         <div className="grid gap-3 p-4 sm:p-5">
-          {submissions.length ? submissions.slice(0, 10).map((submission) => (
-            <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
+          {submissions.length ? submissions.map((submission) => (
+            <div className="rounded-xl border border-slate-200 p-3.5" key={submission.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
@@ -736,34 +930,6 @@ function AdminWorkPanels({ loading, signupRequests, submissions, onRefresh }) {
         </div>
       )}
     </div>
-  )
-}
-
-function PartnerWorkPanels({ submissions }) {
-  return (
-    <Panel>
-      <PanelHeader eyebrow="My Work" title="My Recent Applications" />
-      <div className="grid gap-3 p-4 sm:p-5">
-        {submissions.length ? submissions.slice(0, 10).map((submission) => (
-          <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                <p className="mt-1 text-sm text-slate-600">{submission.geoUnit?.name || '-'}</p>
-                {submission.currentReviewReason && (
-                  <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
-                )}
-                <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
-              </div>
-              <StatusPill status={submission.status} />
-            </div>
-          </div>
-        )) : (
-          <EmptyState>No applications submitted yet.</EmptyState>
-        )}
-      </div>
-    </Panel>
   )
 }
 
@@ -846,21 +1012,14 @@ export default function DashboardPage() {
                   <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
                   <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span>. {roleLabels[user?.role] || user?.role} access active.
+                    Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span> ({roleLabels[user?.role] || user?.role}).
                   </p>
-                  <p className="mt-1 max-w-5xl text-sm leading-6 text-slate-500">
-                    {isAdmin ? roleScopeLabels[user?.role] : 'Select an application form below, track submitted requests, or manage your profile.'}
-                  </p>
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 border border-slate-200">
+                    <MapPin size={14} className="text-[#007cba]" />
+                    <span>{getUserLocationDetails(user)}</span>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50"
-                    onClick={() => setActiveTab('profile-image')}
-                    type="button"
-                  >
-                    <User size={16} />
-                    Profile Update
-                  </button>
                   <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => loadDashboard()} type="button">
                     <RefreshCw size={16} />
                     Refresh
@@ -907,19 +1066,30 @@ export default function DashboardPage() {
               </div>
             </Panel>
 
-            {/* 3. WORK PANELS / REVIEW QUEUES THIRD */}
+            {/* 3. WORK PANELS / REVIEW QUEUES THIRD (RECENT 5 ITEMS ONLY) */}
             <section id="dashboard-work" className="w-full space-y-6">
-              {isAdmin && (
-                <AdminWorkPanels
-                  loading={loading}
-                  onRefresh={loadDashboard}
-                  signupRequests={signupRequests}
-                  submissions={submissions}
-                />
-              )}
-              {!isAdmin && <PartnerWorkPanels submissions={submissions} />}
+              <OverviewWorkPanels
+                isAdmin={isAdmin}
+                loading={loading}
+                onNavigateWorkPanel={() => setActiveTab('work-panel')}
+                signupRequests={signupRequests}
+                submissions={submissions}
+              />
             </section>
           </>
+        )}
+
+        {activeTab === 'work-panel' && (
+          <div className="grid w-full gap-6">
+            <FullWorkPanel
+              isAdmin={isAdmin}
+              loading={loading}
+              onRefresh={loadDashboard}
+              signupRequests={signupRequests}
+              submissions={submissions}
+            />
+            <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
+          </div>
         )}
 
         {activeTab === 'profile-image' && (
