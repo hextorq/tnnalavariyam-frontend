@@ -885,19 +885,52 @@ function SignupDocumentCard({ icon: Icon, label, path }) {
   )
 }
 
+const documentLabels = {
+  photo: 'Passport Photo / புகைப்பட முகப்பு',
+  livePhoto: 'Live Photo Capture / நேரடி புகைப்படம்',
+  signature: 'Worker Signature / கையொப்பம்',
+  dobDocument: 'DOB Proof Document / பிறந்த தேதிக்கான ஆவணம்',
+  aadharCard: 'Aadhar Card / ஆதார் அட்டை',
+  rationCard: 'Ration Card / குடும்ப அட்டை',
+  bankPassbook: 'Bank Passbook / வங்கி புத்தகம்',
+  bankPassbookFront: 'Passbook Front Page / வங்கி புத்தகத்தின் முதல் பக்கம்',
+  bankPassbookLast: 'Passbook Last Transaction / வங்கி புத்தகத்தில் கடைசி பரிவர்த்தனை',
+  registrationCard: 'Registration Card / தொழிலாளர் பதிவு அட்டை',
+  nomineeAadhar: "Nominee's Aadhar Card / நாமினியின் ஆதார் அட்டை",
+  childAadhar: "Child's Aadhar Card / குழந்தையின் ஆதார் அட்டை",
+  bonafide: 'Bonafide Certificate / கல்வி சான்று',
+  markSheet: 'Mark Sheet / மதிப்பெண் பட்டியல்',
+  paymentScreenshot: 'Payment Screenshot / கட்டண ரசீது',
+}
+
 function SubmissionDetailsModal({ onClose, onReview, submission }) {
   const [reviewReason, setReviewReason] = useState('')
+  const [paymentVerified, setPaymentVerified] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [lightboxImg, setLightboxImg] = useState(null)
   const { notify } = useNotifications()
 
   if (!submission) return null
   const applicantData = submission.applicantData || {}
+  const customData = applicantData.customData || {}
+
+  // Collect all uploaded image/file entries
+  const uploadedDocs = Object.entries(applicantData).filter(([key, val]) => {
+    if (!val || typeof val !== 'string') return false
+    return val.startsWith('data:image/') || val.startsWith('http') || val.startsWith('blob:')
+  })
 
   async function handleAction(nextStatus) {
     if ((nextStatus === 'REJECTED' || nextStatus === 'NEEDS_CORRECTION') && !reviewReason.trim()) {
-      notify({ type: 'warning', title: 'Reason Required', message: 'Please enter a review reason.' })
+      notify({ type: 'warning', title: 'Reason Required', message: 'Please enter a review remark or reason.' })
       return
     }
+
+    if (nextStatus === 'APPROVED' && (submission.paymentAmount || submission.paymentReference) && !paymentVerified) {
+      notify({ type: 'warning', title: 'Payment Verification Required', message: 'Please verify the UPI payment details by checking the box before approving.' })
+      return
+    }
+
     try {
       setSubmitting(true)
       await onReview?.(submission, nextStatus, reviewReason)
@@ -910,17 +943,22 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
-      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-sm">
+      <div className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-3xl bg-white p-4 shadow-2xl sm:p-7">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Application Details / விண்ணப்ப விவரங்கள்</p>
-            <h2 className="mt-1 text-2xl font-bold text-slate-950">{submission.applicationNo}</h2>
-            <p className="mt-1 text-sm text-slate-600">{submission.tamilFormTitle || submission.formTitle || submission.form?.tamilTitle || submission.form?.title}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Application Review Details</span>
+              <StatusPill status={submission.status} />
+            </div>
+            <h2 className="mt-1 text-2xl font-black text-slate-950 tracking-tight">{submission.applicationNo}</h2>
+            <p className="mt-0.5 text-sm font-semibold text-slate-600">
+              {submission.tamilFormTitle || submission.formTitle || submission.form?.tamilTitle || submission.form?.title}
+            </p>
           </div>
           <button
-            className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
+            className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 shrink-0 self-start sm:self-auto"
             onClick={onClose}
             type="button"
           >
@@ -932,78 +970,222 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
           {/* Approval Progress Stepper */}
           <ApprovalFlowStepper status={submission.status} />
 
-          {/* Applicant Details Grid */}
+          {/* Action Required Banner for Officer */}
+          {['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status) && (
+            <div className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 border border-amber-200 text-amber-900">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold">
+                !
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-800">Action Required at your Hierarchy Level</p>
+                <p className="text-xs text-amber-900 font-semibold mt-0.5">
+                  This application is currently pending your verification. Review the applicant details, attached document photos, and UPI payment before taking action.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Applicant Details Cards Grid */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Applicant Worker Information / தொழிலாளி தகவல்கள்</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#007cba] mb-3 flex items-center gap-2">
+              <Users size={16} />
+              Applicant Worker Information / தொழிலாளி விவரங்கள்
+            </h3>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              <SignupDetailRow label="Worker Name" value={applicantData.workerName || submission.applicantName} />
-              <SignupDetailRow label="Mobile Number" value={applicantData.phone || submission.user?.phone} />
-              <SignupDetailRow label="District" value={applicantData.district || submission.geoUnit?.name} />
-              <SignupDetailRow label="Date of Birth" value={applicantData.dob} />
-              <SignupDetailRow label="DOB Proof Document" value={applicantData.dobProofType} />
-              <SignupDetailRow label="Religion" value={applicantData.religion} />
-              <SignupDetailRow label="Caste" value={applicantData.caste} />
-              <SignupDetailRow label="Sub-Caste" value={applicantData.subCaste} />
-              <SignupDetailRow label="Worker Job" value={applicantData.workerJob} />
-              <SignupDetailRow label="Nominee Name" value={applicantData.nomineeName} />
-              <SignupDetailRow label="Payment Reference" value={submission.paymentReference} />
+              <SignupDetailRow label="Worker Name / தொழிலாளி பெயர்" value={applicantData.workerName || submission.applicantName} />
+              <SignupDetailRow label="Mobile Number / அலைபேசி எண்" value={applicantData.phone || submission.user?.phone} />
+              <SignupDetailRow label="District / மாவட்டம்" value={applicantData.district || submission.geoUnit?.name} />
+              <SignupDetailRow label="Date of Birth / பிறந்த தேதி" value={applicantData.dob} />
+              <SignupDetailRow label="DOB Proof Document / ஆவண வகை" value={applicantData.dobProofType} />
+              <SignupDetailRow label="Religion / மதம்" value={applicantData.religion} />
+              <SignupDetailRow label="Caste / சாதி பிரிவு" value={applicantData.caste} />
+              <SignupDetailRow label="Sub-Caste / உட்பிரிவு" value={applicantData.subCaste} />
+              <SignupDetailRow label="Worker Job / தொழிலாளியின் வேலை" value={applicantData.workerJob} />
+              <SignupDetailRow label="Nominee Name / நாமினி பெயர்" value={applicantData.nomineeName} />
+              <SignupDetailRow label="Submitted On / சமர்ப்பித்த தேதி" value={formatDate(submission.submittedAt || submission.createdAt)} />
               <SignupDetailRow label="Application Status" value={submission.status} />
             </div>
           </div>
 
-          {/* Review Actions (if officer) */}
+          {/* Scheme / Custom Details Section if present */}
+          {Object.keys(customData).length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#007cba] mb-3 flex items-center gap-2">
+                <FileText size={16} />
+                Scheme & Child Specific Details / உதவித்தொகை மற்றும் குழந்தையின் விவரங்கள்
+              </h3>
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {customData.childName && <SignupDetailRow label="Child's Name / குழந்தையின் பெயர்" value={customData.childName} />}
+                {customData.standard && <SignupDetailRow label="Standard / வகுப்பு" value={`${customData.standard}th Standard`} />}
+                {customData.examPassed && <SignupDetailRow label="Examination Passed / தேர்ச்சி" value={`${customData.examPassed}th Pass`} />}
+                {customData.courseType && <SignupDetailRow label="Course Type / படிப்பு வகை" value={customData.courseType} />}
+                {customData.courseName && <SignupDetailRow label="Course Name / பாடத்தின் பெயர்" value={customData.courseName} />}
+                {customData.courseDuration && <SignupDetailRow label="Duration / கால அளவு" value={`${customData.courseDuration} Years`} />}
+                {customData.applyingYear && <SignupDetailRow label="Applying Year / விண்ணப்பிக்கும் ஆண்டு" value={`Year ${customData.applyingYear}`} />}
+                {customData.academicYear && <SignupDetailRow label="Academic Year / கல்வி ஆண்டு" value={customData.academicYear} />}
+              </div>
+            </div>
+          )}
+
+          {/* Uploaded Documents & Photos Visual Gallery */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#007cba] flex items-center gap-2">
+                <ImageIcon size={16} />
+                Uploaded Documents & Photos Gallery ({uploadedDocs.length}) / பதிவேற்றப்பட்ட ஆவணங்கள்
+              </h3>
+              <span className="text-[11px] font-semibold text-slate-500">Click any image to view full size</span>
+            </div>
+
+            {uploadedDocs.length > 0 ? (
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {uploadedDocs.map(([key, imgSrc]) => {
+                  const label = documentLabels[key] || key
+                  return (
+                    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs transition hover:border-[#007cba] hover:shadow-md" key={key}>
+                      <p className="text-xs font-bold text-slate-800 truncate mb-2">{label}</p>
+                      <div
+                        className="relative flex h-40 items-center justify-center rounded-xl bg-slate-900/5 p-2 cursor-pointer overflow-hidden"
+                        onClick={() => setLightboxImg({ src: imgSrc, title: label })}
+                      >
+                        <img alt={label} className="max-h-full max-w-full rounded-lg object-contain bg-white shadow-xs transition group-hover:scale-105" src={imgSrc} />
+                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 opacity-0 group-hover:opacity-100 transition">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950 shadow-md">
+                            🔍 View Full Image
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="p-6 text-center text-xs font-semibold text-slate-500 bg-white rounded-xl border border-dashed border-slate-300">
+                No image previews available for this submission.
+              </div>
+            )}
+          </div>
+
+          {/* Payment Verification & Check Section */}
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 sm:p-5 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              Payment Verification & UPI Details / கட்டண சரிபார்ப்பு
+            </h3>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-center">
+              <SignupDetailRow label="Payment Status" value={submission.paymentStatus || 'PAID'} />
+              <SignupDetailRow label="Fee Amount" value={submission.paymentAmount ? `₹${submission.paymentAmount}` : (submission.paymentData?.amount ? `₹${submission.paymentData.amount}` : 'Free / இலவசம்')} />
+              <SignupDetailRow label="UPI Transaction ID / UTR" value={submission.paymentReference || submission.paymentData?.upiTransactionId || 'N/A'} />
+            </div>
+
+            {/* Check Payment Checkbox */}
+            {onReview && (submission.paymentAmount || submission.paymentReference) && (
+              <div className="mt-3 rounded-xl border border-emerald-300 bg-white p-3.5 shadow-2xs">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    checked={paymentVerified}
+                    className="mt-0.5 size-5 shrink-0 accent-emerald-600 rounded"
+                    onChange={(e) => setPaymentVerified(e.target.checked)}
+                    type="checkbox"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">
+                      Verify UPI Payment Details / கட்டண விவரங்களை சரிபார்த்தேன்
+                    </span>
+                    <span className="text-[11px] text-slate-600">
+                      Check that the UPI Transaction ID ({submission.paymentReference || 'UTR'}) matches the payment receipt image before approving this application.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Officer Verification & Forwarding Controls */}
           {onReview && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5 space-y-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-900">Officer Verification & Forwarding Controls / அதிகாரி மதிப்பீடு</p>
-              <label className="grid gap-2 text-sm font-semibold text-slate-700">
-                <span>Review Reason / Reason for Return or Rejection</span>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-6 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                  <Activity size={16} />
+                  Officer Verification & Decision Controls / அதிகாரியின் மதிப்பீட்டு முடிவு
+                </p>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold text-amber-800 border border-amber-300">
+                  Officer Action Required
+                </span>
+              </div>
+
+              <label className="grid gap-2 text-sm font-semibold text-slate-800">
+                <span>Review Remarks / Reason for Return or Rejection (குறிப்புகள்)</span>
                 <textarea
-                  className="rounded-xl border border-slate-300 bg-white p-3 outline-none focus:border-[#007cba]"
+                  className="rounded-xl border border-slate-300 bg-white p-3 outline-none focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20 text-sm font-normal"
                   onChange={(e) => setReviewReason(e.target.value)}
-                  placeholder="Enter review remarks..."
+                  placeholder="Enter officer remarks or reason if returning/rejecting..."
                   rows={2}
                   value={reviewReason}
                 />
               </label>
-              <div className="flex flex-wrap gap-2 justify-end">
+
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
                 <button
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-2xs"
                   disabled={submitting}
                   onClick={() => handleAction('UNDER_REVIEW')}
                   type="button"
                 >
-                  Start Review
+                  <span>Start Review / மதிப்பாய்வு</span>
                 </button>
                 <button
-                  className="rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-600 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-600 transition disabled:opacity-50"
                   disabled={submitting}
                   onClick={() => handleAction('NEEDS_CORRECTION')}
                   type="button"
                 >
-                  Return for Correction
+                  <span>Return for Correction / திருத்தம்</span>
                 </button>
                 <button
-                  className="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-700 transition disabled:opacity-50"
                   disabled={submitting}
                   onClick={() => handleAction('REJECTED')}
                   type="button"
                 >
-                  Reject
+                  <span>Reject / நிராகரிப்பு</span>
                 </button>
                 <button
-                  className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition disabled:opacity-50"
                   disabled={submitting}
                   onClick={() => handleAction('APPROVED')}
                   type="button"
                 >
                   <CheckCircle2 size={16} />
-                  <span>Verify & Forward to Next Level / அடுத்த நிலைக்கு அனுப்புக</span>
+                  <span>Verify Payment & Approve to Next Level / அடுத்த நிலைக்கு அனுப்புக</span>
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Full-Screen Image Lightbox Modal */}
+      {lightboxImg && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-md">
+          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl bg-white p-4 shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-3">
+              <p className="font-bold text-slate-950 text-sm">{lightboxImg.title}</p>
+              <button
+                className="rounded-xl border border-slate-300 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                onClick={() => setLightboxImg(null)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-900 rounded-xl p-2">
+              <img alt={lightboxImg.title} className="max-h-[75vh] max-w-full object-contain rounded-lg shadow-lg" src={lightboxImg.src} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1153,10 +1335,43 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [signupTab, setSignupTab] = useState('pending') // 'pending' | 'history'
+  const [appFilter, setAppFilter] = useState('ALL') // 'ALL' | 'UNDER_REVIEW' | 'NEEDS_CORRECTION' | 'APPROVED' | 'REJECTED'
+  const [searchQuery, setSearchQuery] = useState('')
   const { notify } = useNotifications()
 
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
+
+  // Submissions counts
+  const underReviewCount = useMemo(() => submissions.filter((s) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(s.status)).length, [submissions])
+  const needsCorrectionCount = useMemo(() => submissions.filter((s) => s.status === 'NEEDS_CORRECTION').length, [submissions])
+  const approvedCount = useMemo(() => submissions.filter((s) => s.status === 'APPROVED').length, [submissions])
+  const rejectedCount = useMemo(() => submissions.filter((s) => s.status === 'REJECTED').length, [submissions])
+
+  // Filtered Submissions
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((sub) => {
+      // 1. Status Filter
+      if (appFilter === 'UNDER_REVIEW' && !['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(sub.status)) return false
+      if (appFilter === 'NEEDS_CORRECTION' && sub.status !== 'NEEDS_CORRECTION') return false
+      if (appFilter === 'APPROVED' && sub.status !== 'APPROVED') return false
+      if (appFilter === 'REJECTED' && sub.status !== 'REJECTED') return false
+
+      // 2. Search Query Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const appNo = (sub.applicationNo || '').toLowerCase()
+        const workerName = (sub.applicantData?.workerName || sub.applicantData?.childName || sub.applicantName || '').toLowerCase()
+        const userName = (sub.user?.username || sub.user?.firstName || '').toLowerCase()
+        const formTitle = (sub.form?.tamilTitle || sub.form?.title || sub.tamilFormTitle || sub.formTitle || '').toLowerCase()
+        const phone = (sub.applicantData?.phone || sub.user?.phone || '').toLowerCase()
+        const upi = (sub.paymentReference || sub.paymentData?.upiTransactionId || '').toLowerCase()
+
+        return appNo.includes(q) || workerName.includes(q) || userName.includes(q) || formTitle.includes(q) || phone.includes(q) || upi.includes(q)
+      }
+      return true
+    })
+  }, [submissions, appFilter, searchQuery])
 
   async function reviewSignup(request, status) {
     if (status === 'REJECTED' && !reviewReason.trim()) {
@@ -1321,33 +1536,110 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
 
       <Panel className="order-1">
         <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
+        
+        {/* Search & Filter Bar */}
+        <div className="border-b border-slate-200 bg-slate-50/70 p-4 space-y-3">
+          {/* Real-time Search Box */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-9 text-xs font-medium text-slate-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search TNW-xxxx number, applicant name, phone..."
+              type="text"
+              value={searchQuery}
+            />
+            {searchQuery && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                onClick={() => setSearchQuery('')}
+                type="button"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Bar Tabs */}
+          <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+            <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'ALL' ? 'bg-[#007cba] text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => setAppFilter('ALL')}
+              type="button"
+            >
+              All ({submissions.length})
+            </button>
+            <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'UNDER_REVIEW' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => setAppFilter('UNDER_REVIEW')}
+              type="button"
+            >
+              Under Review ({underReviewCount})
+            </button>
+            <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'NEEDS_CORRECTION' ? 'bg-amber-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => setAppFilter('NEEDS_CORRECTION')}
+              type="button"
+            >
+              Needs Correction ({needsCorrectionCount})
+            </button>
+            <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'APPROVED' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => setAppFilter('APPROVED')}
+              type="button"
+            >
+              Approved ({approvedCount})
+            </button>
+            <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'REJECTED' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => setAppFilter('REJECTED')}
+              type="button"
+            >
+              Rejected ({rejectedCount})
+            </button>
+          </div>
+        </div>
+
+        {/* Queue Items */}
         <div className="grid gap-3 p-4 sm:p-5">
-          {submissions.length ? submissions.map((submission) => (
-            <div className="rounded-xl border border-slate-200 p-3.5" key={submission.id}>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                    <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                    <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+          {filteredSubmissions.length ? filteredSubmissions.map((submission) => {
+            const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)
+            return (
+              <div className={`rounded-2xl border p-4 transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white'}`} key={submission.id}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
+                        {isPendingAction && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
+                            Action Required
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.geoUnit?.name || '-'}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+                    </div>
+                    <div className="shrink-0">
+                      <StatusPill status={submission.status} />
+                    </div>
                   </div>
-                  <div className="shrink-0">
-                    <StatusPill status={submission.status} />
-                  </div>
+                  <button
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                    onClick={() => onSelectSubmission?.(submission)}
+                    type="button"
+                  >
+                    <FileText className="shrink-0" size={15} />
+                    <span>View &amp; Review Application / விவரங்களை காண்க</span>
+                  </button>
                 </div>
-                <button
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
-                  onClick={() => onSelectSubmission?.(submission)}
-                  type="button"
-                >
-                  <FileText className="shrink-0" size={15} />
-                  <span>View &amp; Review Application / விவரங்களை காண்க</span>
-                </button>
               </div>
-            </div>
-          )) : (
-            <EmptyState>No applications found.</EmptyState>
+            )
+          }) : (
+            <EmptyState>No applications matching filter / search.</EmptyState>
           )}
         </div>
       </Panel>
