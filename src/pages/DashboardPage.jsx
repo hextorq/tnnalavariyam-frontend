@@ -207,9 +207,8 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                 const isActive = activeTab === item.id
                 return (
                   <button
-                    className={`flex items-center gap-3 rounded-2xl p-4 text-left font-bold transition ${
-                      isActive ? 'bg-[#007cba] text-white shadow-lg' : 'bg-slate-900 text-slate-300'
-                    }`}
+                    className={`flex items-center gap-3 rounded-2xl p-4 text-left font-bold transition ${isActive ? 'bg-[#007cba] text-white shadow-lg' : 'bg-slate-900 text-slate-300'
+                      }`}
                     key={item.id}
                     onClick={() => handleSelectTab(item.id)}
                     type="button"
@@ -282,9 +281,8 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                       onClick={() => onNavigate(item.id)}
                       title={item.label}
                       type="button"
-                      className={`flex size-10 items-center justify-center rounded-xl mx-auto transition ${
-                        isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-                      }`}
+                      className={`flex size-10 items-center justify-center rounded-xl mx-auto transition ${isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                        }`}
                     >
                       <Icon size={18} />
                     </button>
@@ -296,9 +294,8 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
                     type="button"
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                      isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                    }`}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                      }`}
                   >
                     <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
                       <Icon size={16} />
@@ -818,7 +815,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             </button>
           }
           eyebrow="Recent Work"
-          title="Recent Applications (Latest 5)"
+          title="Recent Applications (Latest )"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {recentSubmissions.length ? (
@@ -882,7 +879,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             </button>
           }
           eyebrow="Work Queue"
-          title="Applications Queue (Recent 5)"
+          title="Applications Queue (Recent )"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {recentSubmissions.length ? (
@@ -1000,18 +997,16 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
           action={
             <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
               <button
-                className={`rounded-lg px-3 py-1.5 transition ${
-                  signupTab === 'pending' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'pending' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 onClick={() => setSignupTab('pending')}
                 type="button"
               >
                 Pending ({pendingRequests.length})
               </button>
               <button
-                className={`rounded-lg px-3 py-1.5 transition ${
-                  signupTab === 'history' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'history' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 onClick={() => setSignupTab('history')}
                 type="button"
               >
@@ -1169,6 +1164,7 @@ export default function DashboardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard-overview')
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => getProfilePhoto(user))
+  const [selectedSubmissionDetails, setSelectedSubmissionDetails] = useState(null)
 
   const [signupRequests, setSignupRequests] = useState([])
   const [submissions, setSubmissions] = useState([])
@@ -1335,6 +1331,7 @@ export default function DashboardPage() {
                 isAdmin={isAdmin}
                 loading={loading}
                 onNavigateWorkPanel={() => setActiveTab('work-panel')}
+                onSelectSubmission={setSelectedSubmissionDetails}
                 signupRequests={signupRequests}
                 submissions={submissions}
               />
@@ -1347,6 +1344,7 @@ export default function DashboardPage() {
             isAdmin={isAdmin}
             loading={loading}
             onRefresh={loadDashboard}
+            onSelectSubmission={setSelectedSubmissionDetails}
             signupRequests={signupRequests}
             submissions={submissions}
           />
@@ -1360,6 +1358,13 @@ export default function DashboardPage() {
           <section id="check-status">
             <CheckStatusPanel />
           </section>
+        )}
+
+        {selectedSubmissionDetails && (
+          <SubmissionDetailsModal
+            onClose={() => setSelectedSubmissionDetails(null)}
+            submission={selectedSubmissionDetails}
+          />
         )}
       </main>
     </div>
