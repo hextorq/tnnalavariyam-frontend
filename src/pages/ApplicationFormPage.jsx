@@ -6,8 +6,8 @@ import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, Upload } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Upload } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 const dobProofOptions = [
   { value: 'voter-id', label: 'வாக்காளர் அட்டை / Voter ID' },
@@ -73,192 +73,6 @@ const workerJobOptions = [
   { value: 'Other', label: 'பிற தொழில் / Other' },
 ]
 
-function bilingualName(item) {
-  return `${item.nameTamil} / ${item.name}`
-}
-
-function SearchSelect({ disabled = false, onChange, options, placeholder, value }) {
-  const selectedOption = options.find((option) => option.value === value)
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const filteredOptions = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
-    if (!normalizedQuery) return options
-    return options.filter((option) => option.label.toLowerCase().includes(normalizedQuery))
-  }, [options, query])
-
-  useEffect(() => {
-    setQuery(selectedOption?.label || '')
-  }, [selectedOption?.label])
-
-  return (
-    <div className="relative">
-      <input
-        aria-expanded={open}
-        autoComplete="off"
-        className="min-w-0 w-full border border-neutral-300 px-4 py-3 disabled:bg-neutral-100"
-        disabled={disabled}
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-        onChange={(event) => {
-          setQuery(event.target.value)
-          setOpen(true)
-        }}
-        onFocus={() => {
-          setQuery('')
-          setOpen(true)
-        }}
-        placeholder={placeholder}
-        role="combobox"
-        value={open ? query : selectedOption?.label || ''}
-      />
-      {open && !disabled && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto border border-neutral-300 bg-white shadow-lg">
-          {filteredOptions.length ? (
-            filteredOptions.map((option) => (
-              <button
-                className="block w-full px-4 py-3 text-left text-sm hover:bg-[#eef8ff] focus:bg-[#eef8ff]"
-                key={option.value}
-                onMouseDown={(event) => {
-                  event.preventDefault()
-                  onChange(option.value)
-                  setQuery(option.label)
-                  setOpen(false)
-                }}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))
-          ) : (
-            <div className="px-4 py-3 text-sm text-neutral-500">No matching option</div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DobInput({ value, onChange }) {
-  const parts = (value || '').split('-')
-  const year = parts[0] || ''
-  const month = parts[1] || ''
-  const day = parts[2] || ''
-
-  function update(y, m, d) {
-    const yStr = y || year, mStr = m || month, dStr = d || day
-    if (yStr && mStr && dStr) {
-      onChange(`${yStr}-${mStr.padStart(2, '0')}-${dStr.padStart(2, '0')}`)
-    } else {
-      onChange('')
-    }
-  }
-
-  return (
-    <div className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
-      <span>Date of Birth / பிறந்த தேதி</span>
-      <div className="grid grid-cols-3 gap-2">
-        <input
-          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
-          maxLength={2}
-          onChange={(e) => update(year, month, e.target.value.replace(/\D/g, '').slice(0, 2))}
-          placeholder="DD"
-          type="text"
-          value={day}
-        />
-        <input
-          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
-          maxLength={2}
-          onChange={(e) => update(year, e.target.value.replace(/\D/g, '').slice(0, 2), day)}
-          placeholder="MM"
-          type="text"
-          value={month}
-        />
-        <input
-          className="w-full rounded-lg border border-neutral-300 px-3 py-3 text-center font-normal outline-none transition focus:border-[#007cba]"
-          maxLength={4}
-          onChange={(e) => update(e.target.value.replace(/\D/g, '').slice(0, 4), month, day)}
-          placeholder="YYYY"
-          type="text"
-          value={year}
-        />
-      </div>
-    </div>
-  )
-}
-
-function CameraCapture({ preview, onCapture }) {
-  const videoRef = useRef(null)
-  const canvasRef = useRef(null)
-  const [mode, setMode] = useState(preview ? 'captured' : 'idle')
-
-  function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
-      .then((s) => {
-        if (videoRef.current) videoRef.current.srcObject = s
-        setMode('streaming')
-      })
-      .catch(() => {})
-  }
-
-  function handleCapture() {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    canvas.getContext('2d').drawImage(video, 0, 0)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-    onCapture(dataUrl)
-    setMode('captured')
-    const stream = video.srcObject
-    if (stream) stream.getTracks().forEach((t) => t.stop())
-  }
-
-  function handleRetake() {
-    setMode('idle')
-    onCapture('')
-  }
-
-  if (mode === 'captured' && preview) {
-    return (
-      <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
-        <span>Live Photo / நேரடி புகைப்படம்</span>
-        <div className="relative rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden">
-          <img alt="Captured" className="w-full object-cover" src={preview} />
-          <button className="absolute bottom-2 right-2 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleRetake} type="button">
-            Retake / மீண்டும் பிடிக்க
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (mode === 'streaming') {
-    return (
-      <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
-        <span>Live Photo / நேரடி புகைப்படம்</span>
-        <div className="relative rounded-lg border border-neutral-300 bg-black overflow-hidden">
-          <video autoPlay muted playsInline ref={videoRef} className="w-full" />
-          <canvas ref={canvasRef} className="hidden" />
-          <button className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-6 py-2 text-xs font-bold shadow-sm border border-neutral-200 hover:bg-neutral-100" onClick={handleCapture} type="button">
-            Capture / பிடிக்கவும்
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
-      <span>Live Photo / நேரடி புகைப்படம்</span>
-      <button className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm font-bold text-neutral-600 hover:border-[#007cba] hover:text-[#007cba]" onClick={startCamera} type="button">
-        <Camera size={20} />
-        Capture Live Photo / நேரடி புகைப்படம் பிடிக்க
-      </button>
-    </div>
-  )
-}
-
 function Section({ eyebrow, title, children }) {
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-6">
@@ -305,6 +119,8 @@ function SelectField({ children, options, className = '', required = false, ...p
 }
 
 function FileField({ children, className = '', preview = '', onChange, required = false, ...props }) {
+  const isImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
+
   return (
     <label className={`flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
       <span>
@@ -318,13 +134,219 @@ function FileField({ children, className = '', preview = '', onChange, required 
           type="file"
           {...props}
         />
-        {preview && (
+        {preview && isImageSrc && (
           <div className="max-w-xs overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 p-2">
             <img alt="File preview" className="max-h-40 w-full object-contain" src={preview} />
           </div>
         )}
       </div>
     </label>
+  )
+}
+
+function LivePhotoSection({ preview, onCapture }) {
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const [mode, setMode] = useState(preview ? 'captured' : 'idle')
+  const [cameraError, setCameraError] = useState('')
+
+  function startCamera() {
+    setCameraError('')
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Camera access not supported by browser. Please upload a photo file below.')
+      return
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
+      .then((stream) => {
+        if (videoRef.current) videoRef.current.srcObject = stream
+        setMode('streaming')
+      })
+      .catch(() => {
+        setCameraError('Unable to access camera. Please upload a photo file below.')
+        setMode('idle')
+      })
+  }
+
+  function stopCamera() {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject
+      stream.getTracks().forEach((t) => t.stop())
+      videoRef.current.srcObject = null
+    }
+  }
+
+  function handleCapture() {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+    canvas.width = video.videoWidth || 640
+    canvas.height = video.videoHeight || 480
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    onCapture(dataUrl)
+    stopCamera()
+    setMode('captured')
+  }
+
+  function handleRetake() {
+    stopCamera()
+    setMode('idle')
+    onCapture('')
+  }
+
+  function handleFileChange(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (file.type?.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onCapture(reader.result)
+          setMode('captured')
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const isValidImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
+
+  return (
+    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
+      <span>Live Photo / நேரடி புகைப்படம்</span>
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
+        {/* State 1: Photo Captured or Uploaded */}
+        {preview && (isValidImageSrc || mode === 'captured') ? (
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:items-center sm:justify-start">
+            <div className="relative h-56 w-44 shrink-0 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-white shadow-md ring-4 ring-emerald-500/10">
+              {isValidImageSrc ? (
+                <img alt="Live Photo Captured" className="h-full w-full object-cover" src={preview} />
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-slate-500">
+                  <Camera className="text-[#007cba]" size={32} />
+                  <p className="mt-2 text-xs font-bold text-slate-800">Photo Attached</p>
+                </div>
+              )}
+              <span className="absolute bottom-2 left-2 right-2 rounded-lg bg-emerald-600 py-1 text-center text-[10px] font-bold text-white shadow-xs">
+                ✓ Photo Ready / நேரடி படம்
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 text-center sm:text-left">
+              <div>
+                <p className="text-base font-bold text-slate-950">Live Passport Photo</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  உங்கள் நேரடி புகைப்படம் பெறப்பட்டது.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-100"
+                  onClick={handleRetake}
+                  type="button"
+                >
+                  <RefreshCw size={14} />
+                  Retake Photo / மீண்டும் எடுக்க
+                </button>
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-700 shadow-xs transition hover:bg-neutral-100"
+                  onClick={() => fileInputRef.current?.click()}
+                  type="button"
+                >
+                  <Upload size={14} />
+                  Upload File
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : mode === 'streaming' ? (
+          /* State 2: Camera Streaming View with Oval Overlay */
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative aspect-[4/3] w-full max-w-sm overflow-hidden rounded-2xl border-2 border-[#007cba] bg-slate-950 shadow-lg">
+              <video autoPlay muted playsInline ref={videoRef} className="h-full w-full object-cover" />
+              <canvas ref={canvasRef} className="hidden" />
+
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <div className="h-48 w-40 rounded-[50%/60%] border-2 border-dashed border-white/80 shadow-2xl ring-8 ring-black/40" />
+                <p className="mt-2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
+                  Align face inside frame / முகத்தை சரியாக வைக்கவும்
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700"
+                onClick={handleCapture}
+                type="button"
+              >
+                <Camera size={16} />
+                Capture Photo / படம் எடு
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-100"
+                onClick={() => {
+                  stopCamera()
+                  setMode('idle')
+                }}
+                type="button"
+              >
+                Cancel / ரத்து செய்
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* State 3: Idle View */
+          <div className="flex flex-col items-center justify-center gap-4 text-center py-2">
+            <div className="flex size-14 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
+              <Camera size={28} />
+            </div>
+            <div>
+              <p className="text-base font-bold text-slate-950">Live Passport Photo Capture</p>
+              <p className="mt-1 max-w-md text-xs text-slate-500">
+                கேமரா மூலம் நேரடி படம் எடுக்கலாம் அல்லது புகைப்படக் கோப்பை பதிவேற்றலாம்.
+              </p>
+            </div>
+
+            {cameraError && (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                {cameraError}
+              </p>
+            )}
+
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
+                onClick={startCamera}
+                type="button"
+              >
+                <Camera size={16} />
+                Start Camera / கேமராவைத் தொடங்கு
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 shadow-xs transition hover:bg-neutral-100"
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                <Upload size={16} />
+                Upload Photo File / படம் பதிவேற்றவும்
+              </button>
+            </div>
+          </div>
+        )}
+
+        <input
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+          ref={fileInputRef}
+          type="file"
+        />
+      </div>
+    </div>
   )
 }
 
@@ -366,11 +388,6 @@ export default function ApplicationFormPage({ formId }) {
 
   const [submitting, setSubmitting] = useState(false)
   const [submittedAppNo, setSubmittedAppNo] = useState('')
-
-  const districtOptions = useMemo(
-    () => tamilNaduDistricts.map((district) => ({ value: district.code, label: bilingualName(district) })),
-    [],
-  )
 
   function handleInputChange(field, value) {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -545,15 +562,14 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
-                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
-                  <SearchSelect
-                    onChange={(value) => handleInputChange('district', value)}
-                    options={districtOptions}
-                    placeholder="மாவட்டம் தேடவும் / Search district"
-                    value={formData.district}
-                  />
-                </label>
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
 
                 <Field
                   {...phoneInputProps}
@@ -565,10 +581,13 @@ export default function ApplicationFormPage({ formId }) {
                   Phone no / அலைபேசி எண்
                 </Field>
 
-                <DobInput
-                  onChange={(value) => handleInputChange('dob', value)}
+                <Field
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  type="date"
                   value={formData.dob}
-                />
+                >
+                  Date of Birth / பிறந்த தேதி
+                </Field>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2 items-start">
@@ -624,15 +643,14 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
-                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
-                  <SearchSelect
-                    onChange={(value) => handleInputChange('district', value)}
-                    options={districtOptions}
-                    placeholder="மாவட்டம் தேடவும் / Search district"
-                    value={formData.district}
-                  />
-                </label>
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
 
                 <Field
                   {...phoneInputProps}
@@ -644,10 +662,13 @@ export default function ApplicationFormPage({ formId }) {
                   Phone no / அலைபேசி எண்
                 </Field>
 
-                <DobInput
-                  onChange={(value) => handleInputChange('dob', value)}
+                <Field
+                  onChange={(e) => handleInputChange('dob', e.target.value)}
+                  type="date"
                   value={formData.dob}
-                />
+                >
+                  Date of Birth / பிறந்த தேதி
+                </Field>
               </div>
 
               {/* Photos & DOB Proof in clean 2-column pairs */}
@@ -678,6 +699,13 @@ export default function ApplicationFormPage({ formId }) {
                   Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
                 </FileField>
 
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('registrationCard', e)}
+                  preview={previews.registrationCard}
+                >
+                  Worker Registration Card / தொழிலாளியின் பதிவு அட்டை
+                </FileField>
               </div>
 
               <div className="grid gap-5 md:grid-cols-3 items-start">
@@ -769,10 +797,9 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Signature / கையொப்பம்
                 </FileField>
-              </div>
 
-              <div className="grid gap-5 md:grid-cols-1 items-start">
-                <CameraCapture
+                {/* Perfect Live Photo Component */}
+                <LivePhotoSection
                   onCapture={(dataUrl) => {
                     setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
                   }}
@@ -796,15 +823,14 @@ export default function ApplicationFormPage({ formId }) {
                   Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
-                <label className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
-                  <span>District / மாவட்டம்<span className="ml-1 text-red-600">*</span></span>
-                  <SearchSelect
-                    onChange={(value) => handleInputChange('district', value)}
-                    options={districtOptions}
-                    placeholder="மாவட்டம் தேடவும் / Search district"
-                    value={formData.district}
-                  />
-                </label>
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistricts}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
 
                 <Field
                   {...phoneInputProps}
