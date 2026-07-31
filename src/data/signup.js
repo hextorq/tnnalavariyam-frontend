@@ -1,3 +1,4 @@
+import { transliterateTamil } from '../lib/tamilTransliteration.js'
 import tamilNaduHierarchy from './tamilNaduHierarchy.json'
 
 const tamilCollator = new Intl.Collator('ta-IN', {
@@ -39,3 +40,18 @@ export const idProofOptions = [
 
 export const tamilNaduState = sortHierarchyByTamilName(tamilNaduHierarchy)
 export const tamilNaduDistricts = tamilNaduState.districts
+
+// Bilingual "Tamil / English" label for a hierarchy item (district, taluk, etc.).
+// Falls back to transliteration when no explicit englishName is present.
+export function bilingualName(item) {
+  if (!item) return ''
+  const englishName = item.englishName || transliterateTamil(item.name)
+  return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
+}
+
+// District dropdown options with the Tamil name as the stored value and a
+// bilingual label, matching the register page's district selector.
+export const tamilNaduDistrictOptions = tamilNaduDistricts.map((district) => ({
+  value: district.name,
+  label: bilingualName(district),
+}))

@@ -3,7 +3,7 @@ export const applicationForms = [
     id: 'new-registration',
     title: 'New Registration',
     tamilTitle: 'புதிய விண்ணப்பப் பதிவு',
-    fee: 150,
+    fee: 300,
     fields: ['Worker Name', 'District', 'Phone Number', 'Photo', 'Date of Birth', 'DOB Document', 'Religion', 'Caste', 'Sub-Caste', 'Workers Job', 'Bank Passbook', 'Aadhar Card', 'Ration Card', 'Worker Registration Card', 'Nominee Name', 'Nominee Aadhar', 'Signature', 'Live Photo'],
   },
   {

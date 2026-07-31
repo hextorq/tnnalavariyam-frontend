@@ -1,6 +1,6 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
-import { tamilNaduDistricts } from '../data/signup.js'
+import { tamilNaduDistrictOptions } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
@@ -535,7 +535,7 @@ export default function ApplicationFormPage({ formId }) {
 
                 <SelectField
                   onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
+                  options={tamilNaduDistrictOptions}
                   required
                   value={formData.district}
                 >
@@ -616,7 +616,7 @@ export default function ApplicationFormPage({ formId }) {
 
                 <SelectField
                   onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
+                  options={tamilNaduDistrictOptions}
                   required
                   value={formData.district}
                 >
@@ -797,7 +797,7 @@ export default function ApplicationFormPage({ formId }) {
 
                 <SelectField
                   onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistricts}
+                  options={tamilNaduDistrictOptions}
                   required
                   value={formData.district}
                 >
