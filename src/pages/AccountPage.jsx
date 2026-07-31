@@ -75,6 +75,8 @@ function FieldLabel({ children, required = false }) {
   )
 }
 
+const inputClass = 'min-w-0 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20'
+
 function FormSection({ children, title }) {
   return (
     <section className="grid gap-4 border border-neutral-200 bg-white p-4 sm:p-5">
@@ -90,7 +92,7 @@ function PasswordInput({ minLength, onChange, placeholder, value }) {
   return (
     <div className="relative">
       <input
-        className="min-w-0 w-full border border-neutral-300 px-4 py-3 pr-12"
+        className={`${inputClass} pr-12`}
         minLength={minLength}
         onChange={onChange}
         placeholder={placeholder}
@@ -129,7 +131,7 @@ function SearchSelect({ disabled = false, onChange, options, placeholder, value 
       <input
         aria-expanded={open}
         autoComplete="off"
-        className="min-w-0 w-full border border-neutral-300 px-4 py-3 disabled:bg-neutral-100"
+        className={`${inputClass} disabled:bg-neutral-100`}
         disabled={disabled}
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         onChange={(event) => {
@@ -233,8 +235,8 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
   }
 
   return (
-    <div className="grid gap-2 text-sm font-semibold text-neutral-700">
-      <FieldLabel required={required}>{label}</FieldLabel>
+    <div className="grid content-start gap-2 text-sm font-semibold text-neutral-700">
+      <FieldLabel required={required}><span className="block min-h-10 sm:min-h-6">{label}</span></FieldLabel>
       <input
         accept={uploadConfig.accept}
         className="sr-only"
@@ -763,45 +765,45 @@ export default function AccountPage({ mode }) {
               </div>
             )}
             <FormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2">
+              <div className="grid items-start gap-4 md:grid-cols-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>முழு பெயர் / Full Name</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
+                  <input className={inputClass} onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>பயனர் பெயர் / Username</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" minLength={3} onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Minimum 3 characters" required value={signupForm.username} />
+                  <input className={inputClass} minLength={3} onChange={(event) => updateSignupField('username', event.target.value)} placeholder="Minimum 3 characters" required value={signupForm.username} />
                   <p className="text-xs text-neutral-500">குறைந்தது 3 எழுத்துகள் / Minimum 3 characters</p>
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>தொலைபேசி எண் / Phone Number</FieldLabel>
                   <input
                     {...phoneInputProps}
-                    className="min-w-0 border border-neutral-300 px-4 py-3"
+                    className={inputClass}
                     onChange={(event) => updateSignupField('phone', normalizePhone(event.target.value))}
                     placeholder="10 digit phone number"
                     required
                     value={signupForm.phone}
                   />
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>மின்னஞ்சல் முகவரி / Email Address</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
+                  <input className={inputClass} onChange={(event) => updateSignupField('email', event.target.value)} placeholder="Email Address" required type="email" value={signupForm.email} />
                 </label>
               </div>
             </FormSection>
 
             <FormSection title="பங்கு மற்றும் பகுதி / Role and Area">
-              <label className="grid gap-2">
+              <label className="grid content-start gap-2">
                 <FieldLabel required>பங்கு / Requested Role</FieldLabel>
                 <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2">
+              <div className="grid items-start gap-4 md:grid-cols-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>மாநிலம் / State</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" disabled value={bilingualName(tamilNaduState)} />
+                  <input className={`${inputClass} disabled:bg-neutral-100`} disabled value={bilingualName(tamilNaduState)} />
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>மாவட்டம் / District</FieldLabel>
                   <SearchSelect
                     onChange={(value) => {
@@ -815,7 +817,7 @@ export default function AccountPage({ mode }) {
                   />
                 </label>
                 {needsTaluk && (
-                  <label className="grid gap-2">
+                  <label className="grid content-start gap-2">
                     <FieldLabel required>தாலுகா / Taluk</FieldLabel>
                     <SearchSelect
                       disabled={!districtCode}
@@ -830,7 +832,7 @@ export default function AccountPage({ mode }) {
                   </label>
                 )}
                 {needsVillage && (
-                  <label className="grid gap-2">
+                  <label className="grid content-start gap-2">
                     <FieldLabel required>கிராமம் / Village</FieldLabel>
                     <SearchSelect disabled={!talukCode} onChange={setVillageCode} options={villageOptions} placeholder="கிராமம் தேடவும் / Search village" value={villageCode} />
                   </label>
@@ -839,34 +841,34 @@ export default function AccountPage({ mode }) {
             </FormSection>
 
             <FormSection title="முகவரி / Address">
-              <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
-                <label className="grid gap-2">
+              <div className="grid items-start gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>அஞ்சல் குறியீடு / Pincode</FieldLabel>
                   <input
                     {...pincodeInputProps}
-                    className="border border-neutral-300 px-4 py-3"
+                    className={inputClass}
                     onChange={(event) => updateSignupField('pincode', normalizePincode(event.target.value))}
                     placeholder="6 digit pincode"
                     required
                     value={signupForm.pincode}
                   />
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>முழு முகவரி / Full Address</FieldLabel>
-                  <textarea className="min-h-24 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
+                  <textarea className={`${inputClass} min-h-24 resize-y`} onChange={(event) => updateSignupField('addressLine', event.target.value)} placeholder="Full Address" required value={signupForm.addressLine} />
                 </label>
               </div>
             </FormSection>
 
             <FormSection title="ஆவணங்கள் / Documents">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2">
+              <div className="grid items-start gap-4 md:grid-cols-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
                   <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
                 </label>
-                <label className="grid gap-2">
+                <label className="grid content-start gap-2">
                   <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
-                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+                  <input className={inputClass} onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
                 </label>
               </div>
               <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -878,8 +880,8 @@ export default function AccountPage({ mode }) {
         )}
         {mode === 'reset' ? (
           <>
-            <input className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="Email Address" />
-            <input {...phoneInputProps} className="min-w-0 border border-neutral-300 px-4 py-3" placeholder="10 digit phone number" />
+            <input className={inputClass} placeholder="Email Address" />
+            <input {...phoneInputProps} className={inputClass} placeholder="10 digit phone number" />
             <PasswordInput placeholder="New Password" />
             <PasswordInput placeholder="Confirm New Password" />
           </>
@@ -893,7 +895,7 @@ export default function AccountPage({ mode }) {
                   </div>
                 )}
                 <input
-                  className="min-w-0 border border-neutral-300 px-4 py-3"
+                  className={inputClass}
                   onChange={(event) => setLoginForm((current) => ({ ...current, identifier: event.target.value }))}
                   placeholder="Email / Phone / Username"
                   required
@@ -903,8 +905,8 @@ export default function AccountPage({ mode }) {
             )}
             {mode === 'register' ? (
               <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
+                <div className="grid items-start gap-4 md:grid-cols-2">
+                  <label className="grid content-start gap-2">
                     <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
                     <PasswordInput
                       minLength={6}
@@ -914,7 +916,7 @@ export default function AccountPage({ mode }) {
                     />
                     <p className="text-xs text-neutral-500">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
                   </label>
-                  <label className="grid gap-2">
+                  <label className="grid content-start gap-2">
                     <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
                     <PasswordInput minLength={6} onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
                     <p className="text-xs text-neutral-500">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
