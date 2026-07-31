@@ -1144,6 +1144,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const recentSignups = useMemo(() => pendingRequests.slice(0, 3), [pendingRequests])
   const recentSubmissions = useMemo(() => submissions.slice(0, 3), [submissions])
+  const [overviewTab, setOverviewTab] = useState('applications')
 
   if (!isAdmin) {
     return (
@@ -1180,8 +1181,26 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
   }
 
   return (
-    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-      <Panel className="order-2">
+    <div className="flex flex-col w-full gap-6">
+      <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${overviewTab === 'applications' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setOverviewTab('applications')}
+          type="button"
+        >
+          Recent Applications
+        </button>
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${overviewTab === 'signups' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setOverviewTab('signups')}
+          type="button"
+        >
+          Recent Signups
+        </button>
+      </div>
+
+      {overviewTab === 'signups' && (
+      <Panel>
         <PanelHeader
           action={
             <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
@@ -1209,9 +1228,10 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             <EmptyState>No pending signup requests for your scope.</EmptyState>
           )}
         </div>
-      </Panel>
+      )}
 
-      <Panel className="order-1">
+      {overviewTab === 'applications' && (
+      <Panel>
         <PanelHeader
           action={
             <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
@@ -1240,6 +1260,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
           )}
         </div>
       </Panel>
+      )}
     </div>
   )
 }
