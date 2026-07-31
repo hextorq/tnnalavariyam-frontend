@@ -699,12 +699,12 @@ export default function ApplicationFormPage({ formId }) {
               <div className="grid gap-5 md:grid-cols-2 items-start">
                 <Field
                   onChange={(e) => handleInputChange('workerName', e.target.value)}
-                  placeholder="தொழிலாளியின் பெயர் (எழுத்துக்கள் மட்டும்)"
+                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
                   required
                   type="text"
                   value={formData.workerName}
                 >
-                  Worker Name / தொழிலாளியின் பெயர் (Alphabets only)
+                  Worker Name / தொழிலாளியின் பெயர்
                 </Field>
 
                 <Field
@@ -736,7 +736,7 @@ export default function ApplicationFormPage({ formId }) {
                   type="date"
                   value={formData.dob}
                 >
-                  Date of Birth / பிறந்த தேதி (Past dates only)
+                  Date of Birth / பிறந்த தேதி
                 </Field>
               </div>
 
@@ -753,12 +753,12 @@ export default function ApplicationFormPage({ formId }) {
 
                 <Field
                   onChange={(e) => handleInputChange('nomineeName', e.target.value)}
-                  placeholder="நாமினி பெயர் (எழுத்துக்கள் மட்டும்)"
+                  placeholder="நாமினி பெயர் உள்ளிடவும்"
                   required
                   type="text"
                   value={formData.nomineeName}
                 >
-                  Nominee Name / நாமினி பெயர் (Alphabets only)
+                  Nominee Name / நாமினி பெயர்
                 </Field>
               </div>
 
