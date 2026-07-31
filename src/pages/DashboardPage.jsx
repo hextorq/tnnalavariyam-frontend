@@ -1228,6 +1228,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             <EmptyState>No pending signup requests for your scope.</EmptyState>
           )}
         </div>
+      </Panel>
       )}
 
       {overviewTab === 'applications' && (
@@ -1499,6 +1500,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             )
           )}
         </div>
+      </Panel>
       )}
 
       {mainTab === 'applications' && (
@@ -1610,8 +1612,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             <EmptyState>No applications matching filter / search.</EmptyState>
           )}
         </div>
-      </Panel>
-      )}
+
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
@@ -1638,6 +1639,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
           </div>
         )}
       </Panel>
+      )}
 
       {selectedSignup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
