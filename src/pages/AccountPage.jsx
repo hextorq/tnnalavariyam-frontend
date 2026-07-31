@@ -859,20 +859,20 @@ export default function AccountPage({ mode }) {
             </FormSection>
 
             <FormSection title="ஆவணங்கள் / Documents">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} />
-                <div className="grid content-start gap-4">
-                  <label className="grid gap-2">
-                    <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
-                    <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
-                  </label>
-                  <label className="grid gap-2">
-                    <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
-                    <input className="border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
-                  </label>
-                </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
+                  <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
+                </label>
+                <label className="grid gap-2">
+                  <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
+                  <input className="min-w-0 border border-neutral-300 px-4 py-3" onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+                </label>
               </div>
-              <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} />
+              <div className="grid items-start gap-4 lg:grid-cols-2">
+                <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} />
+                <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} />
+              </div>
             </FormSection>
           </>
         )}

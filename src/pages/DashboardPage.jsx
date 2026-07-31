@@ -864,9 +864,11 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [signupTab, setSignupTab] = useState('pending') // 'pending' | 'history'
   const { notify } = useNotifications()
 
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
+  const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
 
   async function reviewSignup(request, status) {
     if (status === 'REJECTED' && !reviewReason.trim()) {
@@ -948,30 +950,86 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
     <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
       <Panel>
         <PanelHeader
-          action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
-          eyebrow="Signup Approval"
-          title="All User Signup Requests"
+          action={
+            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
+              <button
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  signupTab === 'pending' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+                onClick={() => setSignupTab('pending')}
+                type="button"
+              >
+                Pending ({pendingRequests.length})
+              </button>
+              <button
+                className={`rounded-lg px-3 py-1.5 transition ${
+                  signupTab === 'history' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+                onClick={() => setSignupTab('history')}
+                type="button"
+              >
+                Approval History ({historyRequests.length})
+              </button>
+            </div>
+          }
+          eyebrow="Signup Approval Management"
+          title={signupTab === 'pending' ? 'User Signup Requests Queue' : 'Signup Approval & Review History'}
         />
+
         <div className="grid gap-3 p-4 sm:p-5">
-          {pendingRequests.length ? (
-            pendingRequests.map((request) => (
-              <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-950">{request.fullName}</p>
-                    <p className="mt-1 text-sm text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
-                    <SignupRejectedHistory history={request.rejectedHistory} />
+          {signupTab === 'pending' ? (
+            pendingRequests.length ? (
+              pendingRequests.map((request) => (
+                <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-950">{request.fullName}</p>
+                      <p className="mt-1 text-sm text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
+                      <SignupRejectedHistory history={request.rejectedHistory} />
+                    </div>
+                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                      View Details
+                    </button>
                   </div>
-                  <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
-                    View Details
-                  </button>
                 </div>
-              </div>
-            ))
+              ))
+            ) : (
+              <EmptyState>No pending signup requests for your scope.</EmptyState>
+            )
           ) : (
-            <EmptyState>No pending signup requests for your scope.</EmptyState>
+            historyRequests.length ? (
+              historyRequests.map((request) => (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition hover:border-[#007cba]" key={request.id}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-950">{request.fullName}</p>
+                        <StatusPill status={request.status} />
+                      </div>
+                      <p className="mt-1 text-xs font-bold text-slate-700">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                      {request.reviewReason && (
+                        <p className="mt-2 rounded-lg bg-rose-50 p-2.5 text-xs font-semibold text-rose-800 border border-rose-200">
+                          Rejection Reason: {request.reviewReason}
+                        </p>
+                      )}
+                      {request.reviewedBy && (
+                        <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                          Reviewed by <span className="font-bold text-slate-800">{request.reviewedBy.username}</span> ({roleLabels[request.reviewedBy.role] || request.reviewedBy.role}) on {formatDate(request.reviewedAt || request.updatedAt)}
+                        </p>
+                      )}
+                    </div>
+                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <EmptyState>No processed signup history recorded yet.</EmptyState>
+            )
           )}
         </div>
       </Panel>
