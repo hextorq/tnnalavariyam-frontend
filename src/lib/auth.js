@@ -40,6 +40,7 @@ export function updateSessionUser(user) {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY)
+  localStorage.removeItem(PENDING_PROFILE_PHOTO_KEY)
   window.dispatchEvent(new Event('authchange'))
 }
 
@@ -61,7 +62,7 @@ export function getUploadUrl(path) {
 
 export function getProfilePhoto(user) {
   const profilePhotoKey = getProfilePhotoKey(user)
-  const localPhoto = (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || localStorage.getItem(PENDING_PROFILE_PHOTO_KEY) || ''
+  const localPhoto = (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || (!profilePhotoKey && localStorage.getItem(PENDING_PROFILE_PHOTO_KEY)) || ''
   if (localPhoto) return localPhoto
   const serverPhoto = user?.photoPath || user?.photo || user?.photoUrl || ''
   if (serverPhoto) return getUploadUrl(serverPhoto)
