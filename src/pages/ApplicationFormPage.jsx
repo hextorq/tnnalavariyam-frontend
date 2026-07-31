@@ -537,6 +537,10 @@ export default function ApplicationFormPage({ formId }) {
 
   const isRenewal = currentKey === 'renewal'
   const isNewRegistration = currentKey === 'new-registration'
+  const isHigherEducation = currentKey === 'higher-education'
+  const isPass = currentKey === 'education-pass'
+  const isGirls = currentKey === 'education-girls-10-12'
+  const isEducation = !isRenewal && !isNewRegistration
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-100 to-white px-3 py-6 sm:px-5 sm:py-10">
@@ -937,53 +941,210 @@ export default function ApplicationFormPage({ formId }) {
             </Section>
           )}
 
-          {/* Dedicated View for Other Welfare Assistance Forms */}
-          {!isRenewal && !isNewRegistration && (
-            <Section eyebrow="Application Details" title={`${form.tamilTitle} விவரங்கள்`}>
-              <div className="grid gap-5 md:grid-cols-2 items-start">
-                <Field
-                  onChange={(e) => handleInputChange('workerName', e.target.value)}
-                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
-                  required
-                  type="text"
-                  value={formData.workerName}
-                >
-                  Worker Name / தொழிலாளியின் பெயர்
-                </Field>
-
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistrictOptions}
-                  required
-                  value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
-
-                <Field
-                  {...phoneInputProps}
-                  onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
-                  placeholder="10 digit mobile number"
-                  required
-                  value={formData.phone}
-                >
-                  Phone no / அலைபேசி எண்
-                </Field>
-              </div>
-
-              <div className="grid gap-5 md:grid-cols-2 items-start">
-                {form.fields.map((field) => (
-                  <Field
-                    key={field}
-                    onChange={(e) => handleCustomChange(field, e.target.value)}
-                    placeholder={field}
-                    type="text"
+          {/* Dedicated View for Educational Assistance Forms */}
+          {isEducation && (
+            <>
+              <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <SelectField
+                    onChange={(e) => handleCustomChange('childStandard', e.target.value)}
+                    options={isPass ? examPassedOptions : isGirls ? girlsStandardOptions : isHigherEducation ? courseTypeOptions : standardOptions}
+                    required
+                    value={formData.customData.childStandard || ''}
                   >
-                    {field}
+                    {isPass
+                      ? 'Examination passed / தேர்ச்சி பெற்ற தேர்வு'
+                      : isHigherEducation
+                        ? 'Choose the course / படிப்பை தேர்வு செய்யவும்'
+                        : 'Choose standard / வகுப்பை தேர்வு செய்யவும்'}
+                  </SelectField>
+
+                  <Field
+                    onChange={(e) => handleCustomChange('childName', e.target.value)}
+                    placeholder="குழந்தையின் பெயர் உள்ளிடவும்"
+                    required
+                    type="text"
+                    value={formData.customData.childName || ''}
+                  >
+                    Child's Name / குழந்தையின் பெயர்
                   </Field>
-                ))}
-              </div>
-            </Section>
+
+                  {isHigherEducation && (
+                    <>
+                      <Field
+                        onChange={(e) => handleCustomChange('courseName', e.target.value)}
+                        placeholder="படிப்பின் பெயர்"
+                        type="text"
+                        value={formData.customData.courseName || ''}
+                      >
+                        Name of the Course / படிப்பின் பெயர்
+                      </Field>
+
+                      <Field
+                        onChange={(e) => handleCustomChange('courseDuration', e.target.value)}
+                        placeholder="ஆண்டுகளில் காலம்"
+                        type="number"
+                        value={formData.customData.courseDuration || ''}
+                      >
+                        Duration of the Course in Years / படிப்பின் காலம் (ஆண்டுகளில்)
+                      </Field>
+
+                      <SelectField
+                        onChange={(e) => handleCustomChange('applyingYear', e.target.value)}
+                        options={applyingYearOptions}
+                        value={formData.customData.applyingYear || ''}
+                      >
+                        In which year applying for / எந்த ஆண்டில் விண்ணப்பிக்கிறது
+                      </SelectField>
+                    </>
+                  )}
+
+                  <SelectField
+                    onChange={(e) => handleCustomChange('academicYear', e.target.value)}
+                    options={academicYearOptions}
+                    required
+                    value={formData.customData.academicYear || ''}
+                  >
+                    Academic year / கல்வி ஆண்டு
+                  </SelectField>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('childAadhar', e)}
+                    preview={previews.childAadhar}
+                    required
+                  >
+                    Child's Aadhar / குழந்தையின் ஆதார் அட்டை
+                  </FileField>
+
+                  {isPass ? (
+                    <FileField
+                      accept="image/*,.pdf"
+                      onChange={(e) => handleFileSelect('markSheet', e)}
+                      preview={previews.markSheet}
+                      required
+                    >
+                      Mark Sheet (Original) / மதிப்பெண் பட்டியல் (அசல்)
+                    </FileField>
+                  ) : (
+                    <FileField
+                      accept="image/*,.pdf"
+                      onChange={(e) => handleFileSelect('bonafide', e)}
+                      preview={previews.bonafide}
+                      required
+                    >
+                      Bonafide certificate / பொனாஃபைடு சான்றிதழ்
+                    </FileField>
+                  )}
+                </div>
+              </Section>
+
+              <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <Field
+                    onChange={(e) => handleInputChange('workerName', e.target.value)}
+                    placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
+                    required
+                    type="text"
+                    value={formData.workerName}
+                  >
+                    Worker Name / தொழிலாளியின் பெயர்
+                  </Field>
+
+                  <Field
+                    {...phoneInputProps}
+                    onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
+                    placeholder="10 digit mobile number"
+                    required
+                    value={formData.phone}
+                  >
+                    Phone Number / அலைபேசி எண்
+                  </Field>
+
+                  <SelectField
+                    onChange={(e) => handleInputChange('district', e.target.value)}
+                    options={tamilNaduDistrictOptions}
+                    required
+                    value={formData.district}
+                  >
+                    District / மாவட்டம்
+                  </SelectField>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('registrationCard', e)}
+                    preview={previews.registrationCard}
+                    required
+                  >
+                    Worker Registration card / தொழிலாளியின் பதிவு அட்டை
+                  </FileField>
+
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('aadharCard', e)}
+                    preview={previews.aadharCard}
+                    required
+                  >
+                    {isHigherEducation ? "Worker's Aadhar / தொழிலாளியின் ஆதார் அட்டை" : 'Aadhar Card / ஆதார் அட்டை'}
+                  </FileField>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('rationCard', e)}
+                    preview={previews.rationCard}
+                    required
+                  >
+                    Ration Card / குடும்ப அட்டை
+                  </FileField>
+
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('bankPassbookFront', e)}
+                    preview={previews.bankPassbookFront}
+                    required
+                  >
+                    Upload Bank passbook front page / வங்கி புத்தகத்தின் முதல் பக்கம்
+                  </FileField>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2 items-start">
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('bankPassbookLast', e)}
+                    preview={previews.bankPassbookLast}
+                    required
+                  >
+                    Upload Last Transaction page / கடைசி பரிவர்த்தனை பக்கம்
+                  </FileField>
+
+                  <FileField
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect('signature', e)}
+                    preview={previews.signature}
+                    required
+                  >
+                    Worker Signature / தொழிலாளியின் கையொப்பம்
+                  </FileField>
+                </div>
+
+                {/* Worker Live Photo Section */}
+                <div className="grid gap-5 grid-cols-1">
+                  <LivePhotoSection
+                    label="Worker Live Photo / தொழிலாளியின் நேரடி புகைப்படம்"
+                    onCapture={(dataUrl) => {
+                      setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                    }}
+                    preview={previews.livePhoto}
+                  />
+                </div>
+              </Section>
+            </>
           )}
 
           {/* Payment Section */}

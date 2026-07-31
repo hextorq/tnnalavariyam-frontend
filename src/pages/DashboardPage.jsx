@@ -1015,9 +1015,33 @@ export default function DashboardPage() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span> ({roleLabels[user?.role] || user?.role}).
                   </p>
-                  <div className="mt-2 inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 border border-slate-200">
-                    <MapPin size={14} className="text-[#007cba]" />
-                    <span>{getUserLocationDetails(user)}</span>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3 border border-slate-200 text-xs font-semibold text-slate-700">
+                    <span className="inline-flex items-center gap-1 font-bold text-[#007cba]">
+                      <MapPin size={15} /> Assigned Jurisdiction / அதிகார வரம்பு:
+                    </span>
+                    <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
+                      State: {user?.state || 'Tamil Nadu'}
+                    </span>
+                    {user?.district && (
+                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
+                        District: {user.district}
+                      </span>
+                    )}
+                    {user?.taluk && (
+                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
+                        Taluk: {user.taluk}
+                      </span>
+                    )}
+                    {user?.village && (
+                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
+                        Village: {user.village}
+                      </span>
+                    )}
+                    {!user?.district && !user?.taluk && !user?.village && (
+                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
+                        {getUserLocationDetails(user)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
