@@ -187,6 +187,7 @@ function FileField({ children, className = '', preview = '', onChange, required 
 
       <input
         ref={inputRef}
+        accept="image/jpeg,image/png"
         className={preview ? 'hidden' : 'w-full rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 font-normal outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#007cba] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-[#007cba]'}
         onChange={onChange}
         type="file"
@@ -499,17 +500,39 @@ export default function ApplicationFormPage({ formId }) {
       return
     }
 
-    if (file.type?.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setPreviews((prev) => ({ ...prev, [field]: reader.result }))
-        }
-      }
-      reader.readAsDataURL(file)
-    } else {
-      setPreviews((prev) => ({ ...prev, [field]: file.name }))
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png']
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    const allowedExtensions = ['jpg', 'jpeg', 'png']
+
+    if (!allowedTypes.includes(file.type?.toLowerCase()) && !allowedExtensions.includes(ext)) {
+      notify({
+        type: 'error',
+        title: 'Invalid File Format / தவறான கோப்பு வகை',
+        message: 'JPEG (.jpg, .jpeg) அல்லது PNG (.png) படங்கள் மட்டுமே ஏற்றுக் கொள்ளப்படும்.',
+      })
+      event.target.value = ''
+      setPreviews((prev) => ({ ...prev, [field]: '' }))
+      return
     }
+
+    if (file.size > 2 * 1024 * 1024) {
+      notify({
+        type: 'error',
+        title: 'File Size Exceeded / கோப்பின் அளவு பெரியது',
+        message: 'கோப்பின் அளவு 2 MB-க்குள் மட்டுமே இருக்க வேண்டும். / Maximum file size allowed is 2 MB.',
+      })
+      event.target.value = ''
+      setPreviews((prev) => ({ ...prev, [field]: '' }))
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPreviews((prev) => ({ ...prev, [field]: reader.result }))
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   async function handleSubmit(event) {

@@ -32,26 +32,20 @@ const initialPreuploads = {
 
 const MB = 1024 * 1024
 const passportConfig = {
-  maxSize: 5 * MB,
-  accept: 'image/*',
-  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-  allowedMimePrefixes: ['image/'],
-  hint: 'Image only. Max 5 MB.',
+  maxSize: 2 * MB,
+  accept: 'image/jpeg,image/png',
+  allowedExtensions: ['jpg', 'jpeg', 'png'],
+  allowedMimePrefixes: ['image/jpeg', 'image/jpg', 'image/png'],
+  allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
+  hint: 'JPEG or PNG only. Max 2 MB.',
 }
 const documentConfig = {
-  maxSize: 15 * MB,
-  accept: 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt',
-  allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
-  allowedMimePrefixes: ['image/'],
-  allowedMimeTypes: [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'text/plain',
-  ],
-  hint: 'Image, PDF, Word, Excel or text document. Max 15 MB.',
+  maxSize: 2 * MB,
+  accept: 'image/jpeg,image/png',
+  allowedExtensions: ['jpg', 'jpeg', 'png'],
+  allowedMimePrefixes: ['image/jpeg', 'image/jpg', 'image/png'],
+  allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
+  hint: 'JPEG or PNG only. Max 2 MB.',
 }
 
 const signupProgressSteps = [

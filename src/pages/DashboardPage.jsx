@@ -410,7 +410,28 @@ function UserImageCard({ onProfilePhotoChange, user }) {
   function handleFileChange(event) {
     const file = event.target.files?.[0]
     if (!file) return
-    if (!file.type?.startsWith('image/')) {
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png']
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    const allowedExtensions = ['jpg', 'jpeg', 'png']
+
+    if (!allowedTypes.includes(file.type?.toLowerCase()) && !allowedExtensions.includes(ext)) {
+      notify({
+        type: 'error',
+        title: 'Invalid Image Format / தவறான படம்',
+        message: 'JPEG (.jpg, .jpeg) அல்லது PNG (.png) படங்கள் மட்டுமே ஏற்றுக் கொள்ளப்படும்.',
+      })
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      notify({
+        type: 'error',
+        title: 'File Size Exceeded / அளவு பெரியது',
+        message: 'புகைப்படத்தின் அளவு 2 MB-க்குள் மட்டுமே இருக்க வேண்டும்.',
+      })
+      event.target.value = ''
       return
     }
 
@@ -443,7 +464,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
       </div>
 
       <div className="grid gap-6 sm:gap-8 p-4 sm:p-8 lg:grid-cols-[220px_minmax(0,1fr)] items-start">
-        <input ref={inputRef} accept="image/*" className="sr-only" onChange={handleFileChange} type="file" />
+        <input ref={inputRef} accept="image/jpeg,image/png" className="sr-only" onChange={handleFileChange} type="file" />
 
         {/* Passport Photo Frame Box */}
         <div className="flex flex-col items-center gap-3 mx-auto lg:mx-0">
@@ -491,7 +512,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
           </div>
 
           <div className="rounded-2xl border border-dashed border-slate-300 bg-emerald-50/50 p-4 text-xs font-semibold text-emerald-900 border-emerald-200">
-            ✓ Recommended specifications: JPG, PNG or WebP format, up to 5MB file size.
+            ✓ Required specifications: JPEG or PNG format, within 2 MB file size.
           </div>
         </div>
       </div>
