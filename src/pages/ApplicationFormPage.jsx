@@ -193,45 +193,40 @@ function FileField({ children, className = '', preview = '', onChange, required 
       />
 
       {preview && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-2xs">
-          <div className="flex items-center gap-3 min-w-0">
-            {isImageSrc ? (
-              <div className="relative size-14 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 shadow-2xs">
-                <img alt="File preview" className="h-full w-full object-cover" src={preview} />
-              </div>
-            ) : (
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
-                <FileText size={22} />
-              </div>
-            )}
-            <div className="min-w-0">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                <CheckCircle2 size={14} />
-                Ready to upload / பதிவேற்ற தயார்
-              </span>
-              <p className="truncate text-xs font-semibold text-slate-500 mt-0.5">
-                {isImageSrc ? 'Image Selected / படம் தேர்வு செய்யப்பட்டது' : 'Document Attached / ஆவணம் இணைக்கப்பட்டது'}
-              </p>
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xs">
+          {isImageSrc ? (
+            <div className="flex h-44 items-center justify-center bg-neutral-100 p-2">
+              <img alt="File preview" className="max-h-full max-w-full rounded-md object-contain" src={preview} />
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-[#007cba] hover:text-[#007cba]"
-              onClick={handleReupload}
-              type="button"
-            >
-              <RefreshCw size={13} />
-              Re-upload / மீண்டும்
-            </button>
-            <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100"
-              onClick={handleDelete}
-              type="button"
-            >
-              <Trash2 size={13} />
-              Delete / நீக்கு
-            </button>
+          ) : (
+            <div className="flex h-44 flex-col items-center justify-center gap-2 bg-[#eef8ff] px-4 text-center text-[#007cba]">
+              <FileText size={38} />
+              <p className="text-xs font-bold">Document attached / ஆவணம் இணைக்கப்பட்டது</p>
+            </div>
+          )}
+          <div className="border-t border-neutral-200 px-3 py-2.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+              <CheckCircle2 className="shrink-0" size={14} />
+              Ready to upload / பதிவேற்ற தயார்
+            </span>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-[#007cba] hover:text-[#007cba]"
+                onClick={handleReupload}
+                type="button"
+              >
+                <RefreshCw className="shrink-0" size={13} />
+                Re-upload / மீண்டும்
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 transition hover:bg-red-100"
+                onClick={handleDelete}
+                type="button"
+              >
+                <Trash2 className="shrink-0" size={13} />
+                Delete / நீக்கு
+              </button>
+            </div>
           </div>
         </div>
       )}
