@@ -488,6 +488,13 @@ export default function ApplicationFormPage({ formId }) {
 
   if (loading) return <FormSkeleton />
 
+  const isRenewal = currentKey === 'renewal'
+  const isNewRegistration = currentKey === 'new-registration'
+  const isHigherEducation = currentKey === 'higher-education'
+  const isPass = currentKey === 'education-pass'
+  const isGirls = currentKey === 'education-girls-10-12'
+  const isEducation = !isRenewal && !isNewRegistration
+
   function handleInputChange(field, value) {
     let sanitizedValue = value
     if (field === 'workerName' || field === 'nomineeName') {
@@ -548,6 +555,7 @@ export default function ApplicationFormPage({ formId }) {
   async function handleSubmit(event) {
     event.preventDefault()
 
+    // === Common validation for ALL forms ===
     if (!formData.workerName.trim()) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தொழிலாளியின் பெயர் உள்ளிடவும் (எழுத்துக்கள் மட்டும்). / Enter worker name.' })
       return
@@ -560,52 +568,125 @@ export default function ApplicationFormPage({ formId }) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மாவட்டம் தேர்வு செய்யவும். / Select district.' })
       return
     }
-    if (!formData.dob) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதி தேர்வு செய்யவும். / Select date of birth.' })
-      return
+
+    // === New Registration & Renewal specific ===
+    if (isNewRegistration || isRenewal) {
+      if (!formData.dob) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதி தேர்வு செய்யவும். / Select date of birth.' })
+        return
+      }
+      if (formData.dob > todayStr) {
+        notify({ type: 'warning', title: 'Invalid Date', message: 'பிறந்த தேதி எதிர்காலத்தில் இருக்கக்கூடாது. / Select a valid past date of birth.' })
+        return
+      }
+      if (!formData.dobProofType) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதிக்கான ஆவண வகை தேர்வு செய்யவும். / Select DOB proof document type.' })
+        return
+      }
+      if (!formData.religion) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மதம் தேர்வு செய்யவும். / Select religion.' })
+        return
+      }
+      if (!formData.caste) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'சாதி பிரிவு தேர்வு செய்யவும். / Select caste.' })
+        return
+      }
+      if (!formData.subCaste) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'உட்பிரிவு தேர்வு செய்யவும். / Select sub-caste.' })
+        return
+      }
+      if (!formData.workerJob) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தொழிலாளியின் வேலை தேர்வு செய்யவும். / Select worker job.' })
+        return
+      }
+      if (!formData.nomineeName.trim()) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நாமினி பெயர் உள்ளிடவும் (எழுத்துக்கள் மட்டும்). / Enter nominee name.' })
+        return
+      }
+      if (!previews.dobDocument) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதிக்கான ஆவணம் பதிவேற்றவும். / Upload DOB proof document.' })
+        return
+      }
+      if (!previews.photo) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'புகைப்படம் பதிவேற்றவும். / Upload passport photo.' })
+        return
+      }
+      if (!previews.nomineeAadhar) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நாமினி ஆதார் அட்டை பதிவேற்றவும். / Upload nominee Aadhar card.' })
+        return
+      }
+      if (!previews.bankPassbook) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வங்கி புத்தகம் பதிவேற்றவும். / Upload bank passbook.' })
+        return
+      }
     }
-    if (formData.dob > todayStr) {
-      notify({ type: 'warning', title: 'Invalid Date', message: 'பிறந்த தேதி எதிர்காலத்தில் இருக்கக்கூடாது. / Select a valid past date of birth.' })
-      return
+
+    // === Education forms specific ===
+    if (isEducation) {
+      if (!formData.customData.childName?.trim()) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'குழந்தையின் பெயர் உள்ளிடவும். / Enter child name.' })
+        return
+      }
+      if (isHigherEducation) {
+        if (!formData.customData.courseType) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'படிப்பு வகையைத் தேர்ந்தெடுக்கவும். / Select course type.' })
+          return
+        }
+        if (!formData.customData.courseName?.trim()) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பாடத்தின் பெயர் உள்ளிடவும். / Enter course name.' })
+          return
+        }
+        if (!formData.customData.courseDuration?.trim()) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பாடத்தின் கால அளவு உள்ளிடவும். / Enter course duration.' })
+          return
+        }
+        if (!formData.customData.applyingYear) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'விண்ணப்பிக்கும் ஆண்டைத் தேர்ந்தெடுக்கவும். / Select applying year.' })
+          return
+        }
+      } else if (isPass) {
+        if (!formData.customData.examPassed) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தேர்ச்சி பெற்ற வகுப்பைத் தேர்ந்தெடுக்கவும். / Select examination passed.' })
+          return
+        }
+      } else {
+        if (!formData.customData.standard) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வகுப்பைத் தேர்ந்தெடுக்கவும். / Select standard.' })
+          return
+        }
+      }
+      if (!formData.customData.academicYear) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'கல்வி ஆண்டைத் தேர்ந்தெடுக்கவும். / Select academic year.' })
+        return
+      }
+      if (!previews.childAadhar) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'குழந்தையின் ஆதார் அட்டை பதிவேற்றவும். / Upload child Aadhar card.' })
+        return
+      }
+      if (isPass) {
+        if (!previews.markSheet) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மதிப்பெண் பட்டியல் பதிவேற்றவும். / Upload mark sheet.' })
+          return
+        }
+      } else {
+        if (!previews.bonafide) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'கல்வி சான்று பதிவேற்றவும். / Upload bonafide certificate.' })
+          return
+        }
+      }
+      if (!previews.bankPassbookFront) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வங்கி புத்தகத்தின் முதல் பக்கம் பதிவேற்றவும். / Upload bank passbook front page.' })
+        return
+      }
+      if (!previews.bankPassbookLast) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வங்கி புத்தகத்தின் கடைசி பரிவர்த்தனை பக்கம் பதிவேற்றவும். / Upload bank passbook last transaction page.' })
+        return
+      }
     }
-    if (!formData.dobProofType) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதிக்கான ஆவண வகை தேர்வு செய்யவும். / Select DOB proof document type.' })
-      return
-    }
-    if (!formData.religion) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மதம் தேர்வு செய்யவும். / Select religion.' })
-      return
-    }
-    if (!formData.caste) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'சாதி பிரிவு தேர்வு செய்யவும். / Select caste.' })
-      return
-    }
-    if (!formData.subCaste) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'உட்பிரிவு தேர்வு செய்யவும். / Select sub-caste.' })
-      return
-    }
-    if (!formData.workerJob) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தொழிலாளியின் வேலை தேர்வு செய்யவும். / Select worker job.' })
-      return
-    }
-    if (!formData.nomineeName.trim()) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நாமினி பெயர் உள்ளிடவும் (எழுத்துக்கள் மட்டும்). / Enter nominee name.' })
-      return
-    }
-    if (!previews.dobDocument) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதிக்கான ஆவணம் பதிவேற்றவும். / Upload DOB proof document.' })
-      return
-    }
-    if (!previews.photo) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'புகைப்படம் பதிவேற்றவும். / Upload passport photo.' })
-      return
-    }
+
+    // === Common document validation for ALL forms ===
     if (!previews.registrationCard) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பதிவு அட்டை பதிவேற்றவும். / Upload registration card.' })
-      return
-    }
-    if (!previews.bankPassbook && !previews.bankPassbookFront) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வங்கி புத்தகம் பதிவேற்றவும். / Upload bank passbook.' })
       return
     }
     if (!previews.aadharCard) {
@@ -624,9 +705,11 @@ export default function ApplicationFormPage({ formId }) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நேரடி புகைப்படம் எடுக்கவும். / Capture live photo.' })
       return
     }
-    if (!formData.upiTransactionId.trim()) {
-      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'UPI transaction ID உள்ளிடவும். / Enter UPI transaction ID.' })
-      return
+    if (form.fee) {
+      if (!formData.upiTransactionId.trim()) {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'UPI transaction ID உள்ளிடவும். / Enter UPI transaction ID.' })
+        return
+      }
     }
     if (!formData.declared) {
       notify({ type: 'warning', title: 'Declaration Required', message: 'உறுதிமொழியை டிக் செய்ய வேண்டும். / Please accept the declaration.' })
@@ -730,13 +813,6 @@ export default function ApplicationFormPage({ formId }) {
     )
   }
 
-  const isRenewal = currentKey === 'renewal'
-  const isNewRegistration = currentKey === 'new-registration'
-  const isHigherEducation = currentKey === 'higher-education'
-  const isPass = currentKey === 'education-pass'
-  const isGirls = currentKey === 'education-girls-10-12'
-  const isEducation = !isRenewal && !isNewRegistration
-
   return (
     <div className="min-h-screen bg-neutral-100 px-3 py-6 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-5xl">
@@ -753,14 +829,14 @@ export default function ApplicationFormPage({ formId }) {
 
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-bold text-[#007cba] border border-[#007cba]/20">
-              Fee: ₹{form.fee || 150}
+              {form.fee ? `Fee: ₹${form.fee}` : 'Free / இலவசம்'}
             </span>
           </div>
         </div>
 
         <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
-          {/* Dedicated New Registration Form View */}
-          {isNewRegistration && (
+          {/* New Registration & Renewal Form */}
+          {(isNewRegistration || isRenewal) && (
             <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
               {/* Text & Dropdown Inputs Group 1 */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
@@ -968,58 +1044,340 @@ export default function ApplicationFormPage({ formId }) {
             </Section>
           )}
 
-          {/* Payment Section */}
-          <Section eyebrow="Payment Information" title="Registration Fee Payment / பதிவுக் கட்டண செலுத்துதல்">
-            <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
-                <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
-                <img
-                  alt="Registration QR Code"
-                  className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-white object-contain p-2 shadow-xs"
-                  src="https://tnthozhilalarservice.com/uploads/qrcodes/68c6543910e47-nv%20qr.jpg"
-                />
-                <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
-                  Pay the amount ₹{form.fee || 150} / ₹{form.fee || 150} தொகையை செலுத்தவும்
-                </p>
-              </div>
+          {/* Education 6-9 & Girls 10-12 - Child Details */}
+          {(currentKey === 'education-6-9' || isGirls) && (
+            <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('standard', e.target.value)}
+                  options={isGirls ? girlsStandardOptions : standardOptions}
+                  required
+                  value={formData.customData.standard || ''}
+                >
+                  Choose the standard in which studying / படிக்கும் வகுப்பைத் தேர்ந்தெடுக்கவும்
+                </SelectField>
 
-              <div className="grid gap-4">
                 <Field
-                  onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
-                  placeholder="Enter UPI Transaction ID / UTR Number"
+                  onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
+                  placeholder="குழந்தையின் பெயர் உள்ளிடவும்"
                   required
                   type="text"
-                  value={formData.upiTransactionId}
+                  value={formData.customData.childName || ''}
                 >
-                  Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
+                  Child's Name / குழந்தையின் பெயர்
                 </Field>
+              </div>
 
-                <FileField
-                  accept="image/*,.pdf"
-                  onChange={(e) => handleFileSelect('paymentScreenshot', e)}
-                  preview={previews.paymentScreenshot}
+              <div className="grid gap-5 md:grid-cols-1 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('academicYear', e.target.value)}
+                  options={academicYearOptions}
                   required
+                  value={formData.customData.academicYear || ''}
                 >
-                  Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
-                </FileField>
+                  Academic year of study / கல்வி ஆண்டு
+                </SelectField>
+              </div>
 
-                <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                  <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
-                    <input
-                      checked={formData.declared}
-                      className="mt-1 size-5 shrink-0 accent-[#007cba]"
-                      onChange={(e) => handleInputChange('declared', e.target.checked)}
-                      required
-                      type="checkbox"
-                    />
-                    <span>
-                      I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
-                    </span>
-                  </label>
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
+                    Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('bonafide', e)} preview={previews.bonafide} required>
+                    Bonafide certificate / கல்வி சான்று
+                  </FileField>
                 </div>
               </div>
-            </div>
-          </Section>
+            </Section>
+          )}
+
+          {/* 10th/12th Pass - Child Details */}
+          {isPass && (
+            <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('examPassed', e.target.value)}
+                  options={examPassedOptions}
+                  required
+                  value={formData.customData.examPassed || ''}
+                >
+                  Examination passed / தேர்ச்சி பெற்ற வகுப்பு
+                </SelectField>
+
+                <Field
+                  onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
+                  placeholder="குழந்தையின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.customData.childName || ''}
+                >
+                  Child's Name / குழந்தையின் பெயர்
+                </Field>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-1 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('academicYear', e.target.value)}
+                  options={academicYearOptions}
+                  required
+                  value={formData.customData.academicYear || ''}
+                >
+                  Academic year of study / கல்வி ஆண்டு
+                </SelectField>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
+                    Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('markSheet', e)} preview={previews.markSheet} required>
+                    Mark Sheet / மதிப்பெண் பட்டியல் (Original/அசல்)
+                  </FileField>
+                </div>
+              </div>
+            </Section>
+          )}
+
+          {/* Higher Education - Child Details */}
+          {isHigherEducation && (
+            <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('courseType', e.target.value)}
+                  options={courseTypeOptions}
+                  required
+                  value={formData.customData.courseType || ''}
+                >
+                  Choose the standard in which studying / படிக்கும் வகுப்பைத் தேர்ந்தெடுக்கவும்
+                </SelectField>
+
+                <Field
+                  onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
+                  placeholder="குழந்தையின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.customData.childName || ''}
+                >
+                  Child's Name / குழந்தையின் பெயர்
+                </Field>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <Field
+                  onChange={(e) => handleCustomChange('courseName', e.target.value)}
+                  placeholder="பாடத்தின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.customData.courseName || ''}
+                >
+                  Name of the Course / பாடத்தின் பெயர்
+                </Field>
+
+                <Field
+                  onChange={(e) => handleCustomChange('courseDuration', e.target.value.replace(/\D/g, ''))}
+                  placeholder="ஆண்டுகளின் எண்ணிக்கை"
+                  required
+                  type="text"
+                  value={formData.customData.courseDuration || ''}
+                >
+                  Duration of the Course / பாடத்தின் ஆண்டுகளில் (in Years)
+                </Field>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('applyingYear', e.target.value)}
+                  options={applyingYearOptions}
+                  required
+                  value={formData.customData.applyingYear || ''}
+                >
+                  In which year applying for / எந்த ஆண்டில் விண்ணப்பிக்கிறது (in Years)
+                </SelectField>
+
+                <SelectField
+                  onChange={(e) => handleCustomChange('academicYear', e.target.value)}
+                  options={academicYearOptions}
+                  required
+                  value={formData.customData.academicYear || ''}
+                >
+                  Academic year of study / கல்வி ஆண்டு
+                </SelectField>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
+                    Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('bonafide', e)} preview={previews.bonafide} required>
+                    Bonafide certificate / கல்வி சான்று
+                  </FileField>
+                </div>
+              </div>
+            </Section>
+          )}
+
+          {/* Shared Worker Details Section for ALL Education Forms */}
+          {isEducation && (
+            <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <Field
+                  onChange={(e) => handleInputChange('workerName', e.target.value)}
+                  placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
+                  required
+                  type="text"
+                  value={formData.workerName}
+                >
+                  Worker Name / தொழிலாளியின் பெயர்
+                </Field>
+
+                <Field
+                  {...phoneInputProps}
+                  onChange={(e) => handleInputChange('phone', normalizePhone(e.target.value))}
+                  placeholder="10 digit mobile number"
+                  required
+                  value={formData.phone}
+                >
+                  Phone Number / கைபேசி எண்
+                </Field>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-1 items-start">
+                <SelectField
+                  onChange={(e) => handleInputChange('district', e.target.value)}
+                  options={tamilNaduDistrictOptions}
+                  required
+                  value={formData.district}
+                >
+                  District / மாவட்டம்
+                </SelectField>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Worker Documents / தொழிலாளியின் ஆவணங்கள் பதிவேற்றம்</p>
+                <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('registrationCard', e)} preview={previews.registrationCard} required>
+                    Worker Registration card / தொழிலாளியின் பதிவு அட்டை
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('aadharCard', e)} preview={previews.aadharCard} required>
+                    {isHigherEducation ? "Worker's Aadhar அட்டை / தொழிலாளியின் ஆதார் அட்டை" : 'Aadhar Card / ஆதார் அட்டை'}
+                  </FileField>
+                </div>
+
+                <div className="mt-5 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('rationCard', e)} preview={previews.rationCard} required>
+                    Ration Card / குடும்ப அட்டை
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('bankPassbookFront', e)} preview={previews.bankPassbookFront} required>
+                    Upload Bank passbook front page / வங்கி கணக்கு புத்தகத்தின் முதல் பக்கத்தை பதிவேற்றம் செய்யவும்
+                  </FileField>
+                </div>
+
+                <div className="mt-5 grid gap-5 md:grid-cols-2 items-start">
+                  <FileField onChange={(e) => handleFileSelect('bankPassbookLast', e)} preview={previews.bankPassbookLast} required>
+                    Upload Last Transaction page of the passbook / வங்கி கணக்கு புத்தகத்தில் கடைசி பரிவர்த்தனை பக்கத்தை பதிவேற்றம் செய்யவும்
+                  </FileField>
+
+                  <FileField onChange={(e) => handleFileSelect('signature', e)} preview={previews.signature} required>
+                    Worker Signature / தொழிலாளியின் கையொப்பம்
+                  </FileField>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-200 grid gap-5 grid-cols-1">
+                <LivePhotoSection
+                  label="Worker Live Photo / தொழிலாளியின் நேரடி புகைப்படம்"
+                  required
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
+                  preview={previews.livePhoto}
+                />
+              </div>
+            </Section>
+          )}
+
+          {/* Payment Section */}
+          {form.fee ? (
+            <Section eyebrow="Payment Information" title="Registration Fee Payment / பதிவுக் கட்டண செலுத்துதல்">
+              <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
+                  <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
+                  <img
+                    alt="Registration QR Code"
+                    className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-white object-contain p-2 shadow-xs"
+                    src="https://tnthozhilalarservice.com/uploads/qrcodes/68c6543910e47-nv%20qr.jpg"
+                  />
+                  <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
+                    Pay the amount ₹{form.fee} / ₹{form.fee} தொகையை செலுத்தவும்
+                  </p>
+                </div>
+
+                <div className="grid gap-4">
+                  <Field
+                    onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
+                    placeholder="Enter UPI Transaction ID / UTR Number"
+                    required
+                    type="text"
+                    value={formData.upiTransactionId}
+                  >
+                    Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
+                  </Field>
+
+                  <FileField
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleFileSelect('paymentScreenshot', e)}
+                    preview={previews.paymentScreenshot}
+                    required
+                  >
+                    Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
+                  </FileField>
+
+                  <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                    <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
+                      <input
+                        checked={formData.declared}
+                        className="mt-1 size-5 shrink-0 accent-[#007cba]"
+                        onChange={(e) => handleInputChange('declared', e.target.checked)}
+                        required
+                        type="checkbox"
+                      />
+                      <span>
+                        I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </Section>
+          ) : (
+            <Section eyebrow="Declaration" title="Self Declaration / சுய உறுதிமொழி">
+              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
+                  <input
+                    checked={formData.declared}
+                    className="mt-1 size-5 shrink-0 accent-[#007cba]"
+                    onChange={(e) => handleInputChange('declared', e.target.checked)}
+                    required
+                    type="checkbox"
+                  />
+                  <span>
+                    I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
+                  </span>
+                </label>
+              </div>
+            </Section>
+          )}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Link className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-700 transition hover:bg-neutral-50" to="/app">

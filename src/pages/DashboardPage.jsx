@@ -1148,7 +1148,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
   )
 }
 
-function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submissions }) {
+function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signupRequests, submissions }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -1324,24 +1324,26 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
         <div className="grid gap-3 p-4 sm:p-5">
           {submissions.length ? submissions.map((submission) => (
             <div className="rounded-xl border border-slate-200 p-3.5" key={submission.id}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
-                  <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                    <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                    <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
+                    <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+                  </div>
+                  <div className="shrink-0">
+                    <StatusPill status={submission.status} />
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <StatusPill status={submission.status} />
-                  <button
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
-                    onClick={() => onSelectSubmission(submission)}
-                    type="button"
-                  >
-                    <FileText size={15} />
-                    <span>View & Review Application / விவரங்களை காண்க</span>
-                  </button>
-                </div>
+                <button
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                  onClick={() => onSelectSubmission?.(submission)}
+                  type="button"
+                >
+                  <FileText className="shrink-0" size={15} />
+                  <span>View &amp; Review Application / விவரங்களை காண்க</span>
+                </button>
               </div>
             </div>
           )) : (
