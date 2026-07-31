@@ -1081,16 +1081,13 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'work-panel' && (
-          <div className="grid w-full gap-6">
-            <FullWorkPanel
-              isAdmin={isAdmin}
-              loading={loading}
-              onRefresh={loadDashboard}
-              signupRequests={signupRequests}
-              submissions={submissions}
-            />
-            <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
-          </div>
+          <FullWorkPanel
+            isAdmin={isAdmin}
+            loading={loading}
+            onRefresh={loadDashboard}
+            signupRequests={signupRequests}
+            submissions={submissions}
+          />
         )}
 
         {activeTab === 'profile-image' && (
