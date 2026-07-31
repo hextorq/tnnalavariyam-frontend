@@ -1,10 +1,10 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
-import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, getUploadUrl, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
+import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -32,6 +32,14 @@ function formatDate(value) {
   return new Date(value).toLocaleString('en-IN')
 }
 
+function getUploadUrl(path) {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path)) return path
+  const apiBase = api.defaults.baseURL || window.location.origin
+  const siteBase = apiBase.replace(/\/api\/?$/, '/')
+  return new URL(path, siteBase).href
+}
+
 function StatusPill({ status }) {
   const color = status === 'APPROVED' || status === 'ACTIVE'
     ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
@@ -43,7 +51,7 @@ function StatusPill({ status }) {
 }
 
 function Panel({ children, className = '' }) {
-  return <section className={`min-w-0 rounded-2xl border border-slate-200 bg-white shadow-xs ${className}`}>{children}</section>
+  return <section className={`w-full min-w-0 rounded-2xl border border-slate-200 bg-white shadow-xs ${className}`}>{children}</section>
 }
 
 function PanelHeader({ action, eyebrow, title }) {
@@ -68,14 +76,14 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:shadow-md sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
+        <div className="min-w-0">
+          <p className="truncate text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
           <p className="mt-3 text-3xl font-bold text-slate-950">{loading ? '-' : value}</p>
         </div>
-        <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
-          <Icon size={20} />
+        <span className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <Icon size={22} />
         </span>
       </div>
     </div>
@@ -83,7 +91,7 @@ function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
 }
 
 function EmptyState({ children }) {
-  return <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
+  return <p className="w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
 }
 
 function getUserDisplayName(user) {
@@ -103,85 +111,94 @@ function getUserInitials(user) {
 }
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
-  const profilePhoto = getProfilePhoto(user)
+  const [formsExpanded, setFormsExpanded] = useState(false)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
-    { id: 'dashboard-work', icon: ShieldCheck, label: 'Work Panel', description: 'Admin or partner' },
+    { id: 'profile-image', icon: User, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
-  return (
-    <aside className={`sticky top-0 flex h-screen shrink-0 flex-col overflow-hidden border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 ${collapsed ? 'lg:w-24' : 'lg:w-72'}`}>
-      <div className={`flex items-center justify-between gap-3 border-b border-slate-800 ${collapsed ? 'p-3 lg:justify-center' : 'p-4'}`}>
-        <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
-          <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
-        </div>
-        <button
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
-          onClick={onCollapseToggle}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          type="button"
-        >
-          {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
-        </button>
-      </div>
+  const profilePhoto = getProfilePhoto(user)
 
-      <nav className={`min-h-0 flex-1 overflow-y-auto ${collapsed ? 'p-3' : 'p-4'}`}>
-        <div className="grid gap-2">
-          {items.map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
-            return (
+  return (
+    <aside className={`sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex flex-col justify-between overflow-y-auto ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
+      <div className="flex flex-col flex-1 p-4">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+            <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
+          </div>
+          <button
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            onClick={onCollapseToggle}
+            type="button"
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
+
+        <div className="mt-4 flex-1">
+          <nav className="grid gap-1.5">
+            {items.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                isActive
+                  ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
+                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+              } ${collapsed ? 'justify-center' : ''}`
+
+              return (
+                <button
+                  className={commonClasses}
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  type="button"
+                >
+                  <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
+                    <Icon size={16} />
+                  </span>
+                  <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
+                    <span className="block text-sm leading-tight">{item.label}</span>
+                    <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+
+        <div className="mt-auto border-t border-slate-800 pt-4">
+          <div className={`flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:justify-center' : ''}`}>
+            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
+              {profilePhoto ? (
+                <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
+              ) : (
+                <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
+              )}
+            </div>
+            <div className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
+              <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
               <button
-                aria-label={item.label}
-                className={`flex min-w-0 items-center gap-3 rounded-2xl text-left text-sm font-semibold transition ${collapsed ? 'h-14 w-full justify-center p-0' : 'px-3 py-2.5'} ${isActive ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-900 hover:text-white'}`}
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                title={collapsed ? item.label : undefined}
+                className="block truncate text-left text-xs text-[#007cba] hover:underline"
+                onClick={() => onNavigate('profile-image')}
                 type="button"
               >
-                <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'}`}>
-                  <Icon size={16} />
-                </span>
-                <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-                  <span className="block text-sm leading-tight">{item.label}</span>
-                  <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-500'}`}>{item.description}</span>
-                </span>
+                Profile update
               </button>
-            )
-          })}
-        </div>
-      </nav>
-
-      <div className={`border-t border-slate-800 ${collapsed ? 'p-3' : 'p-3'}`}>
-        <div className={`rounded-2xl border border-slate-800 bg-slate-900/40 p-2 ${collapsed ? 'grid justify-items-center gap-2' : 'flex items-center gap-2'}`}>
-          <button
-            aria-label="Profile update"
-            className={`flex min-w-0 items-center gap-3 rounded-xl text-left text-sm font-semibold transition ${collapsed ? 'size-12 justify-center p-0' : 'flex-1 px-2 py-2'} ${activeTab === 'profile-image' ? 'bg-[#007cba] text-white shadow-lg shadow-[#007cba]/25' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
-            onClick={() => onNavigate('profile-image')}
-            title={collapsed ? 'Profile update' : undefined}
-            type="button"
-          >
-            <span className={`inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full ${activeTab === 'profile-image' ? 'bg-white/20 text-white' : 'bg-white text-slate-950'}`}>
-              {profilePhoto ? <img alt="Profile" className="h-full w-full object-cover" src={profilePhoto} /> : <span className="font-bold">{getUserInitials(user)}</span>}
-            </span>
-            <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <span className="block truncate text-sm leading-tight">{getUserDisplayName(user)}</span>
-              <span className={`block truncate text-[11px] font-normal ${activeTab === 'profile-image' ? 'text-white/80' : 'text-slate-500'}`}>Profile update</span>
-            </span>
-          </button>
-
-          <button
-            aria-label="Logout"
-            className={`${collapsed ? 'size-12' : 'size-10'} inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-950/40 text-slate-300 transition hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-200`}
-            onClick={onLogout}
-            title="Logout"
-            type="button"
-          >
-            <LogOut size={17} />
-          </button>
+            </div>
+            <button
+              aria-label="Logout"
+              className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
+                collapsed ? 'lg:hidden' : ''
+              }`}
+              onClick={onLogout}
+              type="button"
+            >
+              <LogOut size={15} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>
@@ -226,7 +243,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
   }
 
   return (
-    <section id="profile-image" className="rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <section id="profile-image" className="w-full rounded-2xl border border-slate-200 bg-white shadow-xs">
       <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Update</p>
@@ -582,14 +599,14 @@ function AdminPanel({ user }) {
   }, [pendingRequests.length, submissions])
 
   return (
-    <section className="grid gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+    <section className="grid w-full gap-6">
+      <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
         <Panel>
           <PanelHeader
             action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
@@ -740,8 +757,8 @@ function PartnerPanel({ user }) {
   }, [submissions])
 
   return (
-    <section className="grid gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid w-full gap-6">
+      <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(([label, value, Icon, tone]) => (
           <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
         ))}
@@ -776,7 +793,7 @@ function PartnerPanel({ user }) {
 
 function ServicePortal() {
   return (
-    <section className="grid gap-6">
+    <section className="grid w-full gap-6">
       <div>
         <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Online Service Portal</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">விண்ணப்ப சேவை மையம்</h1>
@@ -788,7 +805,7 @@ function ServicePortal() {
 
       <section>
         <h2 className="text-xl font-bold text-slate-950">விண்ணப்ப சேவைகள்: {applicationForms.length}</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+        <div className="mt-5 grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
           {applicationForms.map((form) => (
             <Link className="group min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:border-[#007cba] hover:shadow-md sm:p-5" key={form.id} to={`/app/forms/${form.id}`}>
               <div className="flex items-start justify-between gap-3">
@@ -834,7 +851,7 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-100 text-slate-900 lg:h-screen lg:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-slate-100 text-slate-900 lg:flex-row">
       <DashboardSidebar
         activeTab={activeTab}
         collapsed={sidebarCollapsed}
@@ -883,10 +900,10 @@ export default function DashboardPage() {
                 eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
                 title="Select Application Form / விண்ணப்பத்தை தேர்வு செய்க"
               />
-              <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid w-full gap-3 p-4 sm:p-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {applicationForms.map((form) => (
                   <Link
-                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-white hover:shadow-md"
+                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-[#eef8ff]/30 hover:shadow-md"
                     key={form.id}
                     to={`/app/forms/${form.id}`}
                   >
@@ -905,7 +922,7 @@ export default function DashboardPage() {
               </div>
             </Panel>
 
-            <section id="dashboard-work" className="space-y-6">
+            <section id="dashboard-work" className="w-full space-y-6">
               {isAdmin && <AdminPanel user={user} />}
               {!isAdmin && <PartnerPanel user={user} />}
             </section>
