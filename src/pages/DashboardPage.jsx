@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, ArrowUpRight, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -66,24 +66,56 @@ function PanelHeader({ action, eyebrow, title }) {
   )
 }
 
-function StatCard({ icon: Icon, label, loading, tone = 'blue', value }) {
+function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone = 'blue', value }) {
   const tones = {
-    blue: 'bg-[#eef8ff] text-[#007cba]',
-    green: 'bg-emerald-50 text-emerald-700',
-    amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-    slate: 'bg-slate-100 text-slate-700',
+    blue: {
+      cardBorder: 'hover:border-blue-500/50',
+      gradientTop: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500',
+      iconBox: 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25',
+      badge: 'bg-blue-50 text-blue-700 ring-blue-200/80',
+    },
+    amber: {
+      cardBorder: 'hover:border-amber-500/50',
+      gradientTop: 'bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500',
+      iconBox: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/25',
+      badge: 'bg-amber-50 text-amber-800 ring-amber-200/80',
+    },
+    rose: {
+      cardBorder: 'hover:border-rose-500/50',
+      gradientTop: 'bg-gradient-to-r from-rose-500 via-pink-600 to-red-500',
+      iconBox: 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/25',
+      badge: 'bg-rose-50 text-rose-800 ring-rose-200/80',
+    },
+    green: {
+      cardBorder: 'hover:border-emerald-500/50',
+      gradientTop: 'bg-gradient-to-r from-emerald-500 via-teal-600 to-green-500',
+      iconBox: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25',
+      badge: 'bg-emerald-50 text-emerald-800 ring-emerald-200/80',
+    },
   }
 
+  const t = tones[tone] || tones.blue
+
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:shadow-md sm:p-5">
-      <div className="flex items-start justify-between gap-3">
+    <div className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${t.cardBorder}`}>
+      <div className={`absolute top-0 left-0 right-0 h-1.5 ${t.gradientTop}`} />
+
+      <div className="flex items-start justify-between gap-3 pt-1">
         <div className="min-w-0">
-          <p className="truncate text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
-          <p className="mt-3 text-3xl font-bold text-slate-950">{loading ? '-' : value}</p>
+          <p className="truncate text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+          <p className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">{loading ? '-' : value}</p>
         </div>
-        <span className={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>
-          <Icon size={22} />
+        <span className={`inline-flex size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${t.iconBox}`}>
+          <Icon size={24} />
+        </span>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+        <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ring-1 ${t.badge}`}>
+          {subtitle}
+        </span>
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 group-hover:text-[#007cba] transition">
+          Live metric <ArrowUpRight size={12} />
         </span>
       </div>
     </div>
@@ -111,7 +143,6 @@ function getUserInitials(user) {
 }
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
-  const [formsExpanded, setFormsExpanded] = useState(false)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
     { id: 'profile-image', icon: User, label: 'Work Panel', description: 'Admin or partner' },
@@ -503,38 +534,49 @@ function SignupDocumentCard({ icon: Icon, label, path }) {
   )
 }
 
-function AdminPanel({ user }) {
-  const [signupRequests, setSignupRequests] = useState([])
-  const [submissions, setSubmissions] = useState([])
-  const [loading, setLoading] = useState(true)
+function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
+  const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
+
+  const stats = useMemo(() => {
+    if (isAdmin) {
+      const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+      const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
+      const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
+      return [
+        ['Pending Signups', pendingRequests.length, Users, 'amber', 'Requires Review'],
+        ['Applications to Review', pendingReview, Activity, 'blue', 'Action Needed'],
+        ['Returned Applications', returned, ClipboardCheck, 'rose', 'Needs Fix'],
+        ['Approved Applications', approved, BadgeCheck, 'green', 'Completed'],
+      ]
+    } else {
+      const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
+      const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
+      const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+      return [
+        ['My Applications', submissions.length, FileText, 'blue', 'Total Submitted'],
+        ['In Progress', inProgress, Activity, 'amber', 'Under Review'],
+        ['Needs Correction', needsCorrection, ClipboardCheck, 'rose', 'Action Required'],
+        ['Approved Applications', approved, BadgeCheck, 'green', 'Verified'],
+      ]
+    }
+  }, [isAdmin, pendingRequests.length, submissions])
+
+  return (
+    <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {stats.map(([label, value, Icon, tone, subtitle]) => (
+        <StatCard icon={Icon} key={label} label={label} loading={loading} subtitle={subtitle} tone={tone} value={value} />
+      ))}
+    </div>
+  )
+}
+
+function AdminWorkPanels({ loading, signupRequests, submissions, onRefresh }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const { notify } = useNotifications()
 
-  const loadDashboard = useCallback(async () => {
-    try {
-      setLoading(true)
-      const [signupResponse, submissionResponse] = await Promise.all([
-        api.get('/auth/signup-requests'),
-        api.get('/applications/submissions'),
-      ])
-      setSignupRequests(signupResponse.data.requests || [])
-      setSubmissions(submissionResponse.data.submissions || [])
-    } catch (error) {
-      notify({
-        type: 'error',
-        title: 'Dashboard Load Failed',
-        message: error.response?.data?.message || 'Admin dashboard details could not be loaded.',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [notify])
-
-  useEffect(() => {
-    loadDashboard()
-  }, [loadDashboard])
+  const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
 
   async function reviewSignup(request, status) {
     if (status === 'REJECTED' && !reviewReason.trim()) {
@@ -555,7 +597,7 @@ function AdminPanel({ user }) {
       })
       setSelectedSignup(null)
       setReviewReason('')
-      await loadDashboard()
+      await onRefresh?.()
     } catch (error) {
       notify({
         type: 'error',
@@ -578,92 +620,70 @@ function AdminPanel({ user }) {
         reason,
       })
       notify({ type: 'success', title: 'Application Updated', message: `${submission.applicationNo} status set to ${status}.` })
-      await loadDashboard()
+      await onRefresh?.()
     } catch (error) {
       notify({ type: 'error', title: 'Review Failed', message: error.response?.data?.message || 'Application review could not be updated.' })
     }
   }
 
-  const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
-
-  const stats = useMemo(() => {
-    const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
-    const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
-    const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
-    return [
-      ['Pending Signups', pendingRequests.length, Users, 'amber'],
-      ['Applications to Review', pendingReview, Activity, 'blue'],
-      ['Returned Applications', returned, ClipboardCheck, 'rose'],
-      ['Approved Applications', approved, BadgeCheck, 'green'],
-    ]
-  }, [pendingRequests.length, submissions])
-
   return (
-    <section className="grid w-full gap-6">
-      <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(([label, value, Icon, tone]) => (
-          <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
-        ))}
-      </div>
-
-      <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-        <Panel>
-          <PanelHeader
-            action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
-            eyebrow="Signup Approval"
-            title="User Signup Requests"
-          />
-          <div className="grid gap-3 p-4 sm:p-5">
-            {pendingRequests.length ? (
-              pendingRequests.map((request) => (
-                <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-950">{request.fullName}</p>
-                      <p className="mt-1 text-sm text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
-                      <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
-                      <SignupRejectedHistory history={request.rejectedHistory} />
-                    </div>
-                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <EmptyState>No pending signup requests for your scope.</EmptyState>
-            )}
-          </div>
-        </Panel>
-
-        <Panel>
-          <PanelHeader eyebrow="Work Queue" title="Applications Review Queue" />
-          <div className="grid gap-3 p-4 sm:p-5">
-            {submissions.length ? submissions.slice(0, 10).map((submission) => (
-              <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
+    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
+      <Panel>
+        <PanelHeader
+          action={<span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200">{pendingRequests.length} pending</span>}
+          eyebrow="Signup Approval"
+          title="User Signup Requests"
+        />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {pendingRequests.length ? (
+            pendingRequests.map((request) => (
+              <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                    <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                    <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+                    <p className="font-bold text-slate-950">{request.fullName}</p>
+                    <p className="mt-1 text-sm text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                    <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
+                    <SignupRejectedHistory history={request.rejectedHistory} />
                   </div>
-                  <StatusPill status={submission.status} />
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
-                  <button className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'APPROVED')} type="button">Approve</button>
-                  <button className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950" onClick={() => reviewApplication(submission, 'NEEDS_CORRECTION')} type="button">Return</button>
-                  <button className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'REJECTED')} type="button">Reject</button>
+                  <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                    View Details
+                  </button>
                 </div>
               </div>
-            )) : (
-              <EmptyState>No applications found.</EmptyState>
-            )}
-          </div>
-        </Panel>
-      </div>
+            ))
+          ) : (
+            <EmptyState>No pending signup requests for your scope.</EmptyState>
+          )}
+        </div>
+      </Panel>
+
+      <Panel>
+        <PanelHeader eyebrow="Work Queue" title="Applications Review Queue" />
+        <div className="grid gap-3 p-4 sm:p-5">
+          {submissions.length ? submissions.slice(0, 10).map((submission) => (
+            <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                  <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
+                  <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+                </div>
+                <StatusPill status={submission.status} />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
+                <button className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'APPROVED')} type="button">Approve</button>
+                <button className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950" onClick={() => reviewApplication(submission, 'NEEDS_CORRECTION')} type="button">Return</button>
+                <button className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white" onClick={() => reviewApplication(submission, 'REJECTED')} type="button">Reject</button>
+              </div>
+            </div>
+          )) : (
+            <EmptyState>No applications found.</EmptyState>
+          )}
+        </div>
+      </Panel>
 
       {selectedSignup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
@@ -715,114 +735,35 @@ function AdminPanel({ user }) {
           </div>
         </div>
       )}
-    </section>
+    </div>
   )
 }
 
-function PartnerPanel({ user }) {
-  const [submissions, setSubmissions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const { notify } = useNotifications()
-
-  const loadDashboard = useCallback(async () => {
-    try {
-      setLoading(true)
-      const response = await api.get('/applications/submissions')
-      setSubmissions(response.data.submissions || [])
-    } catch (error) {
-      notify({
-        type: 'error',
-        title: 'Dashboard Load Failed',
-        message: error.response?.data?.message || 'Partner dashboard details could not be loaded.',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [notify])
-
-  useEffect(() => {
-    loadDashboard()
-  }, [loadDashboard])
-
-  const stats = useMemo(() => {
-    const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
-    const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
-    const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
-    return [
-      ['My Applications', submissions.length, FileText, 'blue'],
-      ['In Progress', inProgress, Activity, 'amber'],
-      ['Needs Correction', needsCorrection, ClipboardCheck, 'rose'],
-      ['Approved', approved, BadgeCheck, 'green'],
-    ]
-  }, [submissions])
-
+function PartnerWorkPanels({ submissions }) {
   return (
-    <section className="grid w-full gap-6">
-      <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(([label, value, Icon, tone]) => (
-          <StatCard icon={Icon} key={label} label={label} loading={loading} tone={tone} value={value} />
-        ))}
-      </div>
-
-      <Panel>
-        <PanelHeader eyebrow="My Work" title="My Recent Applications" />
-        <div className="grid gap-3 p-4 sm:p-5">
-          {submissions.length ? submissions.slice(0, 10).map((submission) => (
-            <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.geoUnit?.name || '-'}</p>
-                  {submission.currentReviewReason && (
-                    <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
-                  )}
-                  <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
-                </div>
-                <StatusPill status={submission.status} />
+    <Panel>
+      <PanelHeader eyebrow="My Work" title="My Recent Applications" />
+      <div className="grid gap-3 p-4 sm:p-5">
+        {submissions.length ? submissions.slice(0, 10).map((submission) => (
+          <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
+                <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
+                <p className="mt-1 text-sm text-slate-600">{submission.geoUnit?.name || '-'}</p>
+                {submission.currentReviewReason && (
+                  <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
+                )}
+                <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
               </div>
+              <StatusPill status={submission.status} />
             </div>
-          )) : (
-            <EmptyState>No applications submitted yet.</EmptyState>
-          )}
-        </div>
-      </Panel>
-    </section>
-  )
-}
-
-function ServicePortal() {
-  return (
-    <section className="grid w-full gap-6">
-      <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Online Service Portal</p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">விண்ணப்ப சேவை மையம்</h1>
-        <p className="mt-2 max-w-3xl text-slate-600">
-          கீழே உள்ள நலவாரிய சேவைகளில் தேவையான விண்ணப்பத்தை தேர்வு செய்து சமர்ப்பிக்கலாம்.
-          விண்ணப்ப எண்ணை பயன்படுத்தி நிலையை தொடர்ந்து பார்க்கலாம்.
-        </p>
+          </div>
+        )) : (
+          <EmptyState>No applications submitted yet.</EmptyState>
+        )}
       </div>
-
-      <section>
-        <h2 className="text-xl font-bold text-slate-950">விண்ணப்ப சேவைகள்: {applicationForms.length}</h2>
-        <div className="mt-5 grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
-          {applicationForms.map((form) => (
-            <Link className="group min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:border-[#007cba] hover:shadow-md sm:p-5" key={form.id} to={`/app/forms/${form.id}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-950 sm:text-xl">{form.tamilTitle}</h2>
-                  <p className="mt-2 text-sm text-slate-600">{form.title}</p>
-                </div>
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
-                  <FileText size={18} />
-                </span>
-              </div>
-              <p className="mt-5 text-sm font-bold text-[#007cba]">திறக்கவும் →</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-    </section>
+    </Panel>
   )
 }
 
@@ -833,6 +774,40 @@ export default function DashboardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard-overview')
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => getProfilePhoto(user))
+
+  const [signupRequests, setSignupRequests] = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const { notify } = useNotifications()
+
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoading(true)
+      if (isAdmin) {
+        const [signupResponse, submissionResponse] = await Promise.all([
+          api.get('/auth/signup-requests'),
+          api.get('/applications/submissions'),
+        ])
+        setSignupRequests(signupResponse.data.requests || [])
+        setSubmissions(submissionResponse.data.submissions || [])
+      } else {
+        const response = await api.get('/applications/submissions')
+        setSubmissions(response.data.submissions || [])
+      }
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Dashboard Load Failed',
+        message: error.response?.data?.message || 'Dashboard details could not be loaded.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [isAdmin, notify])
+
+  useEffect(() => {
+    loadDashboard()
+  }, [loadDashboard])
 
   useEffect(() => {
     const syncProfilePhoto = () => setProfilePhotoUrl(getProfilePhoto(user))
@@ -886,7 +861,7 @@ export default function DashboardPage() {
                     <User size={16} />
                     Profile Update
                   </button>
-                  <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => window.location.reload()} type="button">
+                  <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => loadDashboard()} type="button">
                     <RefreshCw size={16} />
                     Refresh
                   </button>
@@ -894,7 +869,17 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            {/* Selectable Application Forms Quick Bar */}
+            {/* 1. METRICS / STAT CARDS BAR FIRST */}
+            <section id="dashboard-metrics" className="w-full">
+              <MetricCardsBar
+                isAdmin={isAdmin}
+                loading={loading}
+                signupRequests={signupRequests}
+                submissions={submissions}
+              />
+            </section>
+
+            {/* 2. SELECTABLE APPLICATION FORMS QUICK BAR SECOND */}
             <Panel>
               <PanelHeader
                 eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
@@ -903,7 +888,7 @@ export default function DashboardPage() {
               <div className="grid w-full gap-3 p-4 sm:p-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {applicationForms.map((form) => (
                   <Link
-                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-[#eef8ff]/30 hover:shadow-md"
+                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-[#eef8ff]/40 hover:shadow-md"
                     key={form.id}
                     to={`/app/forms/${form.id}`}
                   >
@@ -922,9 +907,17 @@ export default function DashboardPage() {
               </div>
             </Panel>
 
+            {/* 3. WORK PANELS / REVIEW QUEUES THIRD */}
             <section id="dashboard-work" className="w-full space-y-6">
-              {isAdmin && <AdminPanel user={user} />}
-              {!isAdmin && <PartnerPanel user={user} />}
+              {isAdmin && (
+                <AdminWorkPanels
+                  loading={loading}
+                  onRefresh={loadDashboard}
+                  signupRequests={signupRequests}
+                  submissions={submissions}
+                />
+              )}
+              {!isAdmin && <PartnerWorkPanels submissions={submissions} />}
             </section>
           </>
         )}
@@ -936,12 +929,6 @@ export default function DashboardPage() {
         {activeTab === 'check-status' && (
           <section id="check-status">
             <CheckStatusPanel />
-          </section>
-        )}
-
-        {activeTab === 'service-portal' && (
-          <section id="service-portal">
-            <ServicePortal />
           </section>
         )}
       </main>
