@@ -222,30 +222,42 @@ export default function TrackingPage() {
                   ? [
                       ['Request No', tracking.requestNo],
                       ['Requested Role', tracking.requestedRole],
-                    ['பகுதி', tracking.scope],
-                    ['Signup Status', tracking.status],
-                    ['குறிப்பு', tracking.reason || '-'],
-                    ['Reviewed By', tracking.reviewedBy?.username || '-'],
-                    ['Reviewed At', formatDate(tracking.reviewedAt)],
-                    ['Created At', formatDate(tracking.createdAt)],
-                  ]
-                : [
-                    ['Application No', tracking.applicationNo],
-                    ['Form', tracking.tamilFormTitle || tracking.formTitle],
-                    ['Applicant', tracking.applicantName || '-'],
-                    ['பகுதி', tracking.scope || '-'],
-                    ['Application Status', tracking.status],
-                    ['Payment Status', tracking.paymentStatus],
-                    ['Payment Reference', tracking.paymentReference || '-'],
-                    ['Correction Reason', tracking.currentReviewReason || '-'],
-                    ['திருத்த எண்ணிக்கை', tracking.revisionCount],
-                    ['Last Updated', formatDate(tracking.updatedAt)],
-                  ]).map(([label, value]) => (
-                <div className="border border-neutral-200 p-4" key={label}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p>
-                  <p className="mt-2 text-base font-bold text-neutral-950">{value}</p>
+                      ['பகுதி', tracking.scope],
+                      ['Signup Status', tracking.status],
+                      ['குறிப்பு', tracking.reason || '-'],
+                      ['Reviewed By', tracking.reviewedBy?.username || '-'],
+                      ['Reviewed At', formatDate(tracking.reviewedAt)],
+                      ['Created At', formatDate(tracking.createdAt)],
+                    ]
+                  : [
+                      ['Application No', tracking.applicationNo],
+                      ['Form', tracking.tamilFormTitle || tracking.formTitle],
+                      ['Applicant', tracking.applicantName || '-'],
+                      ['பகுதி', tracking.scope || '-'],
+                      ['Application Status', tracking.status],
+                      ['Payment Status', tracking.paymentStatus],
+                      ['Payment Reference', tracking.paymentReference || '-'],
+                      ['Correction Reason', tracking.currentReviewReason || '-'],
+                      ['திருத்த எண்ணிக்கை', tracking.revisionCount],
+                      ['Last Updated', formatDate(tracking.updatedAt)],
+                    ]).map(([label, value]) => (
+                  <div className="border border-neutral-200 p-4" key={label}>
+                    <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{label}</p>
+                    <p className="mt-2 text-base font-bold text-neutral-950">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {mode === 'application' && (
+                <div className="mt-5 flex justify-end">
+                  <a
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#007cba] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
+                    href="/app/dashboard"
+                  >
+                    <span>View Full Application in Dashboard / விவரங்களை காண்க →</span>
+                  </a>
                 </div>
-              ))}
+              )}
             </div>
           ) : (
             <div className="mt-5 border border-dashed border-neutral-300 p-5 text-sm leading-6 text-neutral-600 sm:p-8">

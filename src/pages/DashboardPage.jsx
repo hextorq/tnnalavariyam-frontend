@@ -881,6 +881,129 @@ function SignupDocumentCard({ icon: Icon, label, path }) {
   )
 }
 
+function SubmissionDetailsModal({ onClose, onReview, submission }) {
+  const [reviewReason, setReviewReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const { notify } = useNotifications()
+
+  if (!submission) return null
+  const applicantData = submission.applicantData || {}
+
+  async function handleAction(nextStatus) {
+    if ((nextStatus === 'REJECTED' || nextStatus === 'NEEDS_CORRECTION') && !reviewReason.trim()) {
+      notify({ type: 'warning', title: 'Reason Required', message: 'Please enter a review reason.' })
+      return
+    }
+    try {
+      setSubmitting(true)
+      await onReview?.(submission, nextStatus, reviewReason)
+      onClose()
+    } catch {
+      // Handled by caller
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Application Details / விண்ணப்ப விவரங்கள்</p>
+            <h2 className="mt-1 text-2xl font-bold text-slate-950">{submission.applicationNo}</h2>
+            <p className="mt-1 text-sm text-slate-600">{submission.tamilFormTitle || submission.formTitle || submission.form?.tamilTitle || submission.form?.title}</p>
+          </div>
+          <button
+            className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
+            onClick={onClose}
+            type="button"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-6">
+          {/* Approval Progress Stepper */}
+          <ApprovalFlowStepper status={submission.status} />
+
+          {/* Applicant Details Grid */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Applicant Worker Information / தொழிலாளி தகவல்கள்</h3>
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <SignupDetailRow label="Worker Name" value={applicantData.workerName || submission.applicantName} />
+              <SignupDetailRow label="Mobile Number" value={applicantData.phone || submission.user?.phone} />
+              <SignupDetailRow label="District" value={applicantData.district || submission.geoUnit?.name} />
+              <SignupDetailRow label="Date of Birth" value={applicantData.dob} />
+              <SignupDetailRow label="DOB Proof Document" value={applicantData.dobProofType} />
+              <SignupDetailRow label="Religion" value={applicantData.religion} />
+              <SignupDetailRow label="Caste" value={applicantData.caste} />
+              <SignupDetailRow label="Sub-Caste" value={applicantData.subCaste} />
+              <SignupDetailRow label="Worker Job" value={applicantData.workerJob} />
+              <SignupDetailRow label="Nominee Name" value={applicantData.nomineeName} />
+              <SignupDetailRow label="Payment Reference" value={submission.paymentReference} />
+              <SignupDetailRow label="Application Status" value={submission.status} />
+            </div>
+          </div>
+
+          {/* Review Actions (if officer) */}
+          {onReview && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5 space-y-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-900">Officer Verification & Forwarding Controls / அதிகாரி மதிப்பீடு</p>
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                <span>Review Reason / Reason for Return or Rejection</span>
+                <textarea
+                  className="rounded-xl border border-slate-300 bg-white p-3 outline-none focus:border-[#007cba]"
+                  onChange={(e) => setReviewReason(e.target.value)}
+                  placeholder="Enter review remarks..."
+                  rows={2}
+                  value={reviewReason}
+                />
+              </label>
+              <div className="flex flex-wrap gap-2 justify-end">
+                <button
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                  disabled={submitting}
+                  onClick={() => handleAction('UNDER_REVIEW')}
+                  type="button"
+                >
+                  Start Review
+                </button>
+                <button
+                  className="rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-600 disabled:opacity-50"
+                  disabled={submitting}
+                  onClick={() => handleAction('NEEDS_CORRECTION')}
+                  type="button"
+                >
+                  Return for Correction
+                </button>
+                <button
+                  className="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-700 disabled:opacity-50"
+                  disabled={submitting}
+                  onClick={() => handleAction('REJECTED')}
+                  type="button"
+                >
+                  Reject
+                </button>
+                <button
+                  className="rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
+                  disabled={submitting}
+                  onClick={() => handleAction('APPROVED')}
+                  type="button"
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Verify & Forward to Next Level / அடுத்த நிலைக்கு அனுப்புக</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
 
@@ -1205,7 +1328,13 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
                   <p className="mt-1 text-sm text-slate-600">{submission.user?.firstName || submission.user?.username || 'Applicant'} - {submission.geoUnit?.name || '-'}</p>
                   <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
                 </div>
-                <StatusPill status={submission.status} />
+                <div className="flex flex-col items-end gap-2">
+                  <StatusPill status={submission.status} />
+                  <button className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]" onClick={() => onSelectSubmission(submission)} type="button">
+                    <FileText size={14} />
+                    <span>View Application / விவரங்களை காண்க</span>
+                  </button>
+                </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold" onClick={() => reviewApplication(submission, 'UNDER_REVIEW')} type="button">Start Review</button>
@@ -1342,6 +1471,28 @@ export default function DashboardPage() {
       window.removeEventListener('storage', syncProfilePhoto)
     }
   }, [])
+
+  const reviewApplication = useCallback(async (submission, status, reason = '') => {
+    try {
+      await api.patch(`/applications/submissions/${submission.id}/review`, {
+        status,
+        reason,
+      })
+      notify({
+        type: 'success',
+        title: 'Application Updated',
+        message: `Application ${submission.applicationNo} updated to ${status}.`,
+      })
+      loadDashboard()
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Review Failed',
+        message: error.response?.data?.message || 'Could not update application review.',
+      })
+      throw error
+    }
+  }, [loadDashboard, notify])
 
   const handleLogout = useCallback(() => {
     clearSession()
@@ -1482,6 +1633,7 @@ export default function DashboardPage() {
         {selectedSubmissionDetails && (
           <SubmissionDetailsModal
             onClose={() => setSelectedSubmissionDetails(null)}
+            onReview={isAdmin ? reviewApplication : undefined}
             submission={selectedSubmissionDetails}
           />
         )}
