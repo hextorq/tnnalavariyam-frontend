@@ -606,16 +606,6 @@ function CheckStatusPanel({ onSelectSubmission }) {
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              <span>Registered Mobile Number / அலைபேசி எண்</span>
-              <input
-                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
-                onChange={(e) => setAppPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                placeholder="10 digit mobile number"
-                value={appPhone}
-              />
-            </label>
-
             <button
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
               disabled={appLoading}
@@ -679,16 +669,6 @@ function CheckStatusPanel({ onSelectSubmission }) {
                 onChange={(e) => setReqNo(e.target.value)}
                 placeholder="e.g. TNSU-20260729-0001"
                 value={reqNo}
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm font-semibold text-slate-700">
-              <span>Registered Mobile Number / அலைபேசி எண்</span>
-              <input
-                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
-                onChange={(e) => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                placeholder="10 digit mobile number"
-                value={reqPhone}
               />
             </label>
 
