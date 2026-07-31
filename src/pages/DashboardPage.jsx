@@ -1,10 +1,10 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { applicationForms } from '../data/applicationForms.js'
 import { api } from '../lib/api.js'
-import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto } from '../lib/auth.js'
+import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -43,13 +43,13 @@ function getUploadUrl(path) {
 function getUserLocationDetails(user) {
   if (!user) return 'Not available'
   const parts = []
-  if (user.village) parts.push(`Village: ${user.village}`)
-  if (user.taluk) parts.push(`Taluk: ${user.taluk}`)
-  if (user.district) parts.push(`District: ${user.district}`)
   if (user.state) parts.push(`State: ${user.state}`)
+  if (user.district) parts.push(`District: ${user.district}`)
+  if (user.taluk) parts.push(`Taluk: ${user.taluk}`)
+  if (user.village) parts.push(`Village: ${user.village}`)
 
   if (parts.length > 0) return parts.join(' • ')
-  if (user.geoUnit?.name) return `Assigned Jurisdiction: ${user.geoUnit.name}`
+  if (user.scope?.name) return `Scope: ${user.scope.name}`
   return roleScopeLabels[user.role] || 'Assigned Jurisdiction'
 }
 
@@ -210,24 +210,25 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
           </nav>
         </div>
 
-        {/* Sidebar Footer User & Dedicated Profile Update Button */}
+        {/* Sidebar Footer User & Ultra-Stylish Profile Update Button */}
         <div className="mt-auto border-t border-slate-800 pt-4">
-          <div className={`flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3 ${collapsed ? 'lg:items-center' : ''}`}>
+          <div className={`flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs ${collapsed ? 'lg:items-center' : ''}`}>
             <div className="flex items-center justify-between gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800 ring-2 ring-slate-700">
+              <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
                 {profilePhoto ? (
                   <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
                 ) : (
-                  <span className="text-xs font-bold text-white">{getUserInitials(user)}</span>
+                  <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
                 )}
+                <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
               </div>
               <div className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
                 <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
-                <p className="truncate text-xs text-slate-400">{roleLabels[user?.role] || user?.role}</p>
+                <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
               </div>
               <button
                 aria-label="Logout"
-                className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
+                className={`inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
                   collapsed ? 'lg:hidden' : ''
                 }`}
                 onClick={onLogout}
@@ -238,14 +239,14 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
             </div>
 
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-lg bg-[#007cba] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#006090] ${
+              className={`inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#007cba] via-[#0088cc] to-[#0099e6] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#007cba]/25 transition hover:from-[#006090] hover:to-[#007cba] active:scale-95 ${
                 collapsed ? 'w-full lg:px-0' : 'w-full'
               }`}
               onClick={() => onNavigate('profile-image')}
               type="button"
             >
-              <User size={14} />
-              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update</span>
+              <User size={15} />
+              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update / சுயவிவரம்</span>
             </button>
           </div>
         </div>
@@ -292,54 +293,72 @@ function UserImageCard({ onProfilePhotoChange, user }) {
   }
 
   return (
-    <section id="profile-image" className="w-full rounded-2xl border border-slate-200 bg-white shadow-xs">
-      <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+    <section id="profile-image" className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 bg-slate-50/50">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Profile Settings</p>
-          <h2 className="mt-1 text-lg font-bold text-slate-950">Update Profile Photo</h2>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Profile Management / சுயவிவர மேலாண்மை</p>
+          <h2 className="mt-1 text-xl font-extrabold text-slate-950 sm:text-2xl">Update Profile Photo / சுயவிவர புகைப்படம்</h2>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={openPicker} type="button">
+        <button
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-slate-800"
+          onClick={openPicker}
+          type="button"
+        >
           <Upload size={16} />
-          Choose image
+          Choose Photo / படம் தேர்ந்தெடுக்க
         </button>
       </div>
 
-      <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[220px_minmax(0,1fr)] items-start">
         <input ref={inputRef} accept="image/*" className="sr-only" onChange={handleFileChange} type="file" />
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          {previewUrl ? (
-            <img alt="User profile preview" className="h-full min-h-64 w-full object-cover" src={previewUrl} />
-          ) : (
-            <div className="flex min-h-64 flex-col items-center justify-center gap-4 px-6 py-8 text-center text-slate-500">
-              <div className="flex size-20 items-center justify-center rounded-full bg-white text-slate-400 shadow-xs ring-1 ring-slate-200">
-                <User size={34} />
+
+        {/* Passport Photo Frame Box */}
+        <div className="flex flex-col items-center gap-3 mx-auto lg:mx-0">
+          <div className="relative h-64 w-52 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-xl ring-4 ring-emerald-500/10">
+            {previewUrl ? (
+              <img alt="User profile preview" className="h-full w-full object-cover" src={previewUrl} />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center text-slate-400">
+                <Camera className="text-[#007cba]" size={40} />
+                <p className="mt-2 text-xs font-bold text-white">{getUserDisplayName(user)}</p>
+                <p className="mt-1 text-[11px] text-slate-400">No Custom Photo</p>
               </div>
-              <div>
-                <p className="text-base font-bold text-slate-950">{getUserDisplayName(user)}</p>
-                <p className="mt-1 text-sm">Upload a JPG, PNG or WebP profile image.</p>
-              </div>
-            </div>
-          )}
+            )}
+            <span className="absolute bottom-2 left-2 right-2 rounded-lg bg-emerald-600 py-1 text-center text-[10px] font-bold text-white shadow-md">
+              ✓ Active Profile Photo
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-slate-500 text-center">3:4 Passport Portrait Frame</p>
         </div>
 
-        <div className="grid content-start gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Profile Photo Management</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Your registration photo is automatically set as your default profile photo. You can upload a new photo here anytime or reset to default.</p>
+        <div className="grid content-start gap-5">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Photo Details & Settings</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Your profile photo is displayed across your dashboard, sidebar, and application submissions. Uploading a clear passport-size photo ensures quick verification by officials.
+            </p>
           </div>
 
-          <div className="grid gap-3 sm:flex sm:flex-wrap">
-            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[#f78a0c]" onClick={openPicker} type="button">
+          <div className="flex flex-wrap gap-3">
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-6 py-3 text-sm font-bold text-slate-950 shadow-md transition hover:bg-[#f78a0c]"
+              onClick={openPicker}
+              type="button"
+            >
               <Upload size={16} />
-              Upload image
+              Upload New Photo / புதிய புகைப்படம்
             </button>
-            <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:text-slate-950" onClick={clearImage} type="button">
-              Reset to default
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-950"
+              onClick={clearImage}
+              type="button"
+            >
+              Reset to Default / இயல்புநிலைக்கு மாற்றுக
             </button>
           </div>
 
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate-600">
-            Changes to your profile image update instantly across your dashboard, sidebar, and application submissions.
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-emerald-50/50 p-4 text-xs font-semibold text-emerald-900 border-emerald-200">
+            ✓ Recommended specifications: JPG, PNG or WebP format, up to 5MB file size.
           </div>
         </div>
       </div>
@@ -936,7 +955,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
 
 export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
-  const user = getSession()?.user
+  const [user, setUser] = useState(() => getSession()?.user)
   const isAdmin = adminRoles.has(user?.role)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard-overview')
@@ -950,6 +969,18 @@ export default function DashboardPage() {
   const loadDashboard = useCallback(async () => {
     try {
       setLoading(true)
+
+      // Fetch latest user details including hierarchy
+      try {
+        const meRes = await api.get('/auth/me')
+        if (meRes.data?.user) {
+          updateSessionUser(meRes.data.user)
+          setUser(meRes.data.user)
+        }
+      } catch {
+        // Fallback to local session user if offline
+      }
+
       if (isAdmin) {
         const [signupResponse, submissionResponse] = await Promise.all([
           api.get('/auth/signup-requests'),
@@ -977,7 +1008,11 @@ export default function DashboardPage() {
   }, [loadDashboard])
 
   useEffect(() => {
-    const syncProfilePhoto = () => setProfilePhotoUrl(getProfilePhoto(user))
+    const syncProfilePhoto = () => {
+      const u = getSession()?.user
+      setUser(u)
+      setProfilePhotoUrl(getProfilePhoto(u))
+    }
     syncProfilePhoto()
     window.addEventListener('authchange', syncProfilePhoto)
     window.addEventListener('storage', syncProfilePhoto)
@@ -985,7 +1020,7 @@ export default function DashboardPage() {
       window.removeEventListener('authchange', syncProfilePhoto)
       window.removeEventListener('storage', syncProfilePhoto)
     }
-  }, [user])
+  }, [])
 
   const handleLogout = useCallback(() => {
     clearSession()
@@ -1035,11 +1070,6 @@ export default function DashboardPage() {
                     {user?.village && (
                       <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
                         Village: {user.village}
-                      </span>
-                    )}
-                    {!user?.district && !user?.taluk && !user?.village && (
-                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                        {getUserLocationDetails(user)}
                       </span>
                     )}
                   </div>

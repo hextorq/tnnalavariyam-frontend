@@ -29,6 +29,15 @@ export function saveSession(session) {
   window.dispatchEvent(new Event('authchange'))
 }
 
+export function updateSessionUser(user) {
+  const session = getSession()
+  if (session && user) {
+    session.user = { ...session.user, ...user }
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    window.dispatchEvent(new Event('authchange'))
+  }
+}
+
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY)
   window.dispatchEvent(new Event('authchange'))
