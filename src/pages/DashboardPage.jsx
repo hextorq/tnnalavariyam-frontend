@@ -5,7 +5,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -468,6 +468,10 @@ function UserImageCard({ onProfilePhotoChange, user }) {
 
         {/* Passport Photo Frame Box */}
         <div className="flex flex-col items-center gap-3 mx-auto lg:mx-0">
+          <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900 w-full mb-1">
+            <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+            <span className="truncate">JPEG/PNG only. Max 2 MB.</span>
+          </div>
           <div className="relative h-64 w-52 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-xl ring-4 ring-emerald-500/10">
             {previewUrl ? (
               <img alt="User profile preview" className="h-full w-full object-cover" src={previewUrl} />
@@ -1081,7 +1085,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
 
   return (
     <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-      <Panel>
+      <Panel className="order-2">
         <PanelHeader
           action={
             <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
@@ -1111,7 +1115,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
         </div>
       </Panel>
 
-      <Panel>
+      <Panel className="order-1">
         <PanelHeader
           action={
             <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
@@ -1230,7 +1234,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
 
   return (
     <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-      <Panel>
+      <Panel className="order-2">
         <PanelHeader
           action={
             <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
@@ -1255,6 +1259,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
           eyebrow="Signup Approval Management"
           title={signupTab === 'pending' ? 'User Signup Requests Queue' : 'Signup Approval & Review History'}
         />
+
 
         <div className="grid gap-3 p-4 sm:p-5">
           {signupTab === 'pending' ? (
@@ -1314,7 +1319,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, signupRequests, submission
         </div>
       </Panel>
 
-      <Panel>
+      <Panel className="order-1">
         <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
         <div className="grid gap-3 p-4 sm:p-5">
           {submissions.length ? submissions.map((submission) => (

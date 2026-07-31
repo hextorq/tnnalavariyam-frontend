@@ -325,6 +325,11 @@ function LivePhotoSection({ preview, onCapture, label = 'Live Photo / நேர�
         {label} {required && <span className="ml-1 text-red-600">*</span>}
       </span>
 
+      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900 w-full">
+        <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+        <span className="truncate">Webcam captures are automatically compressed to JPEG.</span>
+      </div>
+
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6">
         {preview && (isValidImageSrc || mode === 'captured') ? (
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:items-center sm:justify-start">
@@ -669,6 +674,7 @@ export default function ApplicationFormPage({ formId }) {
           nomineeName: formData.nomineeName,
           customData: formData.customData,
           formTitle: form.tamilTitle || form.title,
+          ...previews,
         },
         paymentData: {
           amount: form.fee || 150,
