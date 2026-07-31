@@ -193,25 +193,30 @@ function FileField({ children, className = '', preview = '', onChange, required 
       />
 
       {preview && (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xs">
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs">
           {isImageSrc ? (
-            <div className="flex h-44 items-center justify-center bg-neutral-100 p-2">
-              <img alt="File preview" className="max-h-full max-w-full rounded-md object-contain" src={preview} />
+            <div className="relative flex h-48 items-center justify-center bg-slate-900/5 p-3">
+              <img alt="File preview" className="max-h-full max-w-full rounded-lg object-contain bg-white shadow-xs" src={preview} />
+              <span className="absolute top-2 right-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                <CheckCircle2 className="shrink-0" size={14} />
+                Ready to upload / பதிவேற்ற தயார்
+              </span>
             </div>
           ) : (
-            <div className="flex h-44 flex-col items-center justify-center gap-2 bg-[#eef8ff] px-4 text-center text-[#007cba]">
-              <FileText size={38} />
-              <p className="text-xs font-bold">Document attached / ஆவணம் இணைக்கப்பட்டது</p>
+            <div className="relative flex h-48 flex-col items-center justify-center gap-2 bg-[#eef8ff] px-4 text-center text-[#007cba]">
+              <FileText size={40} />
+              <p className="text-xs font-bold">Document Attached / ஆவணம் இணைக்கப்பட்டது</p>
+              <span className="absolute top-2 right-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                <CheckCircle2 className="shrink-0" size={14} />
+                Ready to upload / பதிவேற்ற தயார்
+              </span>
             </div>
           )}
-          <div className="border-t border-neutral-200 px-3 py-2.5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-              <CheckCircle2 className="shrink-0" size={14} />
-              Ready to upload / பதிவேற்ற தயார்
-            </span>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+
+          <div className="border-t border-neutral-200 bg-neutral-50 p-3">
+            <div className="grid grid-cols-2 gap-2">
               <button
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-[#007cba] hover:text-[#007cba]"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]"
                 onClick={handleReupload}
                 type="button"
               >
@@ -219,7 +224,7 @@ function FileField({ children, className = '', preview = '', onChange, required 
                 Re-upload / மீண்டும்
               </button>
               <button
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 transition hover:bg-red-100"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-600 shadow-2xs transition hover:bg-rose-100"
                 onClick={handleDelete}
                 type="button"
               >
