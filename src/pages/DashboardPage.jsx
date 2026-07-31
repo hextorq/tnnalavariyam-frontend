@@ -239,14 +239,14 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
             </div>
 
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#007cba] via-[#0088cc] to-[#0099e6] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-[#007cba]/25 transition hover:from-[#006090] hover:to-[#007cba] active:scale-95 ${
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white ${
                 collapsed ? 'w-full lg:px-0' : 'w-full'
               }`}
               onClick={() => onNavigate('profile-image')}
               type="button"
             >
-              <User size={15} />
-              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update / சுயவிவரம்</span>
+              <User className="text-[#007cba]" size={14} />
+              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update</span>
             </button>
           </div>
         </div>
