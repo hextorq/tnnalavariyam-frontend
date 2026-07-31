@@ -187,7 +187,7 @@ function FileField({ children, className = '', preview = '', onChange, required 
 
       <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
         <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
-        <span className="truncate">JPEG (.jpg, .jpeg) or PNG (.png) images only. File size within 2 MB.</span>
+        <span>JPEG (.jpg, .jpeg) or PNG (.png) images only. File size within 2 MB.</span>
       </div>
 
       <input
@@ -327,7 +327,7 @@ function LivePhotoSection({ preview, onCapture, label = 'Live Photo / நேர�
 
       <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900 w-full">
         <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
-        <span className="truncate">Webcam captures are automatically compressed to JPEG.</span>
+        <span>Webcam captures are automatically compressed to JPEG.</span>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6">
@@ -817,18 +817,18 @@ export default function ApplicationFormPage({ formId }) {
     <div className="min-h-screen bg-neutral-100 px-3 py-6 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="flex items-center gap-3">
-            <Link className="inline-flex size-9 items-center justify-center rounded-xl border border-neutral-300 text-neutral-700 hover:bg-neutral-100" to="/app">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-neutral-300 text-neutral-700 hover:bg-neutral-100" to="/app">
               <ArrowLeft size={18} />
             </Link>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Online Portal Submission</p>
-              <h1 className="text-xl font-bold text-neutral-950 sm:text-2xl">{form.tamilTitle}</h1>
+              <h1 className="text-xl font-bold text-neutral-950 sm:text-2xl break-words">{form.tamilTitle}</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-bold text-[#007cba] border border-[#007cba]/20">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-bold text-[#007cba] border border-[#007cba]/20 whitespace-nowrap">
               {form.fee ? `Fee: ₹${form.fee}` : 'Free / இலவசம்'}
             </span>
           </div>

@@ -470,7 +470,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
         <div className="flex flex-col items-center gap-3 mx-auto lg:mx-0">
           <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900 w-full mb-1">
             <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
-            <span className="truncate">JPEG/PNG only. Max 2 MB.</span>
+            <span>JPEG/PNG only. Max 2 MB.</span>
           </div>
           <div className="relative h-64 w-52 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-xl ring-4 ring-emerald-500/10">
             {previewUrl ? (
@@ -1228,8 +1228,8 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
 
 function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
-  const recentSignups = useMemo(() => pendingRequests.slice(0, 5), [pendingRequests])
-  const recentSubmissions = useMemo(() => submissions.slice(0, 5), [submissions])
+  const recentSignups = useMemo(() => pendingRequests.slice(0, 3), [pendingRequests])
+  const recentSubmissions = useMemo(() => submissions.slice(0, 3), [submissions])
 
   if (!isAdmin) {
     return (
@@ -1338,6 +1338,12 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [appFilter, setAppFilter] = useState('ALL') // 'ALL' | 'UNDER_REVIEW' | 'NEEDS_CORRECTION' | 'APPROVED' | 'REJECTED'
   const [searchQuery, setSearchQuery] = useState('')
   const { notify } = useNotifications()
+  const [appPage, setAppPage] = useState(1)
+  const ITEMS_PER_PAGE = 5
+
+  useEffect(() => {
+    setAppPage(1)
+  }, [appFilter, searchQuery])
 
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
@@ -1372,6 +1378,13 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       return true
     })
   }, [submissions, appFilter, searchQuery])
+
+  const paginatedSubmissions = useMemo(() => {
+    const start = (appPage - 1) * ITEMS_PER_PAGE
+    return filteredSubmissions.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredSubmissions, appPage])
+
+  const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE)
 
   async function reviewSignup(request, status) {
     if (status === 'REJECTED' && !reviewReason.trim()) {
@@ -1602,7 +1615,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
 
         {/* Queue Items */}
         <div className="grid gap-3 p-4 sm:p-5">
-          {filteredSubmissions.length ? filteredSubmissions.map((submission) => {
+          {paginatedSubmissions.length ? paginatedSubmissions.map((submission) => {
             const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)
             return (
               <div className={`rounded-2xl border p-4 transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white'}`} key={submission.id}>
@@ -1642,6 +1655,31 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             <EmptyState>No applications matching filter / search.</EmptyState>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 p-4 rounded-b-2xl">
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={appPage === 1}
+              onClick={() => setAppPage((prev) => Math.max(1, prev - 1))}
+              type="button"
+            >
+              ← Previous
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              Page <span className="font-bold text-slate-900">{appPage}</span> of <span className="font-bold text-slate-900">{totalPages}</span>
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={appPage === totalPages}
+              onClick={() => setAppPage((prev) => Math.min(totalPages, prev + 1))}
+              type="button"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </Panel>
 
       {selectedSignup && (
