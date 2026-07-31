@@ -965,7 +965,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             </button>
           }
           eyebrow="Signup Approval"
-          title="User Signup Requests (Recent 5)"
+          title="User Signup Requests (Recent)"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {recentSignups.length ? (
@@ -995,7 +995,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             </button>
           }
           eyebrow="Work Queue"
-          title="Applications Queue (Recent )"
+          title="Applications Queue (Recent)"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {recentSubmissions.length ? (

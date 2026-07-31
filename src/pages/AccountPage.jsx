@@ -762,7 +762,7 @@ export default function AccountPage({ mode }) {
               <div className="grid items-start gap-4 md:grid-cols-2">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>முழு பெயர் / Full Name</FieldLabel>
-                  <input className={inputClass} onChange={(event) => updateSignupField('fullName', event.target.value)} placeholder="Full Name" required value={signupForm.fullName} />
+                  <input className={inputClass} onChange={(event) => updateSignupField('fullName', event.target.value.replace(/[^\p{L}\s.]/gu, ''))} placeholder="Full Name" required value={signupForm.fullName} />
                 </label>
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>பயனர் பெயர் / Username</FieldLabel>
@@ -862,7 +862,7 @@ export default function AccountPage({ mode }) {
                 </label>
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel>அடையாள ஆவண எண் / ID Proof Number</FieldLabel>
-                  <input className={inputClass} onChange={(event) => updateSignupField('idProofNumber', event.target.value)} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
+                  <input className={inputClass} inputMode="numeric" maxLength={20} onChange={(event) => updateSignupField('idProofNumber', event.target.value.replace(/\D/g, '').slice(0, 20))} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
                 </label>
               </div>
               <div className="grid items-start gap-4 lg:grid-cols-2">
