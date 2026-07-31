@@ -105,8 +105,11 @@ function SelectField({ children, options, className = '', required = false, ...p
       <select className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 font-normal text-neutral-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20" {...props}>
         <option value="">Select an option / தேர்வு செய்யவும்</option>
         {options.map((option) => {
-          const val = typeof option === 'string' ? option : option.value || option.name
-          const lbl = typeof option === 'string' ? option : option.label || option.name
+          if (typeof option === 'string') {
+            return <option key={option} value={option}>{option}</option>
+          }
+          const val = option.value || option.name || option.code
+          const lbl = option.label || option.name || option.englishName || option.code
           return (
             <option key={val} value={val}>
               {lbl}
@@ -146,45 +149,54 @@ function FileField({ children, className = '', preview = '', onChange, required 
 
 function LivePhotoSection({ preview, onCapture }) {
   const videoRef = useRef(null)
-  const canvasRef = useRef(null)
-  const fileInputRef = useRef(null)
+  const [stream, setStream] = useState(null)
   const [mode, setMode] = useState(preview ? 'captured' : 'idle')
   const [cameraError, setCameraError] = useState('')
+
+  useEffect(() => {
+    if (mode === 'streaming' && videoRef.current && stream) {
+      videoRef.current.srcObject = stream
+      videoRef.current.play().catch(() => {})
+    }
+  }, [mode, stream])
+
+  function stopCamera(activeStream = stream) {
+    if (activeStream) {
+      activeStream.getTracks().forEach((t) => t.stop())
+    }
+    setStream(null)
+  }
 
   function startCamera() {
     setCameraError('')
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError('Camera access not supported by browser. Please upload a photo file below.')
+      setCameraError('Camera access is not supported by your browser.')
       return
     }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
-      .then((stream) => {
-        if (videoRef.current) videoRef.current.srcObject = stream
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } })
+      .then((mediaStream) => {
+        setStream(mediaStream)
         setMode('streaming')
       })
-      .catch(() => {
-        setCameraError('Unable to access camera. Please upload a photo file below.')
+      .catch((err) => {
+        console.error('Camera error:', err)
+        setCameraError('Unable to access camera. Please allow camera permission in your browser settings.')
         setMode('idle')
       })
   }
 
-  function stopCamera() {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject
-      stream.getTracks().forEach((t) => t.stop())
-      videoRef.current.srcObject = null
-    }
-  }
-
   function handleCapture() {
     const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
-    canvas.width = video.videoWidth || 640
-    canvas.height = video.videoHeight || 480
+    if (!video) return
+    const width = video.videoWidth || 640
+    const height = video.videoHeight || 480
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    ctx.drawImage(video, 0, 0, width, height)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
     onCapture(dataUrl)
     stopCamera()
     setMode('captured')
@@ -196,42 +208,28 @@ function LivePhotoSection({ preview, onCapture }) {
     onCapture('')
   }
 
-  function handleFileChange(event) {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (file.type?.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          onCapture(reader.result)
-          setMode('captured')
-        }
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const isValidImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
 
   return (
-    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700">
-      <span>Live Photo / நேரடி புகைப்படம்</span>
+    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700 col-span-1 md:col-span-2">
+      <span>
+        Live Photo / நேரடி புகைப்படம் <span className="ml-1 text-red-600">*</span>
+      </span>
 
-      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-        {/* State 1: Photo Captured or Uploaded */}
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6">
         {preview && (isValidImageSrc || mode === 'captured') ? (
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:items-center sm:justify-start">
-            <div className="relative h-56 w-44 shrink-0 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-white shadow-md ring-4 ring-emerald-500/10">
+            <div className="relative h-56 w-44 shrink-0 overflow-hidden rounded-2xl border-2 border-emerald-500 bg-neutral-900 shadow-md ring-4 ring-emerald-500/10">
               {isValidImageSrc ? (
                 <img alt="Live Photo Captured" className="h-full w-full object-cover" src={preview} />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-slate-500">
+                <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-slate-400">
                   <Camera className="text-[#007cba]" size={32} />
-                  <p className="mt-2 text-xs font-bold text-slate-800">Photo Attached</p>
+                  <p className="mt-2 text-xs font-bold text-white">Live Photo Ready</p>
                 </div>
               )}
               <span className="absolute bottom-2 left-2 right-2 rounded-lg bg-emerald-600 py-1 text-center text-[10px] font-bold text-white shadow-xs">
-                ✓ Photo Ready / நேரடி படம்
+                ✓ Live Photo Captured
               </span>
             </div>
 
@@ -242,32 +240,22 @@ function LivePhotoSection({ preview, onCapture }) {
                   உங்கள் நேரடி புகைப்படம் பெறப்பட்டது.
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+              <div>
                 <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-100"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-100"
                   onClick={handleRetake}
                   type="button"
                 >
                   <RefreshCw size={14} />
-                  Retake Photo / மீண்டும் எடுக்க
-                </button>
-                <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2 text-xs font-bold text-neutral-700 shadow-xs transition hover:bg-neutral-100"
-                  onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                >
-                  <Upload size={14} />
-                  Upload File
+                  Retake Live Photo / மீண்டும் படம் எடுக்க
                 </button>
               </div>
             </div>
           </div>
         ) : mode === 'streaming' ? (
-          /* State 2: Camera Streaming View with Oval Overlay */
           <div className="flex flex-col items-center gap-4">
-            <div className="relative aspect-[4/3] w-full max-w-sm overflow-hidden rounded-2xl border-2 border-[#007cba] bg-slate-950 shadow-lg">
+            <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-2xl border-2 border-[#007cba] bg-slate-950 shadow-lg">
               <video autoPlay muted playsInline ref={videoRef} className="h-full w-full object-cover" />
-              <canvas ref={canvasRef} className="hidden" />
 
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <div className="h-48 w-40 rounded-[50%/60%] border-2 border-dashed border-white/80 shadow-2xl ring-8 ring-black/40" />
@@ -299,52 +287,35 @@ function LivePhotoSection({ preview, onCapture }) {
             </div>
           </div>
         ) : (
-          /* State 3: Idle View */
-          <div className="flex flex-col items-center justify-center gap-4 text-center py-2">
+          <div className="flex flex-col items-center justify-center gap-4 text-center py-4">
             <div className="flex size-14 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
               <Camera size={28} />
             </div>
             <div>
               <p className="text-base font-bold text-slate-950">Live Passport Photo Capture</p>
               <p className="mt-1 max-w-md text-xs text-slate-500">
-                கேமரா மூலம் நேரடி படம் எடுக்கலாம் அல்லது புகைப்படக் கோப்பை பதிவேற்றலாம்.
+                நேரடி புகைப்படம் எடுக்க 'Start Camera' பொத்தானைக் கிளிக் செய்யவும்.
               </p>
             </div>
 
             {cameraError && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 max-w-md">
                 {cameraError}
               </p>
             )}
 
-            <div className="flex flex-wrap justify-center gap-3">
+            <div>
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090]"
                 onClick={startCamera}
                 type="button"
               >
-                <Camera size={16} />
+                <Camera size={18} />
                 Start Camera / கேமராவைத் தொடங்கு
-              </button>
-              <button
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 shadow-xs transition hover:bg-neutral-100"
-                onClick={() => fileInputRef.current?.click()}
-                type="button"
-              >
-                <Upload size={16} />
-                Upload Photo File / படம் பதிவேற்றவும்
               </button>
             </div>
           </div>
         )}
-
-        <input
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-          ref={fileInputRef}
-          type="file"
-        />
       </div>
     </div>
   )
@@ -671,7 +642,6 @@ export default function ApplicationFormPage({ formId }) {
                 </Field>
               </div>
 
-              {/* Photos & DOB Proof in clean 2-column pairs */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
                 <FileField
                   accept="image/*"
@@ -797,8 +767,10 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Signature / கையொப்பம்
                 </FileField>
+              </div>
 
-                {/* Perfect Live Photo Component */}
+              {/* Dedicated Full-Width Live Photo Section */}
+              <div className="grid gap-5 grid-cols-1">
                 <LivePhotoSection
                   onCapture={(dataUrl) => {
                     setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
