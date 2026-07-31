@@ -138,8 +138,12 @@ function FileField({ children, className = '', preview = '', onChange, required 
           {...props}
         />
         {preview && isImageSrc && (
-          <div className="max-w-xs overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 p-2">
-            <img alt="File preview" className="max-h-40 w-full object-contain" src={preview} />
+          <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-2 shadow-xs">
+            <img alt="File preview" className="size-14 shrink-0 rounded-lg border border-neutral-200 bg-neutral-50 object-cover" src={preview} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-slate-950">Image Attached</p>
+              <p className="mt-0.5 text-[11px] font-semibold text-emerald-600">✓ Ready to upload</p>
+            </div>
           </div>
         )}
       </div>
@@ -211,7 +215,7 @@ function LivePhotoSection({ preview, onCapture }) {
   const isValidImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
 
   return (
-    <div className="flex flex-col gap-2 text-sm font-semibold text-neutral-700 col-span-1 md:col-span-2">
+    <div className="col-span-1 flex flex-col gap-2 text-sm font-semibold text-neutral-700 md:col-span-2">
       <span>
         Live Photo / நேரடி புகைப்படம் <span className="ml-1 text-red-600">*</span>
       </span>
@@ -237,7 +241,7 @@ function LivePhotoSection({ preview, onCapture }) {
               <div>
                 <p className="text-base font-bold text-slate-950">Live Passport Photo</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  உங்கள் நேரடி புகைப்படம் பெறப்பட்டது.
+                  உங்கள் நேரடி புகைப்படம் வெற்றிகரமாக பதிவு செய்யப்பட்டது.
                 </p>
               </div>
               <div>
@@ -287,7 +291,7 @@ function LivePhotoSection({ preview, onCapture }) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 text-center py-4">
+          <div className="flex flex-col items-center justify-center gap-4 py-4 text-center">
             <div className="flex size-14 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
               <Camera size={28} />
             </div>
@@ -299,7 +303,7 @@ function LivePhotoSection({ preview, onCapture }) {
             </div>
 
             {cameraError && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 max-w-md">
+              <p className="max-w-md rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
                 {cameraError}
               </p>
             )}
@@ -642,15 +646,8 @@ export default function ApplicationFormPage({ formId }) {
                 </Field>
               </div>
 
+              {/* DOB Proof Combo Row */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <FileField
-                  accept="image/*"
-                  onChange={(e) => handleFileSelect('photo', e)}
-                  preview={previews.photo}
-                >
-                  Photo / புகைப்படம்
-                </FileField>
-
                 <SelectField
                   onChange={(e) => handleInputChange('dobProofType', e.target.value)}
                   options={dobProofOptions}
@@ -658,15 +655,24 @@ export default function ApplicationFormPage({ formId }) {
                 >
                   Document for Date of Birth / பிறந்த தேதிக்கான ஆவணம்
                 </SelectField>
-              </div>
 
-              <div className="grid gap-5 md:grid-cols-2 items-start">
                 <FileField
                   accept="image/*,.pdf,.doc,.docx"
                   onChange={(e) => handleFileSelect('dobDocument', e)}
                   preview={previews.dobDocument}
                 >
                   Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
+                </FileField>
+              </div>
+
+              {/* Photo & Registration Card Row */}
+              <div className="grid gap-5 md:grid-cols-2 items-start">
+                <FileField
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect('photo', e)}
+                  preview={previews.photo}
+                >
+                  Photo / புகைப்படம்
                 </FileField>
 
                 <FileField
