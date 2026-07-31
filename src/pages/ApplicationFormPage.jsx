@@ -185,6 +185,11 @@ function FileField({ children, className = '', preview = '', onChange, required 
         {required && <span className="ml-1 text-red-600">*</span>}
       </span>
 
+      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
+        <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+        <span className="truncate">JPEG (.jpg, .jpeg) or PNG (.png) images only. File size within 2 MB.</span>
+      </div>
+
       <input
         ref={inputRef}
         accept="image/jpeg,image/png"
@@ -621,6 +626,30 @@ export default function ApplicationFormPage({ formId }) {
     if (!formData.declared) {
       notify({ type: 'warning', title: 'Declaration Required', message: 'உறுதிமொழியை டிக் செய்ய வேண்டும். / Please accept the declaration.' })
       return
+    }
+
+    // Hard pre-submit validation for 2 MB file size & JPEG/PNG format across all uploaded previews
+    const MAX_BASE64_LENGTH = 2.8 * 1024 * 1024
+    for (const [key, val] of Object.entries(previews)) {
+      if (val && typeof val === 'string' && val.startsWith('data:')) {
+        const isJpegOrPng = val.startsWith('data:image/jpeg') || val.startsWith('data:image/jpg') || val.startsWith('data:image/png') || val.startsWith('data:image/pjpeg')
+        if (!isJpegOrPng) {
+          notify({
+            type: 'error',
+            title: 'Invalid File Format / தவறான படம்',
+            message: `பதிவேற்றப்பட்ட படம் JPEG அல்லது PNG மட்டுமே ஏற்றுக் கொள்ளப்படும் (${key}).`,
+          })
+          return
+        }
+        if (val.length > MAX_BASE64_LENGTH) {
+          notify({
+            type: 'error',
+            title: 'File Size Exceeded / கோப்பின் அளவு பெரியது',
+            message: `ஆவணத்தின் அளவு 2 MB-க்குள் இருக்க வேண்டும் (${key}).`,
+          })
+          return
+        }
+      }
     }
 
     try {

@@ -511,8 +511,9 @@ function UserImageCard({ onProfilePhotoChange, user }) {
             </button>
           </div>
 
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-emerald-50/50 p-4 text-xs font-semibold text-emerald-900 border-emerald-200">
-            ✓ Required specifications: JPEG or PNG format, within 2 MB file size.
+          <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-950">
+            <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+            <span>Only JPEG (.jpg, .jpeg) or PNG (.png) images allowed. Maximum file size is strictly 2 MB.</span>
           </div>
         </div>
       </div>

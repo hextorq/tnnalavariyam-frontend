@@ -231,8 +231,12 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
   return (
     <div className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
       <span className="block lg:min-h-10"><FieldLabel required={required}>{label}</FieldLabel></span>
+      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
+        <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+        <span className="truncate">JPEG (.jpg, .jpeg) or PNG (.png) images only. Maximum file size 2 MB.</span>
+      </div>
       <input
-        accept={uploadConfig.accept}
+        accept="image/jpeg,image/png"
         className="sr-only"
         onChange={handleFileChange}
         ref={inputRef}
