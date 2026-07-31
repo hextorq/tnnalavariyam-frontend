@@ -313,9 +313,9 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
 
           <div className="mt-auto border-t border-slate-800 pt-4">
             {collapsed ? (
-              <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-slate-800 bg-slate-900/90 p-2.5 text-center">
+              <div className="flex flex-col items-center justify-center pt-2">
                 <button
-                  className="relative size-9 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 transition hover:scale-105"
+                  className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 transition hover:scale-105"
                   onClick={() => onNavigate('profile-image')}
                   title={`${getUserDisplayName(user)} - Profile Update`}
                   type="button"
@@ -325,25 +325,7 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
                   )}
-                  <span className="absolute bottom-0 right-0 size-2 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-                </button>
-
-                <button
-                  className="flex size-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/80 text-slate-300 transition hover:border-[#007cba] hover:text-white"
-                  onClick={() => onNavigate('profile-image')}
-                  title="Profile Update"
-                  type="button"
-                >
-                  <User className="text-[#007cba]" size={15} />
-                </button>
-
-                <button
-                  className="flex size-8 items-center justify-center rounded-lg bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white"
-                  onClick={onLogout}
-                  title="Logout"
-                  type="button"
-                >
-                  <LogOut size={15} />
+                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
                 </button>
               </div>
             ) : (
@@ -525,72 +507,6 @@ function UserImageCard({ onProfilePhotoChange, user }) {
   )
 }
 
-function ApprovalFlowStepper({ status }) {
-  const steps = [
-    { key: 'village', title: 'Village Level', tamil: 'கிராம நிலை', role: 'Village Officer' },
-    { key: 'taluk', title: 'Taluk Level', tamil: 'வட்டார அதிகாரி', role: 'Taluk Review' },
-    { key: 'district', title: 'District Level', tamil: 'மாவட்ட அதிகாரி', role: 'District Officer' },
-    { key: 'state', title: 'State Level', tamil: 'மாநில தலைமையகம்', role: 'Final Sanction' },
-  ]
-
-  let activeIndex = 0
-  if (status === 'SUBMITTED' || status === 'RESUBMITTED') activeIndex = 1
-  else if (status === 'UNDER_REVIEW') activeIndex = 2
-  else if (status === 'APPROVED') activeIndex = 3
-  else if (status === 'NEEDS_CORRECTION' || status === 'REJECTED') activeIndex = 1
-
-  return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-      <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Approval Progression Flow / அதிகார வரம்பு நிலை அறிக்கை</p>
-      
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {steps.map((step, index) => {
-          const isDone = index < activeIndex || status === 'APPROVED'
-          const isCurrent = index === activeIndex && status !== 'APPROVED'
-          const isRejected = (status === 'REJECTED' || status === 'NEEDS_CORRECTION') && index === activeIndex
-
-          return (
-            <div className="flex flex-1 items-center gap-3 sm:flex-col sm:text-center" key={step.key}>
-              <div className="flex items-center gap-2 sm:flex-col">
-                <div
-                  className={`flex size-10 shrink-0 items-center justify-center rounded-full font-bold text-xs transition-all shadow-sm ${
-                    isDone
-                      ? 'bg-emerald-600 text-white ring-4 ring-emerald-600/20'
-                      : isRejected
-                      ? 'bg-rose-600 text-white ring-4 ring-rose-600/20'
-                      : isCurrent
-                      ? 'bg-[#007cba] text-white ring-4 ring-[#007cba]/20 animate-pulse'
-                      : 'bg-slate-200 text-slate-500'
-                  }`}
-                >
-                  {isDone ? <CheckCircle2 size={18} /> : index + 1}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-900">{step.title}</p>
-                <p className="text-[11px] font-semibold text-slate-500">{step.tamil}</p>
-                <span
-                  className={`mt-1 inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${
-                    isDone
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : isCurrent
-                      ? 'bg-blue-100 text-blue-800'
-                      : isRejected
-                      ? 'bg-rose-100 text-rose-800'
-                      : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {isDone ? 'Completed' : isCurrent ? 'In Progress' : isRejected ? 'Returned' : 'Pending'}
-                </span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 function CheckStatusPanel({ onSelectSubmission }) {
   const [appNo, setAppNo] = useState('')
@@ -696,7 +612,7 @@ function CheckStatusPanel({ onSelectSubmission }) {
           <div className="grid gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-4">
             {appTracking ? (
               <>
-                <ApprovalFlowStepper status={appTracking.status} />
+
 
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   {[
@@ -944,9 +860,9 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-sm">
-      <div className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-3xl bg-white p-4 shadow-2xl sm:p-7">
+      <div className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex shrink-0 flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 p-4 pb-4 sm:p-7 sm:pb-5">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Application Review Details</span>
@@ -958,7 +874,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
             </p>
           </div>
           <button
-            className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 shrink-0 self-start sm:self-auto"
+            className="inline-flex size-9 shrink-0 items-center justify-center self-start rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 sm:self-auto"
             onClick={onClose}
             type="button"
           >
@@ -966,9 +882,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
           </button>
         </div>
 
-        <div className="mt-5 space-y-6">
-          {/* Approval Progress Stepper */}
-          <ApprovalFlowStepper status={submission.status} />
+        <div className="overflow-y-auto p-4 pt-4 sm:p-7 sm:pt-5 space-y-6">
 
           {/* Action Required Banner for Officer */}
           {['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status) && (
@@ -1334,6 +1248,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [mainTab, setMainTab] = useState('applications')
   const [signupTab, setSignupTab] = useState('pending') // 'pending' | 'history'
   const [appFilter, setAppFilter] = useState('ALL') // 'ALL' | 'UNDER_REVIEW' | 'NEEDS_CORRECTION' | 'APPROVED' | 'REJECTED'
   const [searchQuery, setSearchQuery] = useState('')
@@ -1461,8 +1376,26 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   }
 
   return (
-    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-      <Panel className="order-2">
+    <div className="flex flex-col w-full gap-6">
+      <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'applications' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setMainTab('applications')}
+          type="button"
+        >
+          Applications Queue ({submissions.length})
+        </button>
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'signups' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setMainTab('signups')}
+          type="button"
+        >
+          Signup Requests ({signupRequests.length})
+        </button>
+      </div>
+
+      {mainTab === 'signups' && (
+      <Panel>
         <PanelHeader
           action={
             <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
@@ -1545,9 +1478,10 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             )
           )}
         </div>
-      </Panel>
+      )}
 
-      <Panel className="order-1">
+      {mainTab === 'applications' && (
+      <Panel>
         <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
         
         {/* Search & Filter Bar */}
@@ -1655,6 +1589,8 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             <EmptyState>No applications matching filter / search.</EmptyState>
           )}
         </div>
+      </Panel>
+      )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

@@ -5,72 +5,6 @@ import { api } from '../lib/api.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 
-function ApprovalFlowStepper({ status }) {
-  const steps = [
-    { key: 'village', title: 'Village Level', tamil: 'கிராம நிலை' },
-    { key: 'taluk', title: 'Taluk Level', tamil: 'வட்டார அதிகாரி' },
-    { key: 'district', title: 'District Level', tamil: 'மாவட்ட அதிகாரி' },
-    { key: 'state', title: 'State Level', tamil: 'மாநில தலைமையகம்' },
-  ]
-
-  let activeIndex = 0
-  if (status === 'SUBMITTED' || status === 'RESUBMITTED') activeIndex = 1
-  else if (status === 'UNDER_REVIEW') activeIndex = 2
-  else if (status === 'APPROVED') activeIndex = 3
-  else if (status === 'NEEDS_CORRECTION' || status === 'REJECTED') activeIndex = 1
-
-  return (
-    <div className="mb-6 w-full rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-      <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Approval Progression Flow / அதிகார வரம்பு நிலை அறிக்கை</p>
-
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {steps.map((step, index) => {
-          const isDone = index < activeIndex || status === 'APPROVED'
-          const isCurrent = index === activeIndex && status !== 'APPROVED'
-          const isRejected = (status === 'REJECTED' || status === 'NEEDS_CORRECTION') && index === activeIndex
-
-          return (
-            <div className="flex flex-1 items-center gap-3 sm:flex-col sm:text-center" key={step.key}>
-              <div className="flex items-center gap-2 sm:flex-col">
-                <div
-                  className={`flex size-10 shrink-0 items-center justify-center rounded-full font-bold text-xs transition-all shadow-xs ${
-                    isDone
-                      ? 'bg-emerald-600 text-white ring-4 ring-emerald-600/20'
-                      : isRejected
-                      ? 'bg-rose-600 text-white ring-4 ring-rose-600/20'
-                      : isCurrent
-                      ? 'bg-[#007cba] text-white ring-4 ring-[#007cba]/20 animate-pulse'
-                      : 'bg-neutral-200 text-neutral-500'
-                  }`}
-                >
-                  {isDone ? <CheckCircle2 size={18} /> : index + 1}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-neutral-900">{step.title}</p>
-                <p className="text-[11px] font-semibold text-neutral-500">{step.tamil}</p>
-                <span
-                  className={`mt-1 inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${
-                    isDone
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : isCurrent
-                      ? 'bg-blue-100 text-blue-800'
-                      : isRejected
-                      ? 'bg-rose-100 text-rose-800'
-                      : 'bg-neutral-100 text-neutral-600'
-                  }`}
-                >
-                  {isDone ? 'Completed' : isCurrent ? 'In Progress' : isRejected ? 'Returned' : 'Pending'}
-                </span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 export default function TrackingPage() {
   const [mode, setMode] = useState('application')
@@ -136,7 +70,7 @@ export default function TrackingPage() {
 
   return (
     <section className="bg-neutral-100 px-3 py-8 sm:px-5 sm:py-14">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-8">
+      <div className="mx-auto flex max-w-4xl flex-col gap-6 lg:gap-8">
         <form className="min-w-0 bg-white p-4 shadow-sm sm:p-6" onSubmit={handleSubmit}>
           <p className="text-sm font-bold uppercase tracking-wide text-[#007cba]">Application Tracking</p>
           <h1 className="mt-2 text-2xl font-bold text-neutral-950 sm:text-3xl">விண்ணப்ப நிலை பார்க்க</h1>
@@ -216,7 +150,7 @@ export default function TrackingPage() {
             </div>
           ) : tracking ? (
             <div className="mt-5">
-              {mode === 'application' && <ApprovalFlowStepper status={tracking.status} />}
+
               <div className="grid gap-4 md:grid-cols-2">
                 {(mode === 'signup'
                   ? [
