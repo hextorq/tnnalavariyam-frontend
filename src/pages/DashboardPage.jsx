@@ -252,11 +252,13 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
       {/* Desktop Docked Sidebar */}
       <aside className={`hidden lg:flex sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex-col justify-between overflow-y-auto ${collapsed ? 'w-20' : 'w-72'}`}>
         <div className="flex flex-col flex-1 p-4">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
-            <div className={`min-w-0 ${collapsed ? 'hidden' : ''}`}>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
-              <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
-            </div>
+          <div className={`flex items-center gap-3 border-b border-slate-800 pb-4 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+                <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
+              </div>
+            )}
             <button
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
@@ -268,27 +270,40 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
           </div>
 
           <div className="mt-4 flex-1">
-            <nav className="grid gap-1.5">
+            <nav className="grid gap-2">
               {items.map((item) => {
                 const Icon = item.icon
                 const isActive = activeTab === item.id
-                const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  isActive
-                    ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
-                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                } ${collapsed ? 'justify-center' : ''}`
+
+                if (collapsed) {
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => onNavigate(item.id)}
+                      title={item.label}
+                      type="button"
+                      className={`flex size-10 items-center justify-center rounded-xl mx-auto transition ${
+                        isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                      }`}
+                    >
+                      <Icon size={18} />
+                    </button>
+                  )
+                }
 
                 return (
                   <button
-                    className={commonClasses}
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
                     type="button"
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                      isActive ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                    }`}
                   >
                     <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
                       <Icon size={16} />
                     </span>
-                    <span className={`min-w-0 ${collapsed ? 'hidden' : ''}`}>
+                    <span className="min-w-0">
                       <span className="block text-sm leading-tight">{item.label}</span>
                       <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
                     </span>
@@ -299,43 +314,75 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
           </div>
 
           <div className="mt-auto border-t border-slate-800 pt-4">
-            <div className={`flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs ${collapsed ? 'items-center' : ''}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
+            {collapsed ? (
+              <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-slate-800 bg-slate-900/90 p-2.5 text-center">
+                <button
+                  className="relative size-9 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 transition hover:scale-105"
+                  onClick={() => onNavigate('profile-image')}
+                  title={`${getUserDisplayName(user)} - Profile Update`}
+                  type="button"
+                >
                   {profilePhoto ? (
                     <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
                   )}
-                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-                </div>
-                <div className={`min-w-0 flex-1 ${collapsed ? 'hidden' : ''}`}>
-                  <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
-                  <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
-                </div>
+                  <span className="absolute bottom-0 right-0 size-2 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
+                </button>
+
                 <button
-                  aria-label="Logout"
-                  className={`inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
-                    collapsed ? 'hidden' : ''
-                  }`}
+                  className="flex size-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/80 text-slate-300 transition hover:border-[#007cba] hover:text-white"
+                  onClick={() => onNavigate('profile-image')}
+                  title="Profile Update"
+                  type="button"
+                >
+                  <User className="text-[#007cba]" size={15} />
+                </button>
+
+                <button
+                  className="flex size-8 items-center justify-center rounded-lg bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white"
                   onClick={onLogout}
+                  title="Logout"
                   type="button"
                 >
                   <LogOut size={15} />
                 </button>
               </div>
+            ) : (
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
+                    {profilePhoto ? (
+                      <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
+                    )}
+                    <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
+                    <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
+                  </div>
+                  <button
+                    aria-label="Logout"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white"
+                    onClick={onLogout}
+                    type="button"
+                  >
+                    <LogOut size={15} />
+                  </button>
+                </div>
 
-              <button
-                className={`inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white ${
-                  collapsed ? 'w-full px-0' : 'w-full'
-                }`}
-                onClick={() => onNavigate('profile-image')}
-                type="button"
-              >
-                <User className="text-[#007cba]" size={14} />
-                <span className={collapsed ? 'hidden' : ''}>Profile Update</span>
-              </button>
-            </div>
+                <button
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white"
+                  onClick={() => onNavigate('profile-image')}
+                  type="button"
+                >
+                  <User className="text-[#007cba]" size={14} />
+                  <span>Profile Update</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
