@@ -509,6 +509,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
 
 
 function CheckStatusPanel({ onSelectSubmission }) {
+  const [trackTab, setTrackTab] = useState('application')
   const [appNo, setAppNo] = useState('')
   const [appPhone, setAppPhone] = useState('')
   const [appTracking, setAppTracking] = useState(null)
@@ -572,8 +573,25 @@ function CheckStatusPanel({ onSelectSubmission }) {
   }
 
   return (
-    <div className="grid w-full gap-6 grid-cols-1 lg:grid-cols-2">
-      {/* Widget 1: Application Tracker */}
+    <div className="flex flex-col w-full gap-6">
+      <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${trackTab === 'application' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setTrackTab('application')}
+          type="button"
+        >
+          Application Tracker
+        </button>
+        <button
+          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${trackTab === 'signup' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+          onClick={() => setTrackTab('signup')}
+          type="button"
+        >
+          Signup Tracker
+        </button>
+      </div>
+
+      {trackTab === 'application' && (
       <Panel>
         <PanelHeader eyebrow="Application Tracker" title="Track Application Status / விண்ணப்ப நிலை" />
         <div className="grid gap-4 p-4 sm:p-5">
@@ -647,8 +665,9 @@ function CheckStatusPanel({ onSelectSubmission }) {
           </div>
         </div>
       </Panel>
+      )}
 
-      {/* Widget 2: Signup Tracker */}
+      {trackTab === 'signup' && (
       <Panel>
         <PanelHeader eyebrow="Signup Tracker" title="Track Signup Request Status / பதிவு கோரிக்கை நிலை" />
         <div className="grid gap-4 p-4 sm:p-5">
@@ -707,6 +726,7 @@ function CheckStatusPanel({ onSelectSubmission }) {
           </div>
         </div>
       </Panel>
+      )}
     </div>
   )
 }
