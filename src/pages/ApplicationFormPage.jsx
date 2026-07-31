@@ -195,8 +195,8 @@ function FileField({ children, className = '', preview = '', onChange, required 
       {preview && (
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           {isImageSrc ? (
-            <div className="flex items-center justify-center bg-neutral-100 p-3">
-              <img alt="File preview" className="max-h-72 w-full rounded-lg object-contain" src={preview} />
+            <div className="flex h-56 items-center justify-center bg-neutral-100 p-3">
+              <img alt="File preview" className="max-h-full max-w-full rounded-lg object-contain" src={preview} />
             </div>
           ) : (
             <div className="flex items-center gap-3 p-4">

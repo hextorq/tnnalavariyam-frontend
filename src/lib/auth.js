@@ -54,8 +54,9 @@ export function getUploadUrl(path) {
   if (!path) return ''
   if (/^https?:\/\//i.test(path) || path.startsWith('data:')) return path
   const apiBase = import.meta.env.VITE_API_URL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api'
-  const siteBase = apiBase.replace(/\/api\/?$/, '/')
-  return new URL(path.replace(/^\//, ''), siteBase).href
+  const cleanBase = apiBase.replace(/\/+$/, '')
+  const cleanPath = path.replace(/^\/?(api\/)?/, '')
+  return `${cleanBase}/${cleanPath}`
 }
 
 export function getProfilePhoto(user) {

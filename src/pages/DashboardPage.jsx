@@ -34,10 +34,11 @@ function formatDate(value) {
 
 function getUploadUrl(path) {
   if (!path) return ''
-  if (/^https?:\/\//i.test(path)) return path
-  const apiBase = api.defaults.baseURL || window.location.origin
-  const siteBase = apiBase.replace(/\/api\/?$/, '/')
-  return new URL(path, siteBase).href
+  if (/^https?:\/\//i.test(path) || path.startsWith('data:')) return path
+  const apiBase = api.defaults.baseURL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api'
+  const cleanBase = apiBase.replace(/\/+$/, '')
+  const cleanPath = path.replace(/^\/?(api\/)?/, '')
+  return `${cleanBase}/${cleanPath}`
 }
 
 function getUserLocationDetails(user) {
@@ -673,31 +674,47 @@ function SignupDetailRow({ label, value }) {
 
 function SignupDocumentCard({ icon: Icon, label, path }) {
   const url = getUploadUrl(path)
-  const isImage = /\.(jpg|jpeg|png|webp)$/i.test(path || '')
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-3 bg-slate-50/60">
         <div className="flex min-w-0 items-center gap-2">
           <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-[#007cba]">
             <Icon size={17} />
           </span>
-          <p className="font-bold text-slate-950">{label}</p>
+          <p className="font-bold text-slate-950 text-sm">{label}</p>
         </div>
         {url && (
-          <a className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" href={url} rel="noreferrer" target="_blank">
-            Open <ExternalLink size={13} />
+          <a
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]"
+            href={url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <span>Open Document</span>
+            <ExternalLink size={13} />
           </a>
         )}
       </div>
-      {url && isImage ? (
-        <a href={url} rel="noreferrer" target="_blank">
-          <img alt={label} className="max-h-72 w-full bg-slate-50 object-contain p-3" src={url} />
+      {url ? (
+        <a className="block overflow-hidden bg-slate-950/5 p-2 text-center group" href={url} rel="noreferrer" target="_blank">
+          <img
+            alt={label}
+            className="max-h-72 w-full rounded-lg object-contain bg-white p-2 shadow-xs transition group-hover:scale-[1.01]"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              const fallback = e.currentTarget.nextElementSibling
+              if (fallback) fallback.style.display = 'block'
+            }}
+            src={url}
+          />
+          <div className="hidden p-5 text-center text-xs font-semibold text-slate-600">
+            📄 Uploaded Document ({path.split('/').pop()})<br />
+            <span className="mt-1 inline-block font-bold text-[#007cba] underline">Click here to open file in new tab →</span>
+          </div>
         </a>
       ) : (
-        <div className="p-4 text-sm font-semibold text-slate-600">
-          {url ? 'View uploaded file via the link above' : 'No document uploaded'}
-        </div>
+        <div className="p-4 text-xs font-semibold text-slate-500 text-center">No document uploaded</div>
       )}
     </div>
   )
