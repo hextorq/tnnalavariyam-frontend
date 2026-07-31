@@ -4,7 +4,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, RefreshCw, ShieldCheck, Upload, User, Users } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -110,20 +110,20 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
   const t = tones[tone] || tones.blue
 
   return (
-    <div className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${t.cardBorder}`}>
+    <div className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${t.cardBorder}`}>
       <div className={`absolute top-0 left-0 right-0 h-1.5 ${t.gradientTop}`} />
 
       <div className="flex items-start justify-between gap-3 pt-1">
         <div className="min-w-0">
           <p className="truncate text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
-          <p className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">{loading ? '-' : value}</p>
+          <p className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950">{loading ? '-' : value}</p>
         </div>
-        <span className={`inline-flex size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${t.iconBox}`}>
-          <Icon size={24} />
+        <span className={`inline-flex size-11 sm:size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${t.iconBox}`}>
+          <Icon size={22} />
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+      <div className="mt-3 sm:mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
         <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ring-1 ${t.badge}`}>
           {subtitle}
         </span>
@@ -153,6 +153,7 @@ function getUserInitials(user) {
 }
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
@@ -161,97 +162,183 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
 
   const profilePhoto = getProfilePhoto(user)
 
+  function handleSelectTab(tabId) {
+    onNavigate(tabId)
+    setMobileOpen(false)
+  }
+
   return (
-    <aside className={`sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex flex-col justify-between overflow-y-auto ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
-      <div className="flex flex-col flex-1 p-4">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
-            <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
-          </div>
+    <>
+      {/* Mobile Top Navigation Bar */}
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-800 bg-slate-950 px-4 py-3 text-white lg:hidden">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+          <p className="text-sm font-bold text-white truncate">{getUserDisplayName(user)}</p>
+        </div>
+        <div className="flex items-center gap-2">
           <button
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-            onClick={onCollapseToggle}
+            className="flex size-9 items-center justify-center rounded-xl bg-slate-900 text-slate-300 ring-1 ring-slate-800"
+            onClick={() => setMobileOpen((prev) => !prev)}
             type="button"
           >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
+      </header>
 
-        <div className="mt-4 flex-1">
-          <nav className="grid gap-1.5">
-            {items.map((item) => {
-              const Icon = item.icon
-              const isActive = activeTab === item.id
-              const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                isActive
-                  ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
-                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-              } ${collapsed ? 'justify-center' : ''}`
-
-              return (
-                <button
-                  className={commonClasses}
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  type="button"
-                >
-                  <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
-                    <Icon size={16} />
-                  </span>
-                  <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-                    <span className="block text-sm leading-tight">{item.label}</span>
-                    <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Sidebar Footer User & Ultra-Stylish Profile Update Button */}
-        <div className="mt-auto border-t border-slate-800 pt-4">
-          <div className={`flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs ${collapsed ? 'lg:items-center' : ''}`}>
-            <div className="flex items-center justify-between gap-3">
-              <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
-                {profilePhoto ? (
-                  <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
-                )}
-                <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-              </div>
-              <div className={`min-w-0 flex-1 ${collapsed ? 'lg:hidden' : ''}`}>
-                <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
-                <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
-              </div>
-              <button
-                aria-label="Logout"
-                className={`inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
-                  collapsed ? 'lg:hidden' : ''
-                }`}
-                onClick={onLogout}
-                type="button"
-              >
-                <LogOut size={15} />
-              </button>
+      {/* Mobile Drawer Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white lg:hidden">
+          <div className="flex items-center justify-between border-b border-slate-800 p-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+              <p className="text-lg font-bold text-white">Menu Navigation</p>
             </div>
+            <button className="rounded-xl bg-slate-900 p-2 text-slate-400" onClick={() => setMobileOpen(false)} type="button">
+              <X size={22} />
+            </button>
+          </div>
 
+          <div className="flex-1 overflow-y-auto p-4">
+            <nav className="grid gap-2">
+              {items.map((item) => {
+                const Icon = item.icon
+                const isActive = activeTab === item.id
+                return (
+                  <button
+                    className={`flex items-center gap-3 rounded-2xl p-4 text-left font-bold transition ${
+                      isActive ? 'bg-[#007cba] text-white shadow-lg' : 'bg-slate-900 text-slate-300'
+                    }`}
+                    key={item.id}
+                    onClick={() => handleSelectTab(item.id)}
+                    type="button"
+                  >
+                    <Icon size={20} />
+                    <div>
+                      <p className="text-base">{item.label}</p>
+                      <p className="text-xs font-normal opacity-80">{item.description}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
+
+          <div className="border-t border-slate-800 p-4">
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white ${
-                collapsed ? 'w-full lg:px-0' : 'w-full'
-              }`}
-              onClick={() => onNavigate('profile-image')}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 py-3 text-sm font-semibold text-slate-200"
+              onClick={() => handleSelectTab('profile-image')}
               type="button"
             >
-              <User className="text-[#007cba]" size={14} />
-              <span className={collapsed ? 'lg:hidden' : ''}>Profile Update</span>
+              <User className="text-[#007cba]" size={16} />
+              <span>Profile Update / சுயவிவரம்</span>
+            </button>
+            <button
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600/90 py-3 text-sm font-semibold text-white"
+              onClick={() => {
+                setMobileOpen(false)
+                onLogout()
+              }}
+              type="button"
+            >
+              <LogOut size={16} />
+              <span>Logout / வெளியேறு</span>
             </button>
           </div>
         </div>
-      </div>
-    </aside>
+      )}
+
+      {/* Desktop Docked Sidebar */}
+      <aside className={`hidden lg:flex sticky top-0 h-screen shrink-0 border-r border-slate-800 bg-slate-950 text-white transition-all duration-300 flex-col justify-between overflow-y-auto ${collapsed ? 'w-20' : 'w-72'}`}>
+        <div className="flex flex-col flex-1 p-4">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div className={`min-w-0 ${collapsed ? 'hidden' : ''}`}>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+              <p className="mt-0.5 text-lg font-bold leading-tight text-white">Menu</p>
+            </div>
+            <button
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              onClick={onCollapseToggle}
+              type="button"
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+          </div>
+
+          <div className="mt-4 flex-1">
+            <nav className="grid gap-1.5">
+              {items.map((item) => {
+                const Icon = item.icon
+                const isActive = activeTab === item.id
+                const commonClasses = `flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                  isActive
+                    ? 'bg-[#007cba] text-white shadow-md shadow-[#007cba]/20 font-bold'
+                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                } ${collapsed ? 'justify-center' : ''}`
+
+                return (
+                  <button
+                    className={commonClasses}
+                    key={item.id}
+                    onClick={() => onNavigate(item.id)}
+                    type="button"
+                  >
+                    <span className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-800 text-slate-300'}`}>
+                      <Icon size={16} />
+                    </span>
+                    <span className={`min-w-0 ${collapsed ? 'hidden' : ''}`}>
+                      <span className="block text-sm leading-tight">{item.label}</span>
+                      <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
+
+          <div className="mt-auto border-t border-slate-800 pt-4">
+            <div className={`flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs ${collapsed ? 'items-center' : ''}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
+                  {profilePhoto ? (
+                    <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
+                  )}
+                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
+                </div>
+                <div className={`min-w-0 flex-1 ${collapsed ? 'hidden' : ''}`}>
+                  <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
+                  <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
+                </div>
+                <button
+                  aria-label="Logout"
+                  className={`inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white ${
+                    collapsed ? 'hidden' : ''
+                  }`}
+                  onClick={onLogout}
+                  type="button"
+                >
+                  <LogOut size={15} />
+                </button>
+              </div>
+
+              <button
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white ${
+                  collapsed ? 'w-full px-0' : 'w-full'
+                }`}
+                onClick={() => onNavigate('profile-image')}
+                type="button"
+              >
+                <User className="text-[#007cba]" size={14} />
+                <span className={collapsed ? 'hidden' : ''}>Profile Update</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }
 
@@ -294,7 +381,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
 
   return (
     <section id="profile-image" className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 bg-slate-50/50">
+      <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Profile Management / சுயவிவர மேலாண்மை</p>
           <h2 className="mt-1 text-xl font-extrabold text-slate-950 sm:text-2xl">Update Profile Photo / சுயவிவர புகைப்படம்</h2>
@@ -309,7 +396,7 @@ function UserImageCard({ onProfilePhotoChange, user }) {
         </button>
       </div>
 
-      <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[220px_minmax(0,1fr)] items-start">
+      <div className="grid gap-6 sm:gap-8 p-4 sm:p-8 lg:grid-cols-[220px_minmax(0,1fr)] items-start">
         <input ref={inputRef} accept="image/*" className="sr-only" onChange={handleFileChange} type="file" />
 
         {/* Passport Photo Frame Box */}
@@ -332,14 +419,14 @@ function UserImageCard({ onProfilePhotoChange, user }) {
         </div>
 
         <div className="grid content-start gap-5">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Photo Details & Settings</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Your profile photo is displayed across your dashboard, sidebar, and application submissions. Uploading a clear passport-size photo ensures quick verification by officials.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <button
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-6 py-3 text-sm font-bold text-slate-950 shadow-md transition hover:bg-[#f78a0c]"
               onClick={openPicker}
@@ -427,7 +514,7 @@ function CheckStatusPanel() {
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               <span>Application Number / விண்ணப்ப எண்</span>
               <input
-                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
                 onChange={(e) => setAppNo(e.target.value)}
                 placeholder="e.g. TNW-20260729-0001"
                 value={appNo}
@@ -437,7 +524,7 @@ function CheckStatusPanel() {
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               <span>Registered Mobile Number / அலைபேசி எண்</span>
               <input
-                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
                 onChange={(e) => setAppPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 placeholder="10 digit mobile number"
                 value={appPhone}
@@ -457,7 +544,7 @@ function CheckStatusPanel() {
           {/* Results Box at Bottom of Widget 1 */}
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
             {appTracking ? (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                 {[
                   ['Application No', appTracking.applicationNo],
                   ['Form Title', appTracking.tamilFormTitle || appTracking.formTitle],
@@ -487,7 +574,7 @@ function CheckStatusPanel() {
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               <span>Signup Request Number / பதிவு கோரிக்கை எண்</span>
               <input
-                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
                 onChange={(e) => setReqNo(e.target.value)}
                 placeholder="e.g. TNSU-20260729-0001"
                 value={reqNo}
@@ -497,7 +584,7 @@ function CheckStatusPanel() {
             <label className="grid gap-2 text-sm font-semibold text-slate-700">
               <span>Registered Mobile Number / அலைபேசி எண்</span>
               <input
-                className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#007cba]"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-base sm:text-sm outline-none focus:border-[#007cba]"
                 onChange={(e) => setReqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 placeholder="10 digit mobile number"
                 value={reqPhone}
@@ -517,7 +604,7 @@ function CheckStatusPanel() {
           {/* Results Box at Bottom of Widget 2 */}
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
             {reqTracking ? (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                 {[
                   ['Request No', reqTracking.requestNo],
                   ['Requested Role', roleLabels[reqTracking.requestedRole] || reqTracking.requestedRole],
@@ -644,7 +731,7 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   }, [isAdmin, pendingRequests.length, submissions])
 
   return (
-    <div className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid w-full gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map(([label, value, Icon, tone, subtitle]) => (
         <StatCard icon={Icon} key={label} label={label} loading={loading} subtitle={subtitle} tone={tone} value={value} />
       ))}
@@ -970,7 +1057,6 @@ export default function DashboardPage() {
     try {
       setLoading(true)
 
-      // Fetch latest user details including hierarchy
       try {
         const meRes = await api.get('/auth/me')
         if (meRes.data?.user) {
@@ -978,7 +1064,7 @@ export default function DashboardPage() {
           setUser(meRes.data.user)
         }
       } catch {
-        // Fallback to local session user if offline
+        // Fallback to local session user
       }
 
       if (isAdmin) {
@@ -1042,15 +1128,15 @@ export default function DashboardPage() {
         {activeTab === 'dashboard-overview' && (
           <>
             {/* Header Banner */}
-            <section id="dashboard-overview" className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
+            <section id="dashboard-overview" className="w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-7 shadow-xs">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
-                  <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">My Dashboard</h1>
+                  <h1 className="mt-2 text-2xl sm:text-4xl font-bold text-slate-950">My Dashboard</h1>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span> ({roleLabels[user?.role] || user?.role}).
                   </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3 border border-slate-200 text-xs font-semibold text-slate-700">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2.5 sm:p-3 border border-slate-200 text-xs font-semibold text-slate-700">
                     <span className="inline-flex items-center gap-1 font-bold text-[#007cba]">
                       <MapPin size={15} /> Assigned Jurisdiction / அதிகார வரம்பு:
                     </span>
@@ -1099,7 +1185,7 @@ export default function DashboardPage() {
                 eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
                 title="Select Application Form / விண்ணப்பத்தை தேர்வு செய்க"
               />
-              <div className="grid w-full gap-3 p-4 sm:p-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid w-full gap-3 p-3 sm:p-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {applicationForms.map((form) => (
                   <Link
                     className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-[#eef8ff]/40 hover:shadow-md"

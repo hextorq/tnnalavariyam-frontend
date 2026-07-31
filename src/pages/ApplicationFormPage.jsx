@@ -6,7 +6,7 @@ import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Upload } from 'lucide-react'
+import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 const dobProofOptions = [
@@ -164,32 +164,79 @@ function SelectField({ children, options, className = '', required = false, ...p
 }
 
 function FileField({ children, className = '', preview = '', onChange, required = false, ...props }) {
+  const inputRef = useRef(null)
   const isImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
 
+  function handleReupload() {
+    inputRef.current?.click()
+  }
+
+  function handleDelete() {
+    if (!inputRef.current) return
+    inputRef.current.value = ''
+    onChange?.({ target: inputRef.current })
+  }
+
   return (
-    <label className={`flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
+    <div className={`flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700 ${className}`}>
       <span>
         {children}
         {required && <span className="ml-1 text-red-600">*</span>}
       </span>
-      <div className="grid gap-2">
-        <input
-          className="w-full rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 font-normal outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#007cba] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-[#007cba]"
-          onChange={onChange}
-          type="file"
-          {...props}
-        />
-        {preview && isImageSrc && (
-          <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-2 shadow-xs">
-            <img alt="File preview" className="size-14 shrink-0 rounded-lg border border-neutral-200 bg-neutral-50 object-cover" src={preview} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-slate-950">Image Attached</p>
-              <p className="mt-0.5 text-[11px] font-semibold text-emerald-600">✓ Ready to upload</p>
+
+      <input
+        ref={inputRef}
+        className={preview ? 'hidden' : 'w-full rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 font-normal outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#007cba] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-[#007cba]'}
+        onChange={onChange}
+        type="file"
+        {...props}
+      />
+
+      {preview && (
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+          {isImageSrc ? (
+            <div className="flex items-center justify-center bg-neutral-100 p-3">
+              <img alt="File preview" className="max-h-72 w-full rounded-lg object-contain" src={preview} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-4">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
+                <FileText size={22} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-950">{preview}</p>
+                <p className="mt-0.5 text-[11px] font-semibold text-emerald-600">Document attached</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 bg-white px-3 py-2.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+              <CheckCircle2 size={15} />
+              Ready to upload / பதிவேற்ற தயார்
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-[#007cba] hover:text-[#007cba]"
+                onClick={handleReupload}
+                type="button"
+              >
+                <RefreshCw size={13} />
+                Re-upload / மீண்டும்
+              </button>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100"
+                onClick={handleDelete}
+                type="button"
+              >
+                <Trash2 size={13} />
+                Delete / நீக்கு
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </label>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -424,7 +471,10 @@ export default function ApplicationFormPage({ formId }) {
 
   function handleFileSelect(field, event) {
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file) {
+      setPreviews((prev) => ({ ...prev, [field]: '' }))
+      return
+    }
 
     if (file.type?.startsWith('image/')) {
       const reader = new FileReader()
