@@ -276,12 +276,12 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-3 px-4 py-6 text-center">
-            <button className="inline-flex items-center gap-2 rounded-xl bg-white border border-[#007cba] px-4 py-2 text-sm font-bold text-[#007cba] shadow-xs transition hover:bg-[#eef8ff]" onClick={openPicker} type="button">
-              <Upload size={16} />
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 py-3 text-center sm:text-left">
+            <span className="text-xs font-medium text-neutral-500">{uploadConfig.hint}</span>
+            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white border border-[#007cba] px-3 py-1.5 text-xs font-bold text-[#007cba] shadow-xs transition hover:bg-[#eef8ff]" onClick={openPicker} type="button">
+              <Upload size={14} />
               Choose file
             </button>
-            <span className="text-xs font-normal text-neutral-500">{uploadConfig.hint}</span>
           </div>
         )}
       </div>
@@ -726,7 +726,10 @@ export default function AccountPage({ mode }) {
 
     try {
       setSubmitting(true)
-      const response = await api.post('/auth/login', loginForm)
+      const response = await api.post('/auth/login', {
+        identifier: loginForm.identifier.trim(),
+        password: loginForm.password,
+      })
       saveSession({ token: response.data.token, user: response.data.user })
       navigate('/app')
     } catch (error) {
