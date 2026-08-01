@@ -1450,7 +1450,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
 
         if (isFileUrl) {
           if (!entries.some(([k]) => k === key)) {
-            entries.push([key, val])
+            entries.push([key, getUploadUrl(val)])
           }
         }
       })
