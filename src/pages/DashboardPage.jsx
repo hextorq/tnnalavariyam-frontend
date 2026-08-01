@@ -119,6 +119,12 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
       iconBox: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25',
       badge: 'bg-emerald-50 text-emerald-800 ring-emerald-200/80',
     },
+    slate: {
+      cardBorder: 'hover:border-slate-400/50',
+      gradientTop: 'bg-gradient-to-r from-slate-400 via-slate-500 to-slate-400',
+      iconBox: 'bg-gradient-to-br from-slate-400 to-slate-500 text-white shadow-md shadow-slate-400/25',
+      badge: 'bg-slate-100 text-slate-700 ring-slate-200/80',
+    },
   }
 
   const t = tones[tone] || tones.blue
@@ -1826,10 +1832,10 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
 
     return [
       ...baseStats,
-      ['Today\'s Applications', timeStats.todayCount, Activity, 'blue', 'Today'],
-      ['This Week', timeStats.weekCount, Layers3, 'amber', 'This Week'],
-      ['This Month', timeStats.monthCount, FileText, 'rose', 'This Month'],
-      ['This Year', timeStats.yearCount, History, 'green', 'This Year'],
+      ['Today\'s Applications', timeStats.todayCount, Activity, 'slate', 'Today'],
+      ['This Week', timeStats.weekCount, Layers3, 'slate', 'This Week'],
+      ['This Month', timeStats.monthCount, FileText, 'slate', 'This Month'],
+      ['This Year', timeStats.yearCount, History, 'slate', 'This Year'],
     ]
   }, [isAdmin, pendingRequests.length, submissions, timeStats])
 
@@ -1874,7 +1880,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
                     <StatusPill status={submission.status} />
                   </div>
                   <button
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-center text-xs font-bold text-[#007cba] transition hover:bg-blue-100 hover:border-blue-300"
                     onClick={() => onSelectSubmission?.(submission)}
                     type="button"
                   >
