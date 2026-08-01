@@ -5,7 +5,7 @@ import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -31,6 +31,16 @@ const roleScopeLabels = {
 function formatDate(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString('en-IN')
+}
+
+function downloadImage(src, filename) {
+  if (!src) return
+  const link = document.createElement('a')
+  link.href = src
+  link.download = filename || 'document.png'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 function getUploadUrl(path) {
@@ -956,18 +966,34 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
                 {uploadedDocs.map(([key, imgSrc]) => {
                   const label = documentLabels[key] || key
                   return (
-                    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs transition hover:border-[#007cba] hover:shadow-md" key={key}>
-                      <p className="text-xs font-bold text-slate-800 truncate mb-2">{label}</p>
-                      <div
-                        className="relative flex h-40 items-center justify-center rounded-xl bg-slate-900/5 p-2 cursor-pointer overflow-hidden"
-                        onClick={() => setLightboxImg({ src: imgSrc, title: label })}
-                      >
-                        <img alt={label} className="max-h-full max-w-full rounded-lg object-contain bg-white shadow-xs transition group-hover:scale-105" src={imgSrc} />
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 opacity-0 group-hover:opacity-100 transition">
-                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950 shadow-md">
-                            🔍 View Full Image
-                          </span>
+                    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs transition hover:border-[#007cba] hover:shadow-md flex flex-col justify-between" key={key}>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 truncate mb-2">{label}</p>
+                        <div
+                          className="relative flex h-40 items-center justify-center rounded-xl bg-slate-900/5 p-2 cursor-pointer overflow-hidden"
+                          onClick={() => setLightboxImg({ src: imgSrc, title: label, key })}
+                        >
+                          <img alt={label} className="max-h-full max-w-full rounded-lg object-contain bg-white shadow-xs transition group-hover:scale-105" src={imgSrc} />
+                          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 opacity-0 group-hover:opacity-100 transition">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950 shadow-md">
+                              🔍 View Full Image
+                            </span>
+                          </div>
                         </div>
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t border-slate-100">
+                        <button
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-slate-50 py-2 text-xs font-bold text-slate-700 hover:bg-[#007cba] hover:text-white hover:border-[#007cba] transition"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            downloadImage(imgSrc, `${submission.applicationNo || 'doc'}-${key}.png`)
+                          }}
+                          type="button"
+                        >
+                          <Download size={14} />
+                          <span>Download Image / பதிவிறக்கு</span>
+                        </button>
                       </div>
                     </div>
                   )
@@ -1086,13 +1112,23 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
           <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl bg-white p-4 shadow-2xl flex flex-col">
             <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-3">
               <p className="font-bold text-slate-950 text-sm">{lightboxImg.title}</p>
-              <button
-                className="rounded-xl border border-slate-300 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
-                onClick={() => setLightboxImg(null)}
-                type="button"
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#007cba] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#006090] transition"
+                  onClick={() => downloadImage(lightboxImg.src, `${submission.applicationNo || 'doc'}-${lightboxImg.title}.png`)}
+                  type="button"
+                >
+                  <Download size={14} />
+                  <span>Download Image / பதிவிறக்கம்</span>
+                </button>
+                <button
+                  className="rounded-xl border border-slate-300 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                  onClick={() => setLightboxImg(null)}
+                  type="button"
+                >
+                  Close
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-900 rounded-xl p-2">
               <img alt={lightboxImg.title} className="max-h-[75vh] max-w-full object-contain rounded-lg shadow-lg" src={lightboxImg.src} />
@@ -1156,19 +1192,29 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
             </button>
           }
           eyebrow="Recent Work"
-          title="Recent Applications (Latest )"
+          title="Recent Applications (Latest)"
         />
         <div className="grid gap-3 p-4 sm:p-5">
           {recentSubmissions.length ? (
             recentSubmissions.map((submission) => (
-              <div className="rounded-xl border border-slate-200 p-3" key={submission.id}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                    <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs" key={submission.id}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">Updated: {formatDate(submission.updatedAt)}</p>
+                    </div>
+                    <StatusPill status={submission.status} />
                   </div>
-                  <StatusPill status={submission.status} />
+                  <button
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                    onClick={() => onSelectSubmission?.(submission)}
+                    type="button"
+                  >
+                    <FileText className="shrink-0" size={15} />
+                    <span>View Application / விவரங்களை காண்க</span>
+                  </button>
                 </div>
               </div>
             ))
@@ -1271,12 +1317,13 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [mainTab, setMainTab] = useState('applications')
-  const [signupTab, setSignupTab] = useState('pending') // 'pending' | 'history'
-  const [appFilter, setAppFilter] = useState('ALL') // 'ALL' | 'UNDER_REVIEW' | 'NEEDS_CORRECTION' | 'APPROVED' | 'REJECTED'
+  const [signupTab, setSignupTab] = useState('pending')
+  const [appFilter, setAppFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const { notify } = useNotifications()
   const [appPage, setAppPage] = useState(1)
   const ITEMS_PER_PAGE = 5
+  const currentUserId = useMemo(() => getSession()?.user?.id, [])
 
   useEffect(() => {
     setAppPage(1)
@@ -1285,22 +1332,20 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
 
-  // Submissions counts
+  const mySubmissionsCount = useMemo(() => submissions.filter((s) => s.userId === currentUserId || s.user?.id === currentUserId).length, [submissions, currentUserId])
   const underReviewCount = useMemo(() => submissions.filter((s) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(s.status)).length, [submissions])
   const needsCorrectionCount = useMemo(() => submissions.filter((s) => s.status === 'NEEDS_CORRECTION').length, [submissions])
   const approvedCount = useMemo(() => submissions.filter((s) => s.status === 'APPROVED').length, [submissions])
   const rejectedCount = useMemo(() => submissions.filter((s) => s.status === 'REJECTED').length, [submissions])
 
-  // Filtered Submissions
   const filteredSubmissions = useMemo(() => {
     return submissions.filter((sub) => {
-      // 1. Status Filter
+      if (appFilter === 'MY_SUBMISSIONS' && sub.userId !== currentUserId && sub.user?.id !== currentUserId) return false
       if (appFilter === 'UNDER_REVIEW' && !['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(sub.status)) return false
       if (appFilter === 'NEEDS_CORRECTION' && sub.status !== 'NEEDS_CORRECTION') return false
       if (appFilter === 'APPROVED' && sub.status !== 'APPROVED') return false
       if (appFilter === 'REJECTED' && sub.status !== 'REJECTED') return false
 
-      // 2. Search Query Filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const appNo = (sub.applicationNo || '').toLowerCase()
@@ -1314,7 +1359,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       }
       return true
     })
-  }, [submissions, appFilter, searchQuery])
+  }, [submissions, appFilter, searchQuery, currentUserId])
 
   const paginatedSubmissions = useMemo(() => {
     const start = (appPage - 1) * ITEMS_PER_PAGE
@@ -1351,21 +1396,6 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       })
     } finally {
       setSubmittingReview(false)
-    }
-  }
-
-  async function reviewApplication(submission, status, reason = '') {
-    try {
-      await api.post(`/applications/submissions/${submission.id}/review`, {
-        action: status === 'APPROVED' ? 'APPROVED' : status === 'NEEDS_CORRECTION' ? 'CORRECTION_REQUESTED' : status === 'REJECTED' ? 'REJECTED' : 'REVIEW_STARTED',
-        toStatus: status,
-        reason,
-      })
-      notify({ type: 'success', title: 'Application Updated', message: `${submission.applicationNo} status set to ${status}.` })
-      await onRefresh?.()
-    } catch (error) {
-      notify({ type: 'error', title: 'Review Failed', message: error.response?.data?.message || 'Application review could not be updated.' })
-      throw error
     }
   }
 
@@ -1507,14 +1537,12 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       <Panel>
         <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
         
-        {/* Search & Filter Bar */}
         <div className="border-b border-slate-200 bg-slate-50/70 p-4 space-y-3">
-          {/* Real-time Search Box */}
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-9 text-xs font-medium text-slate-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setAppPage(1); }}
               placeholder="Search TNW-xxxx number, applicant name, phone..."
               type="text"
               value={searchQuery}
@@ -1530,39 +1558,45 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             )}
           </div>
 
-          {/* Filter Bar Tabs */}
           <div className="flex flex-wrap gap-1.5 text-xs font-bold">
             <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'ALL' ? 'bg-[#007cba] text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              onClick={() => setAppFilter('ALL')}
+              onClick={() => { setAppFilter('ALL'); setAppPage(1); }}
               type="button"
             >
               All ({submissions.length})
             </button>
             <button
+              className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'MY_SUBMISSIONS' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+              onClick={() => { setAppFilter('MY_SUBMISSIONS'); setAppPage(1); }}
+              type="button"
+            >
+              Submitted by Me ({mySubmissionsCount})
+            </button>
+            <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'UNDER_REVIEW' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              onClick={() => setAppFilter('UNDER_REVIEW')}
+              onClick={() => { setAppFilter('UNDER_REVIEW'); setAppPage(1); }}
               type="button"
             >
               Under Review ({underReviewCount})
             </button>
             <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'NEEDS_CORRECTION' ? 'bg-amber-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              onClick={() => setAppFilter('NEEDS_CORRECTION')}
+              onClick={() => { setAppFilter('NEEDS_CORRECTION'); setAppPage(1); }}
               type="button"
             >
               Needs Correction ({needsCorrectionCount})
             </button>
             <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'APPROVED' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              onClick={() => setAppFilter('APPROVED')}
+              onClick={() => { setAppFilter('APPROVED'); setAppPage(1); }}
               type="button"
             >
               Approved ({approvedCount})
             </button>
             <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'REJECTED' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              onClick={() => setAppFilter('REJECTED')}
+              onClick={() => { setAppFilter('REJECTED'); setAppPage(1); }}
               type="button"
             >
               Rejected ({rejectedCount})
@@ -1570,16 +1604,16 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
           </div>
         </div>
 
-        {/* Queue Items */}
         <div className="grid gap-3 p-4 sm:p-5">
           {paginatedSubmissions.length ? paginatedSubmissions.map((submission) => {
             const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)
+            const isSubmittedByMe = submission.userId === currentUserId || submission.user?.id === currentUserId
             return (
               <div className={`rounded-2xl border p-4 transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white'}`} key={submission.id}>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
                         {isPendingAction && (
                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
