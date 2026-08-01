@@ -1954,6 +1954,8 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [signupTab, setSignupTab] = useState('pending')
   const [appFilter, setAppFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
+  const [areaFilter, setAreaFilter] = useState('ALL')
   const [viewMode, setViewMode] = useState('list')
   const { notify } = useNotifications()
   const [appPage, setAppPage] = useState(1)
@@ -1967,7 +1969,16 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   useEffect(() => {
     setAppPage(1)
     setMyAppPage(1)
-  }, [appFilter, searchQuery])
+  }, [appFilter, searchQuery, areaFilter, sortBy])
+
+  const areaOptions = useMemo(() => {
+    const areas = new Set()
+    for (const sub of submissions) {
+      const district = sub.applicantData?.district || sub.applicantData?.area
+      if (typeof district === 'string' && district.trim()) areas.add(district.trim())
+    }
+    return [...areas].sort((a, b) => a.localeCompare(b))
+  }, [submissions])
 
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
@@ -1986,6 +1997,11 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       if (appFilter === 'APPROVED' && sub.status !== 'APPROVED') return false
       if (appFilter === 'REJECTED' && sub.status !== 'REJECTED') return false
 
+      if (areaFilter !== 'ALL') {
+        const district = sub.applicantData?.district || sub.applicantData?.area
+        if ((typeof district !== 'string' || district.trim() !== areaFilter)) return false
+      }
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const appNo = (sub.applicationNo || '').toLowerCase()
@@ -1999,14 +2015,24 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       }
       return true
     })
-  }, [submissions, appFilter, searchQuery, currentUserId])
+  }, [submissions, appFilter, searchQuery, areaFilter, currentUserId])
+
+  const sortedSubmissions = useMemo(() => {
+    const list = [...filteredSubmissions]
+    const workerName = (sub) => (sub.applicantData?.workerName || sub.applicantData?.childName || sub.applicantName || sub.user?.firstName || sub.user?.username || '').toLowerCase()
+    if (sortBy === 'oldest') list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    else if (sortBy === 'name-asc') list.sort((a, b) => workerName(a).localeCompare(workerName(b)))
+    else if (sortBy === 'name-desc') list.sort((a, b) => workerName(b).localeCompare(workerName(a)))
+    else list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return list
+  }, [filteredSubmissions, sortBy])
 
   const paginatedSubmissions = useMemo(() => {
     const start = (appPage - 1) * ITEMS_PER_PAGE
-    return filteredSubmissions.slice(start, start + ITEMS_PER_PAGE)
-  }, [filteredSubmissions, appPage])
+    return sortedSubmissions.slice(start, start + ITEMS_PER_PAGE)
+  }, [sortedSubmissions, appPage])
 
-  const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(sortedSubmissions.length / ITEMS_PER_PAGE)
 
   const paginatedPendingRequests = useMemo(() => {
     const start = (pendingPage - 1) * ITEMS_PER_PAGE
@@ -2485,6 +2511,34 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             )}
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+              onChange={(e) => { setAreaFilter(e.target.value); setAppPage(1); }}
+              value={areaFilter}
+            >
+              <option value="ALL">All Areas / அனைத்து மாவட்டங்கள்</option>
+              {areaOptions.map((area) => (
+                <option key={area} value={area}>{area}</option>
+              ))}
+            </select>
+
+            <select
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+              onChange={(e) => { setSortBy(e.target.value); setAppPage(1); }}
+              value={sortBy}
+            >
+              <option value="newest">Newest First / புதியது முதலில்</option>
+              <option value="oldest">Oldest First / பழையது முதலில்</option>
+              <option value="name-asc">Name A-Z / பெயர் A-Z</option>
+              <option value="name-desc">Name Z-A / பெயர் Z-A</option>
+            </select>
+
+            <span className="ml-auto rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 border border-slate-200">
+              {sortedSubmissions.length} applications
+            </span>
+          </div>
+
           <div className="flex flex-wrap gap-1.5 text-xs font-bold">
             <button
               className={`rounded-lg px-3 py-1.5 transition ${appFilter === 'ALL' ? 'bg-[#007cba] text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
@@ -2553,7 +2607,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                         </div>
                         <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
-                          Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.geoUnit?.name || '-'}
+                          Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.applicantData?.district ? `District: ${submission.applicantData.district}` : ''} {submission.geoUnit?.name ? `• ${submission.geoUnit.name}` : ''}
                         </p>
                         <p className="mt-0.5 text-[11px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
                       </div>
@@ -2588,7 +2642,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                       <p className="mt-1.5 text-xs text-slate-500">
                         Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">{submission.geoUnit?.name || '-'}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{submission.applicantData?.district ? `District: ${submission.applicantData.district} ` : ''}{submission.geoUnit?.name || ''}</p>
                       <p className="mt-1 text-[10px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
                     </div>
                     <div className="border-t border-slate-100 pt-3">

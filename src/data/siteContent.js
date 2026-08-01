@@ -9,7 +9,6 @@ export const navItems = [
   { label: 'நிலை பார்க்க / Tracking', to: '/tracking' },
   { label: 'தொடர்பு / Contact', to: '/contact' },
   { label: 'உள்நுழைவு / Login', to: '/login' },
-  { label: 'பதிவு / Register', to: '/register' },
 ]
 
 export const images = {

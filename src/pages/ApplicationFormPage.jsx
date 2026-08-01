@@ -242,11 +242,26 @@ function FileField({ children, className = '', preview = '', onChange, required 
       <input
         ref={inputRef}
         accept="image/jpeg,image/png"
-        className={preview ? 'hidden' : 'w-full rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 font-normal outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#007cba] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-[#007cba]'}
+        className="sr-only"
         onChange={onChange}
+        required={required && !preview}
         type="file"
         {...props}
       />
+
+      {!preview && (
+        <button
+          className="flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center transition hover:border-[#007cba] hover:bg-[#eef8ff]"
+          onClick={handleReupload}
+          type="button"
+        >
+          <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
+            <Upload size={20} />
+          </span>
+          <span className="text-xs font-bold text-neutral-800">Choose file / கோப்பை தேர்ந்தெடுக்கவும்</span>
+          <span className="text-[11px] font-normal text-neutral-500">JPEG, PNG, PDF (max 2 MB)</span>
+        </button>
+      )}
 
       {preview && (
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs">
@@ -979,7 +994,7 @@ export default function ApplicationFormPage({ formId }) {
           {(isNewRegistration || isRenewal) && (
             <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
               {/* Text & Dropdown Inputs Group 1 */}
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <Field
                   onChange={(e) => handleInputChange('workerName', e.target.value)}
                   placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"
@@ -1002,7 +1017,7 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               {/* Text & Dropdown Inputs Group 2 */}
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SearchableDistrictSelect
                   onChange={(val) => handleInputChange('district', val)}
                   required
@@ -1021,7 +1036,7 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               {/* Text & Dropdown Inputs Group 3 */}
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SelectField
                   onChange={(e) => handleInputChange('dobProofType', e.target.value)}
                   options={dobProofOptions}
@@ -1184,7 +1199,7 @@ export default function ApplicationFormPage({ formId }) {
           {/* Education 6-9 & Girls 10-12 - Child Details */}
           {(currentKey === 'education-6-9' || isGirls) && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SelectField
                   onChange={(e) => handleCustomChange('standard', e.target.value)}
                   options={isGirls ? girlsStandardOptions : standardOptions}
@@ -1234,7 +1249,7 @@ export default function ApplicationFormPage({ formId }) {
           {/* 10th/12th Pass - Child Details */}
           {isPass && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SelectField
                   onChange={(e) => handleCustomChange('examPassed', e.target.value)}
                   options={examPassedOptions}
@@ -1284,7 +1299,7 @@ export default function ApplicationFormPage({ formId }) {
           {/* Higher Education - Child Details */}
           {isHigherEducation && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SelectField
                   onChange={(e) => handleCustomChange('courseType', e.target.value)}
                   options={courseTypeOptions}
@@ -1305,7 +1320,7 @@ export default function ApplicationFormPage({ formId }) {
                 </Field>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <Field
                   onChange={(e) => handleCustomChange('courseName', e.target.value)}
                   placeholder="பாடத்தின் பெயர் உள்ளிடவும்"
@@ -1327,7 +1342,7 @@ export default function ApplicationFormPage({ formId }) {
                 </Field>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <SelectField
                   onChange={(e) => handleCustomChange('applyingYear', e.target.value)}
                   options={applyingYearOptions}
@@ -1365,7 +1380,7 @@ export default function ApplicationFormPage({ formId }) {
           {/* Shared Worker Details Section for ALL Education Forms */}
           {isEducation && (
             <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
-              <div className="grid gap-5 md:grid-cols-2 items-start">
+              <div className="grid gap-5 md:grid-cols-3 items-start">
                 <Field
                   onChange={(e) => handleInputChange('workerName', e.target.value)}
                   placeholder="தொழிலாளியின் பெயர் உள்ளிடவும்"

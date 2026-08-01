@@ -764,7 +764,7 @@ export default function AccountPage({ mode }) {
               </div>
             )}
             <FormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
-              <div className="grid items-start gap-4 md:grid-cols-2">
+              <div className="grid items-start gap-4 md:grid-cols-3">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>முழு பெயர் / Full Name</FieldLabel>
                   <input className={inputClass} onChange={(event) => updateSignupField('fullName', event.target.value.replace(/[^\p{L}\s.]/gu, ''))} placeholder="Full Name" required value={signupForm.fullName} />
@@ -797,7 +797,7 @@ export default function AccountPage({ mode }) {
                 <FieldLabel required>பங்கு / Requested Role</FieldLabel>
                 <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
-              <div className="grid items-start gap-4 md:grid-cols-2">
+              <div className="grid items-start gap-4 md:grid-cols-3">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>மாநிலம் / State</FieldLabel>
                   <input className={`${inputClass} disabled:bg-neutral-100`} disabled value={bilingualName(tamilNaduState)} />
@@ -860,7 +860,7 @@ export default function AccountPage({ mode }) {
             </FormSection>
 
             <FormSection title="ஆவணங்கள் / Documents">
-              <div className="grid items-start gap-4 md:grid-cols-2">
+              <div className="grid items-start gap-4 md:grid-cols-3">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
                   <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
@@ -904,7 +904,7 @@ export default function AccountPage({ mode }) {
             )}
             {mode === 'register' ? (
               <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
-                <div className="grid items-start gap-4 md:grid-cols-2">
+                <div className="grid items-start gap-4 md:grid-cols-3">
                   <label className="flex flex-col justify-start gap-2">
                     <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
                     <PasswordInput
