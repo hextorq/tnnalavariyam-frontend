@@ -102,7 +102,7 @@ async function uploadApplicationImage(blob, fileName) {
     headers: { 'Content-Type': 'multipart/form-data' },
     showLoader: false,
   })
-  return response.data?.upload?.path
+  return response.data?.upload
 }
 
 const workerJobOptions = [
@@ -841,13 +841,19 @@ export default function ApplicationFormPage({ formId }) {
       const imageEntries = Object.entries(compressedPreviews).filter(
         ([, value]) => value && typeof value === 'string' && value.startsWith('data:')
       )
-      const uploadedPathEntries = []
+      const uploadedImages = []
       let uploadedChars = 0
       const totalChars = imageEntries.reduce((sum, [, value]) => sum + value.length, 0) || 1
       for (const [key, dataUrl] of imageEntries) {
         const blob = dataUrlToBlob(dataUrl)
-        const filePath = await uploadApplicationImage(blob, `${key}-${Date.now()}.jpg`)
-        uploadedPathEntries.push([key, filePath])
+        const upload = await uploadApplicationImage(blob, `${key}-${Date.now()}.jpg`)
+        uploadedImages.push({
+          field: key,
+          path: upload.path,
+          originalName: upload.originalName,
+          sizeBytes: upload.sizeBytes,
+          mimeType: upload.mimeType,
+        })
         uploadedChars += dataUrl.length
         setUploadProgress(Math.min(80, Math.round(25 + (uploadedChars * 55) / totalChars)))
       }
@@ -869,8 +875,8 @@ export default function ApplicationFormPage({ formId }) {
           nomineeName: formData.nomineeName,
           customData: formData.customData,
           formTitle: form.tamilTitle || form.title,
-          ...Object.fromEntries(uploadedPathEntries),
         },
+        images: uploadedImages,
         paymentData: {
           amount: form.fee || 150,
           upiTransactionId: formData.upiTransactionId.trim(),
@@ -905,9 +911,9 @@ export default function ApplicationFormPage({ formId }) {
       })
     } catch (error) {
       setUploadModalOpen(false)
-      if (uploadedPathEntries.length) {
-        uploadedPathEntries.forEach(([, filePath]) => {
-          api.delete('/applications/uploads/temp', { data: { path: filePath }, showLoader: false }).catch(() => {})
+      if (uploadedImages.length) {
+        uploadedImages.forEach((image) => {
+          api.delete('/applications/uploads/temp', { data: { path: image.path }, showLoader: false }).catch(() => {})
         })
       }
       notify({
