@@ -800,7 +800,7 @@ export default function AccountPage({ mode }) {
                 <FieldLabel required>பங்கு / Requested Role</FieldLabel>
                 <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
-              <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid items-start gap-4 sm:grid-cols-2">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>மாநிலம் / State</FieldLabel>
                   <input className={`${inputClass} disabled:bg-neutral-100`} disabled value={bilingualName(tamilNaduState)} />
@@ -909,7 +909,7 @@ export default function AccountPage({ mode }) {
               <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="flex flex-col h-full gap-2">
-                    <div className="flex-1">
+                    <div className="min-h-10">
                       <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
                     </div>
                     <PasswordInput
@@ -918,14 +918,14 @@ export default function AccountPage({ mode }) {
                       placeholder="Minimum 6 characters"
                       value={signupForm.password}
                     />
-                    <p className="text-xs text-neutral-500">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
+                    <p className="text-xs text-neutral-500 min-h-8">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
                   </label>
                   <label className="flex flex-col h-full gap-2">
-                    <div className="flex-1">
+                    <div className="min-h-10">
                       <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
                     </div>
                     <PasswordInput minLength={6} onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
-                    <p className="text-xs text-neutral-500">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
+                    <p className="text-xs text-neutral-500 min-h-8">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
                   </label>
                 </div>
               </FormSection>
