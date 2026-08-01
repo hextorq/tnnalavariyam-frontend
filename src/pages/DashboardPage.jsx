@@ -1,5 +1,6 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
+import { STATUS_META } from '../constants/statusMeta.js'
 import { applicationForms } from '../data/applicationForms.js'
 import { bilingualName, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
@@ -68,13 +69,15 @@ function getUserLocationDetails(user) {
 }
 
 function StatusPill({ status }) {
-  const color = status === 'APPROVED' || status === 'ACTIVE'
-    ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-    : status === 'REJECTED' || status === 'NEEDS_CORRECTION'
-      ? 'bg-rose-50 text-rose-700 ring-rose-200'
-      : 'bg-amber-50 text-amber-800 ring-amber-200'
+  const meta = STATUS_META[status]
+  const cls = meta?.cls || 'bg-amber-50 text-amber-800 ring-amber-200'
 
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${color}`}>{status || '-'}</span>
+  return (
+    <span className={`inline-flex flex-col items-center rounded-full px-2.5 py-1 text-[11px] font-bold leading-tight ring-1 ${cls}`}>
+      <span>{meta?.en || status || '-'}</span>
+      {meta?.ta && <span className="text-[9px] font-semibold opacity-80">{meta.ta}</span>}
+    </span>
+  )
 }
 
 function Panel({ children, className = '' }) {
@@ -1427,12 +1430,20 @@ const documentLabels = {
   paymentScreenshot: 'Payment Screenshot / கட்டண ரசீது',
 }
 
-function SubmissionDetailsModal({ onClose, onReview, submission }) {
+function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
   const [reviewReason, setReviewReason] = useState('')
   const [paymentVerified, setPaymentVerified] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [lightboxImg, setLightboxImg] = useState(null)
   const { notify } = useNotifications()
+
+  const roleLevel = { VILLAGE_ADMIN: 1, TALUK_ADMIN: 2, DISTRICT_ADMIN: 3, STATE_ADMIN: 4, SUPER_ADMIN: null }
+  const viewerLevel = roleLevel[viewerRole]
+  const isSuperAdmin = viewerRole === 'SUPER_ADMIN'
+  const actionableStatuses = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE']
+  const canReviewHere = !!viewerRole && (isSuperAdmin || viewerLevel === submission.currentReviewLevel)
+  const isActionable = actionableStatuses.includes(submission.status)
+  const levelName = { 1: 'Village', 2: 'Taluk', 3: 'District', 4: 'State' }[submission.currentReviewLevel] || '—'
 
   const rawApplicantData = useMemo(() => {
     if (!submission?.applicantData) return {}
@@ -1520,6 +1531,9 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Application Review Details</span>
               <StatusPill status={submission.status} />
+              <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white ring-1 ring-slate-700">
+                Level {submission.currentReviewLevel || 1}/4 · {levelName}
+              </span>
             </div>
             <h2 className="mt-1 text-2xl font-black text-slate-950 tracking-tight">{submission.applicationNo}</h2>
             <p className="mt-0.5 text-sm font-semibold text-slate-600">
@@ -1538,7 +1552,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
         <div className="overflow-y-auto p-4 pt-4 sm:p-7 sm:pt-5 space-y-6">
 
           {/* Action Required Banner for Officer */}
-          {['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status) && (
+          {canReviewHere && isActionable && (
             <div className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 border border-amber-200 text-amber-900">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold">
                 !
@@ -1547,6 +1561,25 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
                 <p className="text-xs font-bold uppercase tracking-wider text-amber-800">Action Required at your Hierarchy Level</p>
                 <p className="text-xs text-amber-900 font-semibold mt-0.5">
                   This application is currently pending your verification. Review the applicant details, attached document photos, and UPI payment before taking action.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Waiting Elsewhere Info Strip for Officers */}
+          {onReview && !(canReviewHere && isActionable) && ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'NEEDS_CORRECTION', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status) && (
+            <div className="flex items-center gap-3 rounded-2xl bg-slate-100 p-4 border border-slate-200 text-slate-700">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-500 text-white font-bold">
+                !
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  {submission.status === 'NEEDS_CORRECTION' ? 'Waiting for Applicant Resubmission' : `Currently at ${levelName} Level`}
+                </p>
+                <p className="text-xs text-slate-600 font-semibold mt-0.5">
+                  {submission.status === 'NEEDS_CORRECTION'
+                    ? 'This application was returned to the applicant for correction. Review controls will be available once the applicant resubmits.'
+                    : 'This application is waiting for action at another review level. The review controls will unlock here once it is forwarded to your level.'}
                 </p>
               </div>
             </div>
@@ -1702,7 +1735,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
           </div>
 
           {/* Officer Verification & Forwarding Controls */}
-          {onReview && (
+          {onReview && canReviewHere && isActionable && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 space-y-5 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <h3 className="text-sm font-bold tracking-wide text-slate-800 flex items-center gap-2">
@@ -1710,7 +1743,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
                   Officer Decision Controls / அதிகாரியின் முடிவு
                 </h3>
                 <span className="rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700 border border-amber-200">
-                  Action Required
+                  {submission.status === 'UNDER_REVIEW' ? 'Review in Progress' : 'Action Required'}
                 </span>
               </div>
 
@@ -1802,8 +1835,12 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
   )
 }
 
-function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
+function MetricCardsBar({ isAdmin, loading, role, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
+
+  const roleLevel = { VILLAGE_ADMIN: 1, TALUK_ADMIN: 2, DISTRICT_ADMIN: 3, STATE_ADMIN: 4, SUPER_ADMIN: null }
+  const myLevel = roleLevel[role]
+  const actionableStatuses = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE']
 
   const timeStats = useMemo(() => {
     const today = new Date()
@@ -1831,7 +1868,11 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   const stats = useMemo(() => {
     let baseStats = []
     if (isAdmin) {
-      const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status)).length
+      const pendingReview = submissions.filter((submission) => {
+        if (!actionableStatuses.includes(submission.status)) return false
+        if (myLevel === null) return true
+        return submission.currentReviewLevel === myLevel
+      }).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
       baseStats = [
@@ -1843,7 +1884,7 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
     } else {
       const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
-      const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+      const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status)).length
       baseStats = [
         ['My Applications', submissions.length, FileText, 'blue', 'Total Submitted'],
         ['In Progress', inProgress, Activity, 'amber', 'Under Review'],
@@ -2966,6 +3007,7 @@ export default function DashboardPage() {
               <MetricCardsBar
                 isAdmin={isAdmin}
                 loading={loading}
+                role={user?.role}
                 signupRequests={signupRequests}
                 submissions={submissions}
               />
@@ -3040,6 +3082,7 @@ export default function DashboardPage() {
             onClose={() => setSelectedSubmissionDetails(null)}
             onReview={isAdmin ? reviewApplication : undefined}
             submission={selectedSubmissionDetails}
+            viewerRole={user?.role}
           />
         )}
       </main>

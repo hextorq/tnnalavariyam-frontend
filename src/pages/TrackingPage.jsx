@@ -1,6 +1,7 @@
 import { CheckCircle2, Search } from 'lucide-react'
 import { useState } from 'react'
 import { TrackingSkeleton } from '../components/SkeletonLoader.jsx'
+import { STATUS_META } from '../constants/statusMeta.js'
 import { api } from '../lib/api.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
@@ -168,7 +169,7 @@ export default function TrackingPage() {
                       ['Form', tracking.tamilFormTitle || tracking.formTitle],
                       ['Applicant', tracking.applicantName || '-'],
                       ['பகுதி', tracking.scope || '-'],
-                      ['Application Status', tracking.status],
+                      ['Application Status', STATUS_META[tracking.status]?.en || tracking.status],
                       ['Payment Status', tracking.paymentStatus],
                       ['Payment Reference', tracking.paymentReference || '-'],
                       ['Correction Reason', tracking.currentReviewReason || '-'],
