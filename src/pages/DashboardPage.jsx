@@ -1441,7 +1441,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
   const viewerLevel = roleLevel[viewerRole]
   const isSuperAdmin = viewerRole === 'SUPER_ADMIN'
   const actionableStatuses = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE']
-  const canReviewHere = !!viewerRole && (isSuperAdmin || viewerLevel === submission.currentReviewLevel)
+  const canReviewHere = !!viewerRole && (isSuperAdmin || (viewerLevel !== null && viewerLevel >= submission.currentReviewLevel))
   const isActionable = actionableStatuses.includes(submission.status)
   const levelName = { 1: 'Village', 2: 'Taluk', 3: 'District', 4: 'State' }[submission.currentReviewLevel] || '—'
 
@@ -1875,7 +1875,7 @@ function MetricCardsBar({ isAdmin, loading, role, signupRequests, submissions })
       const pendingReview = submissions.filter((submission) => {
         if (!actionableStatuses.includes(submission.status)) return false
         if (myLevel === null) return true
-        return submission.currentReviewLevel === myLevel
+        return submission.currentReviewLevel <= myLevel
       }).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
