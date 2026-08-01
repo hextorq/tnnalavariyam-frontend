@@ -1,11 +1,13 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
 import { applicationForms } from '../data/applicationForms.js'
+import { bilingualName, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
+import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -171,6 +173,9 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
+  if (user?.role === 'SUPER_ADMIN') {
+    items.splice(2, 0, { id: 'create-user', icon: UserPlus, label: 'Create User', description: 'Add & activate' })
+  }
 
   const profilePhoto = getProfilePhoto(user)
 
@@ -518,6 +523,478 @@ function UserImageCard({ onProfilePhotoChange, user }) {
 }
 
 
+const createUserInputClass =
+  'min-w-0 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20'
+
+function CreateUserFieldLabel({ children, required = false }) {
+  return (
+    <span className="text-sm font-semibold text-neutral-700">
+      {children}
+      {required && <span className="ml-1 text-red-600" aria-label="required">*</span>}
+    </span>
+  )
+}
+
+function CreateUserFormSection({ children, title }) {
+  return (
+    <section className="grid gap-4 border border-neutral-200 bg-white p-4 sm:p-5">
+      <h2 className="border-b border-neutral-200 pb-3 text-base font-bold text-neutral-950">{title}</h2>
+      {children}
+    </section>
+  )
+}
+
+function CreateUserPasswordInput({ minLength, onChange, placeholder, value }) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="relative">
+      <input
+        autoComplete="new-password"
+        className={`${createUserInputClass} pr-12`}
+        minLength={minLength}
+        onChange={onChange}
+        placeholder={placeholder}
+        required
+        type={visible ? 'text' : 'password'}
+        value={value}
+      />
+      <button
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center text-neutral-600 hover:text-neutral-950"
+        onClick={() => setVisible((current) => !current)}
+        type="button"
+      >
+        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  )
+}
+
+function CreateUserSearchSelect({ disabled = false, onChange, options, placeholder, value }) {
+  const selectedOption = options.find((option) => option.value === value)
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const filteredOptions = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return options
+    return options.filter((option) => option.label.toLowerCase().includes(normalizedQuery))
+  }, [options, query])
+
+  useEffect(() => {
+    setQuery(selectedOption?.label || '')
+  }, [selectedOption?.label])
+
+  return (
+    <div className="relative">
+      <input
+        aria-expanded={open}
+        autoComplete="off"
+        className={`${createUserInputClass} disabled:bg-neutral-100`}
+        disabled={disabled}
+        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => {
+          setQuery('')
+          setOpen(true)
+        }}
+        placeholder={placeholder}
+        role="combobox"
+        value={open ? query : selectedOption?.label || ''}
+      />
+      {open && !disabled && (
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-auto border border-neutral-300 bg-white shadow-lg">
+          {filteredOptions.length ? (
+            filteredOptions.map((option) => (
+              <button
+                className="block w-full px-4 py-3 text-left text-sm hover:bg-[#eef8ff] focus:bg-[#eef8ff]"
+                key={option.value}
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  onChange(option.value)
+                  setQuery(option.label)
+                  setOpen(false)
+                }}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-sm text-neutral-500">No matching option</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CreateUserPanel({ user }) {
+  const [units, setUnits] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [createdUser, setCreatedUser] = useState(null)
+  const [form, setForm] = useState({
+    fullName: '',
+    username: '',
+    phone: '',
+    email: '',
+    role: '',
+    districtName: '',
+    talukName: '',
+    villageName: '',
+    password: '',
+    confirmPassword: '',
+  })
+  const { notify } = useNotifications()
+
+  useEffect(() => {
+    let cancelled = false
+    api
+      .get('/hierarchy/geo-units')
+      .then((response) => {
+        if (!cancelled) setUnits(response.data?.units || [])
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          notify({
+            type: 'error',
+            title: 'Load Failed / ஏற்ற முடியவில்லை',
+            message: error.response?.data?.message || 'User creation form could not be loaded.',
+          })
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [notify])
+
+  const roleOptions = useMemo(() => {
+    return [
+      { value: 'STATE_ADMIN', label: 'மாநில நிர்வாகி / State Admin' },
+      ...requestedRoles.map((role) => ({ value: role.value, label: role.label })),
+    ]
+  }, [])
+
+  const selectedDistrict = useMemo(
+    () => tamilNaduDistricts.find((district) => district.name === form.districtName) || null,
+    [form.districtName],
+  )
+  const selectedTaluk = useMemo(
+    () => selectedDistrict?.taluks?.find((taluk) => taluk.name === form.talukName) || null,
+    [selectedDistrict, form.talukName],
+  )
+  const selectedVillage = useMemo(
+    () => selectedTaluk?.villages?.find((village) => village.name === form.villageName) || null,
+    [selectedTaluk, form.villageName],
+  )
+  const districtOptions = useMemo(
+    () => tamilNaduDistricts.map((district) => ({ value: district.name, label: bilingualName(district) })),
+    [],
+  )
+  const talukOptions = useMemo(
+    () => (selectedDistrict?.taluks || []).map((taluk) => ({ value: taluk.name, label: bilingualName(taluk) })),
+    [selectedDistrict],
+  )
+  const villageOptions = useMemo(
+    () => (selectedTaluk?.villages || []).map((village) => ({ value: village.name, label: bilingualName(village) })),
+    [selectedTaluk],
+  )
+
+  const needsTaluk = ['TALUK_ADMIN', 'VILLAGE_ADMIN', 'PARTNER'].includes(form.role)
+  const needsVillage = ['VILLAGE_ADMIN', 'PARTNER'].includes(form.role)
+
+  function updateForm(field, value) {
+    setForm((prev) => {
+      const next = { ...prev, [field]: value }
+      if (field === 'districtName') {
+        next.talukName = ''
+        next.villageName = ''
+      }
+      if (field === 'talukName') next.villageName = ''
+      return next
+    })
+  }
+
+  function resolveScopeId() {
+    if (form.role === 'STATE_ADMIN') {
+      return units.find((unit) => unit.type === 'STATE' && unit.code === `STATE-${tamilNaduState.code}`)?.id
+    }
+    if (form.role === 'DISTRICT_ADMIN') {
+      return units.find((unit) => unit.type === 'DISTRICT' && unit.code === `DISTRICT-${selectedDistrict?.code}`)?.id
+    }
+    if (form.role === 'TALUK_ADMIN') {
+      return units.find((unit) => unit.type === 'TALUK' && unit.code === `TALUK-${selectedTaluk?.code}`)?.id
+    }
+    if (form.role === 'VILLAGE_ADMIN' || form.role === 'PARTNER') {
+      return units.find((unit) => unit.type === 'VILLAGE' && unit.code === `VILLAGE-${selectedVillage?.code}`)?.id
+    }
+    return null
+  }
+
+  async function handleCreateUserSubmit(event) {
+    event.preventDefault()
+    setCreatedUser(null)
+
+    if (form.fullName.trim().length < 2) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'முழு பெயர் குறைந்தது 2 எழுத்துகள் வேண்டும். / Full Name must be at least 2 characters.' })
+      return
+    }
+    if (form.username.trim().length < 3) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பயனர் பெயர் குறைந்தது 3 எழுத்துகள் வேண்டும். / Username must be at least 3 characters.' })
+      return
+    }
+    if (form.phone.trim().length !== 10) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: '10 இலக்க தொலைபேசி எண் தேவை. / 10 digit phone number is required.' })
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      notify({ type: 'warning', title: 'Invalid Email', message: 'சரியான மின்னஞ்சல் முகவரி உள்ளிடவும். / Enter a valid email address.' })
+      return
+    }
+    if (!form.role) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பங்கு தேர்வு செய்யவும். / Select Role.' })
+      return
+    }
+    if (form.password.length < 6) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'கடவுச்சொல் குறைந்தது 6 எழுத்துகள் வேண்டும். / Password must be at least 6 characters.' })
+      return
+    }
+    if (form.password !== form.confirmPassword) {
+      notify({ type: 'warning', title: 'Password Mismatch', message: 'கடவுச்சொற்கள் பொருந்தவில்லை. / Passwords do not match.' })
+      return
+    }
+    const scopeId = resolveScopeId()
+    if (!scopeId) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பகுதி தேர்வு செய்யவும். / Select the required area for this role.' })
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      const response = await api.post('/admin/users', {
+        fullName: form.fullName.trim(),
+        username: form.username.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        role: form.role,
+        scopeId,
+      })
+      setCreatedUser(response.data.user)
+      notify({
+        type: 'success',
+        title: 'User Created & Activated / பயனர் உருவாக்கப்பட்டு செயல்படுத்தப்பட்டது',
+        message: `${response.data.user.username} (${roleLabels[response.data.user.role] || response.data.user.role}) can log in immediately.`,
+      })
+      setForm({
+        fullName: '',
+        username: '',
+        phone: '',
+        email: '',
+        role: '',
+        districtName: '',
+        talukName: '',
+        villageName: '',
+        password: '',
+        confirmPassword: '',
+      })
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Creation Failed / உருவாக்க முடியவில்லை',
+        message: error.response?.data?.message || 'பயனரை உருவாக்க முடியவில்லை. / Could not create the user.',
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) return <DashboardSkeleton />
+
+  return (
+    <section className="mx-auto max-w-4xl px-3 py-8 sm:px-5 sm:py-16">
+      <h1 className="text-center text-2xl font-bold sm:text-4xl">Create User / பயனர் உருவாக்கு</h1>
+      <form
+        className="mt-6 grid gap-4 border border-neutral-200 p-3 sm:mt-10 sm:gap-5 sm:p-8"
+        noValidate
+        onSubmit={handleCreateUserSubmit}
+      >
+        <div className="border-l-4 border-green-600 bg-green-50 p-3 text-sm leading-6 text-green-800 sm:p-4">
+          உருவாக்கப்படும் பயனர் உடனடியாக செயல்படுத்தப்படுவார் — நிர்வாகி அங்கீகாரம் தேவையில்லை. The user is activated instantly — no approval needed.
+        </div>
+
+        <CreateUserFormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>முழு பெயர் / Full Name</CreateUserFieldLabel>
+              <input
+                className={createUserInputClass}
+                onChange={(event) => updateForm('fullName', event.target.value.replace(/[^\p{L}\s.]/gu, ''))}
+                placeholder="Full Name"
+                required
+                value={form.fullName}
+              />
+            </label>
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>பயனர் பெயர் / Username</CreateUserFieldLabel>
+              <input
+                className={createUserInputClass}
+                minLength={3}
+                onChange={(event) => updateForm('username', event.target.value.replace(/\s+/g, ''))}
+                placeholder="Minimum 3 characters"
+                required
+                value={form.username}
+              />
+              <p className="text-xs text-neutral-500">குறைந்தது 3 எழுத்துகள் / Minimum 3 characters</p>
+            </label>
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>தொலைபேசி எண் / Phone Number</CreateUserFieldLabel>
+              <input
+                {...phoneInputProps}
+                className={createUserInputClass}
+                onChange={(event) => updateForm('phone', normalizePhone(event.target.value))}
+                placeholder="10 digit phone number"
+                required
+                value={form.phone}
+              />
+            </label>
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>மின்னஞ்சல் முகவரி / Email Address</CreateUserFieldLabel>
+              <input
+                className={createUserInputClass}
+                onChange={(event) => updateForm('email', event.target.value)}
+                placeholder="Email Address"
+                required
+                type="email"
+                value={form.email}
+              />
+            </label>
+          </div>
+        </CreateUserFormSection>
+
+        <CreateUserFormSection title="பங்கு மற்றும் பகுதி / Role and Area">
+          <label className="flex flex-col justify-start gap-2">
+            <CreateUserFieldLabel required>பங்கு / Role</CreateUserFieldLabel>
+            <CreateUserSearchSelect
+              onChange={(value) => updateForm('role', value)}
+              options={roleOptions}
+              placeholder="பங்கு தேடவும் / Search role"
+              value={form.role}
+            />
+          </label>
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>மாநிலம் / State</CreateUserFieldLabel>
+              <input className={`${createUserInputClass} disabled:bg-neutral-100`} disabled value={bilingualName(tamilNaduState)} />
+            </label>
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>மாவட்டம் / District</CreateUserFieldLabel>
+              <CreateUserSearchSelect
+                onChange={(value) => updateForm('districtName', value)}
+                options={districtOptions}
+                placeholder="மாவட்டம் தேடவும் / Search district"
+                value={form.districtName}
+              />
+            </label>
+            {needsTaluk && (
+              <label className="flex flex-col justify-start gap-2">
+                <CreateUserFieldLabel required>தாலுகா / Taluk</CreateUserFieldLabel>
+                <CreateUserSearchSelect
+                  disabled={!form.districtName}
+                  onChange={(value) => updateForm('talukName', value)}
+                  options={talukOptions}
+                  placeholder="தாலுகா தேடவும் / Search taluk"
+                  value={form.talukName}
+                />
+              </label>
+            )}
+            {needsVillage && (
+              <label className="flex flex-col justify-start gap-2">
+                <CreateUserFieldLabel required>கிராமம் / Village</CreateUserFieldLabel>
+                <CreateUserSearchSelect
+                  disabled={!form.talukName}
+                  onChange={(value) => updateForm('villageName', value)}
+                  options={villageOptions}
+                  placeholder="கிராமம் தேடவும் / Search village"
+                  value={form.villageName}
+                />
+              </label>
+            )}
+          </div>
+        </CreateUserFormSection>
+
+        <CreateUserFormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
+          <div className="grid items-start gap-4 md:grid-cols-2">
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>கடவுச்சொல் / Password</CreateUserFieldLabel>
+              <CreateUserPasswordInput
+                minLength={6}
+                onChange={(event) => updateForm('password', event.target.value)}
+                placeholder="Minimum 6 characters"
+                value={form.password}
+              />
+              <p className="text-xs text-neutral-500">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
+            </label>
+            <label className="flex flex-col justify-start gap-2">
+              <CreateUserFieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</CreateUserFieldLabel>
+              <CreateUserPasswordInput
+                minLength={6}
+                onChange={(event) => updateForm('confirmPassword', event.target.value)}
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+              />
+              <p className="text-xs text-neutral-500">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
+            </label>
+          </div>
+        </CreateUserFormSection>
+
+        {createdUser && (
+          <div className="border-l-4 border-green-600 bg-green-50 p-4 text-sm leading-6 text-green-800">
+            <div className="flex items-center gap-2 font-bold">
+              <CheckCircle2 size={18} />
+              User created & activated / பயனர் உருவாக்கப்பட்டு செயல்படுத்தப்பட்டது
+            </div>
+            <div className="mt-3 grid gap-2 text-xs font-semibold text-slate-700 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-green-200 bg-white p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Username</p>
+                <p className="mt-1 font-bold text-slate-950">{createdUser.username}</p>
+              </div>
+              <div className="rounded-xl border border-green-200 bg-white p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Role</p>
+                <p className="mt-1 font-bold text-slate-950">{roleLabels[createdUser.role] || createdUser.role}</p>
+              </div>
+              <div className="rounded-xl border border-green-200 bg-white p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Scope</p>
+                <p className="mt-1 font-bold text-slate-950">{createdUser.scope?.name || '-'}</p>
+              </div>
+              <div className="rounded-xl border border-green-200 bg-white p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Status</p>
+                <p className="mt-1 font-bold text-green-700">Active</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#007cba] px-6 py-4 text-base font-bold text-white transition hover:bg-[#006090] disabled:opacity-50"
+          disabled={submitting}
+          type="submit"
+        >
+          {submitting ? <LoaderCircle className="animate-spin" size={18} /> : <UserPlus size={18} />}
+          {submitting ? 'Creating... / உருவாக்கப்படுகிறது' : 'Create & Activate User / பயனர் உருவாக்கு'}
+        </button>
+      </form>
+    </section>
+  )
+}
+
 function CheckStatusPanel({ onSelectSubmission }) {
   const [trackTab, setTrackTab] = useState('application')
   const [appNo, setAppNo] = useState('')
@@ -648,15 +1125,82 @@ function CheckStatusPanel({ onSelectSubmission }) {
                   ))}
                 </div>
 
-                <div className="flex justify-end pt-2 border-t border-slate-200">
-                  <button
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
-                    onClick={() => onSelectSubmission?.(appTracking)}
-                    type="button"
-                  >
-                    <FileText size={15} />
-                    <span>View Application Details / விவரங்களை காண்க</span>
-                  </button>
+                {/* Visual Workflow Steps Stepper */}
+                <div className="mt-4 border-t border-slate-200 pt-5 space-y-4">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Application Processing Path / விண்ணப்ப செயலாக்க நிலை
+                  </p>
+                  
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mt-2">
+                    {[
+                      { label: 'Submission', labelTa: 'சமர்ப்பிப்பு', desc: 'Submitted' },
+                      { label: 'Village Level', labelTa: 'கிராம அதிகாரி', desc: 'VAO Verify' },
+                      { label: 'Taluk Level', labelTa: 'தாலுகா அதிகாரி', desc: 'Taluk Review' },
+                      { label: 'District Level', labelTa: 'மாவட்ட அதிகாரி', desc: 'District Approve' },
+                      { label: 'State Level', labelTa: 'மாநில ஒப்புதல்', desc: 'Final Decision' },
+                    ].map((step, idx) => {
+                      let stepState = 'pending' // 'pending' | 'active' | 'completed' | 'correction' | 'rejected'
+                      const status = appTracking.status
+
+                      if (idx === 0) {
+                        stepState = 'completed'
+                      } else if (idx === 1) {
+                        if (status === 'APPROVED') stepState = 'completed'
+                        else if (status === 'REJECTED') stepState = 'rejected'
+                        else if (status === 'NEEDS_CORRECTION') stepState = 'correction'
+                        else if (['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(status)) stepState = 'active'
+                        else stepState = 'completed'
+                      } else if (idx === 2) {
+                        if (status === 'APPROVED') stepState = 'completed'
+                        else if (status === 'REJECTED') stepState = 'rejected'
+                        else if (status === 'FORWARDED_TO_TALUK') stepState = 'active'
+                        else if (['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'NEEDS_CORRECTION'].includes(status)) stepState = 'pending'
+                        else stepState = 'completed'
+                      } else if (idx === 3) {
+                        if (status === 'APPROVED') stepState = 'completed'
+                        else if (status === 'REJECTED') stepState = 'rejected'
+                        else if (status === 'FORWARDED_TO_DISTRICT') stepState = 'active'
+                        else if (['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'NEEDS_CORRECTION', 'FORWARDED_TO_TALUK'].includes(status)) stepState = 'pending'
+                        else stepState = 'completed'
+                      } else if (idx === 4) {
+                        if (status === 'APPROVED') stepState = 'completed'
+                        else if (status === 'REJECTED') stepState = 'rejected'
+                        else stepState = 'pending'
+                      }
+
+                      return (
+                        <div key={step.label} className="flex-1 flex items-center gap-3 md:flex-col md:items-center text-center">
+                          <div className="relative flex flex-col items-center">
+                            {/* Step Circle */}
+                            <div className={`flex size-8 items-center justify-center rounded-full font-bold text-[11px] shadow-2xs border-2 transition-all ${
+                              stepState === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' :
+                              stepState === 'active' ? 'bg-blue-600 border-blue-600 text-white animate-pulse' :
+                              stepState === 'correction' ? 'bg-amber-500 border-amber-500 text-white' :
+                              stepState === 'rejected' ? 'bg-rose-600 border-rose-600 text-white' :
+                              'bg-white border-slate-300 text-slate-400'
+                            }`}>
+                              {stepState === 'completed' ? '✓' : idx + 1}
+                            </div>
+                          </div>
+                          <div className="min-w-0 md:mt-2 md:text-center text-left">
+                            <p className={`text-xs font-extrabold truncate ${stepState === 'pending' ? 'text-slate-400' : 'text-slate-900'}`}>
+                              {step.label}
+                            </p>
+                            <p className="text-[10px] text-slate-500 truncate mt-0.5">{step.labelTa}</p>
+                            <span className={`mt-1 inline-block rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider ${
+                              stepState === 'completed' ? 'bg-emerald-50 text-emerald-700' :
+                              stepState === 'active' ? 'bg-blue-50 text-blue-700' :
+                              stepState === 'correction' ? 'bg-amber-50 text-amber-700' :
+                              stepState === 'rejected' ? 'bg-rose-50 text-rose-700' :
+                              'bg-slate-50 text-slate-400'
+                            }`}>
+                              {stepState}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </>
             ) : (
@@ -1486,9 +2030,33 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             </div>
           }
         />
+
+        {/* Search input for partners / VPP */}
+        <div className="border-b border-slate-200 bg-slate-50/70 p-4">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-9 text-xs font-medium text-slate-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search TNW-xxxx number, applicant name, phone..."
+              type="text"
+              value={searchQuery}
+            />
+            {searchQuery && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                onClick={() => setSearchQuery('')}
+                type="button"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
-          {submissions.length ? (
-            submissions.map((submission) => (
+          {filteredSubmissions.length ? (
+            filteredSubmissions.map((submission) => (
               <div
                 className={`rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
                   viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
@@ -2075,6 +2643,10 @@ export default function DashboardPage() {
             signupRequests={signupRequests}
             submissions={submissions}
           />
+        )}
+
+        {activeTab === 'create-user' && user?.role === 'SUPER_ADMIN' && (
+          <CreateUserPanel user={user} />
         )}
 
         {activeTab === 'profile-image' && (
