@@ -84,6 +84,27 @@ function compressBase64Image(dataUrl, maxWidth = 1000, quality = 0.75) {
   })
 }
 
+function dataUrlToBlob(dataUrl) {
+  const commaIndex = dataUrl.indexOf(',')
+  const meta = commaIndex > -1 ? dataUrl.slice(0, commaIndex) : ''
+  const mime = meta.match(/data:([^;]+)/)?.[1] || 'image/jpeg'
+  const base64 = commaIndex > -1 ? dataUrl.slice(commaIndex + 1) : dataUrl
+  const byteString = atob(base64)
+  const bytes = new Uint8Array(byteString.length)
+  for (let i = 0; i < byteString.length; i += 1) bytes[i] = byteString.charCodeAt(i)
+  return new Blob([bytes], { type: mime })
+}
+
+async function uploadApplicationImage(blob, fileName) {
+  const formData = new FormData()
+  formData.append('file', blob, fileName)
+  const response = await api.post('/applications/uploads/temp', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    showLoader: false,
+  })
+  return response.data?.upload?.path
+}
+
 const workerJobOptions = [
   { value: 'Mason', label: 'கட்டிட மேஸ்திரி / Mason' },
   { value: 'Construction Helper', label: 'கட்டிட உதவியாளர் / Construction Helper' },
@@ -816,6 +837,23 @@ export default function ApplicationFormPage({ formId }) {
       setUploadProgress(25)
       setUploadStageIndex(1)
 
+      // 2. Upload compressed images to temp storage; JSON payload stays tiny (paths only)
+      const imageEntries = Object.entries(compressedPreviews).filter(
+        ([, value]) => value && typeof value === 'string' && value.startsWith('data:')
+      )
+      const uploadedPathEntries = []
+      let uploadedChars = 0
+      const totalChars = imageEntries.reduce((sum, [, value]) => sum + value.length, 0) || 1
+      for (const [key, dataUrl] of imageEntries) {
+        const blob = dataUrlToBlob(dataUrl)
+        const filePath = await uploadApplicationImage(blob, `${key}-${Date.now()}.jpg`)
+        uploadedPathEntries.push([key, filePath])
+        uploadedChars += dataUrl.length
+        setUploadProgress(Math.min(80, Math.round(25 + (uploadedChars * 55) / totalChars)))
+      }
+      setUploadStageIndex(2)
+      setUploadProgress(80)
+
       const payload = {
         formKey: currentKey,
         applicantData: {
@@ -831,7 +869,7 @@ export default function ApplicationFormPage({ formId }) {
           nomineeName: formData.nomineeName,
           customData: formData.customData,
           formTitle: form.tamilTitle || form.title,
-          ...compressedPreviews,
+          ...Object.fromEntries(uploadedPathEntries),
         },
         paymentData: {
           amount: form.fee || 150,
@@ -841,13 +879,13 @@ export default function ApplicationFormPage({ formId }) {
         submit: true,
       }
 
-      // 2. Real Network Transmission Progress via Axios
+      // 3. Real Network Transmission Progress via Axios
       const response = await api.post('/applications/submissions', payload, {
         onUploadProgress: (progressEvent) => {
           const total = progressEvent.total || (progressEvent.loaded ? progressEvent.loaded * 1.05 : 1)
-          const percent = Math.min(95, Math.round(25 + (progressEvent.loaded * 70) / total))
+          const percent = Math.min(95, Math.round(80 + (progressEvent.loaded * 15) / total))
           setUploadProgress(percent)
-          if (percent >= 65) setUploadStageIndex(2)
+          if (percent >= 85) setUploadStageIndex(2)
         },
       })
 
@@ -867,6 +905,11 @@ export default function ApplicationFormPage({ formId }) {
       })
     } catch (error) {
       setUploadModalOpen(false)
+      if (uploadedPathEntries.length) {
+        uploadedPathEntries.forEach(([, filePath]) => {
+          api.delete('/applications/uploads/temp', { data: { path: filePath }, showLoader: false }).catch(() => {})
+        })
+      }
       notify({
         type: 'error',
         title: 'Submission Failed / சமர்ப்பிக்க முடியவில்லை',
