@@ -19,21 +19,21 @@ export default function FormUploadProgressModal({
   const currentStage = stages[currentStageIndex] || stages[0]
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md">
-      <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-3 sm:p-5 backdrop-blur-md">
+      <div className="w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#007cba] ring-8 ring-[#eef8ff]/60">
-              <Upload className="animate-bounce" size={28} />
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#007cba] border-2 border-[#007cba]/20 shadow-xs">
+              <Upload className="animate-bounce" size={24} />
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Live Upload Progress</p>
-              <h2 className="text-xl font-bold text-slate-950 sm:text-2xl">{title}</h2>
-              <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#007cba]">Real-Time Upload Progress</p>
+              <h2 className="text-lg font-extrabold text-slate-950 sm:text-xl truncate">{title}</h2>
+              <p className="mt-0.5 text-xs text-slate-500 truncate">{subtitle}</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#007cba] px-3.5 py-1.5 text-sm font-black text-white shadow-md">
+          <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#007cba] px-3.5 py-1.5 text-sm font-black text-white shadow-sm shrink-0 self-start sm:self-auto">
             <LoaderCircle className="animate-spin" size={16} />
             <span>{Math.min(100, Math.round(progress))}%</span>
           </span>

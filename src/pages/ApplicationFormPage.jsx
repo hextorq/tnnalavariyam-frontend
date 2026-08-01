@@ -57,6 +57,32 @@ const subCasteOptions = [
   { value: 'Other', label: 'பிற உட்பிரிவு / Other' },
 ]
 
+function compressBase64Image(dataUrl, maxWidth = 1000, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) {
+      resolve(dataUrl)
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      let width = img.width
+      let height = img.height
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width)
+        width = maxWidth
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+}
+
 const workerJobOptions = [
   { value: 'Mason', label: 'கட்டிட மேஸ்திரி / Mason' },
   { value: 'Construction Helper', label: 'கட்டிட உதவியாளர் / Construction Helper' },
@@ -770,31 +796,24 @@ export default function ApplicationFormPage({ formId }) {
       .map(([key]) => ({ label: docLabels[key] || key, status: 'uploading' }))
 
     setActiveFileList(attachedFiles)
-    setUploadProgress(15)
+    setUploadProgress(10)
     setUploadStageIndex(0)
     setUploadModalOpen(true)
-
-    let progressTimer = null
 
     try {
       setSubmitting(true)
 
-      // Start live smooth progress timer while server process occurs
-      progressTimer = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev < 45) {
-            setUploadStageIndex(1)
-            return prev + 6
-          } else if (prev < 82) {
-            setUploadStageIndex(2)
-            return prev + 3
-          } else if (prev < 96) {
-            setUploadStageIndex(3)
-            return prev + 1
-          }
-          return prev
+      // 1. Fast parallel image compression
+      const compressedEntries = await Promise.all(
+        Object.entries(previews).map(async ([k, v]) => {
+          if (!v) return [k, '']
+          const compressed = await compressBase64Image(v, 1000, 0.75)
+          return [k, compressed]
         })
-      }, 250)
+      )
+      const compressedPreviews = Object.fromEntries(compressedEntries)
+      setUploadProgress(25)
+      setUploadStageIndex(1)
 
       const payload = {
         formKey: currentKey,
@@ -811,7 +830,7 @@ export default function ApplicationFormPage({ formId }) {
           nomineeName: formData.nomineeName,
           customData: formData.customData,
           formTitle: form.tamilTitle || form.title,
-          ...previews,
+          ...compressedPreviews,
         },
         paymentData: {
           amount: form.fee || 150,
@@ -821,15 +840,22 @@ export default function ApplicationFormPage({ formId }) {
         submit: true,
       }
 
-      const response = await api.post('/applications/submissions', payload)
-      clearInterval(progressTimer)
+      // 2. Real Network Transmission Progress via Axios
+      const response = await api.post('/applications/submissions', payload, {
+        onUploadProgress: (progressEvent) => {
+          const total = progressEvent.total || (progressEvent.loaded ? progressEvent.loaded * 1.05 : 1)
+          const percent = Math.min(95, Math.round(25 + (progressEvent.loaded * 70) / total))
+          setUploadProgress(percent)
+          if (percent >= 65) setUploadStageIndex(2)
+        },
+      })
+
       setUploadProgress(100)
       setUploadStageIndex(3)
 
       const appNo = response.data.submission?.applicationNo || `TNW-${Date.now()}`
       
-      // Keep progress modal visible for 600ms so user wows at 100% completion
-      await new Promise((res) => setTimeout(res, 600))
+      await new Promise((res) => setTimeout(res, 500))
       setUploadModalOpen(false)
       setSubmittedAppNo(appNo)
       
@@ -839,7 +865,6 @@ export default function ApplicationFormPage({ formId }) {
         message: `உங்கள் விண்ணப்ப எண்: ${appNo}`,
       })
     } catch (error) {
-      if (progressTimer) clearInterval(progressTimer)
       setUploadModalOpen(false)
       notify({
         type: 'error',
