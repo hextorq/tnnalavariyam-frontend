@@ -1,16 +1,16 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { FormSkeleton } from '../components/SkeletonLoader.jsx'
 import { applicationForms } from '../data/applicationForms.js'
-import { tamilNaduDistrictOptions } from '../data/signup.js'
+import { bilingualName, tamilNaduDistricts } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
-import SearchableDistrictSelect from '../components/SearchableDistrictSelect.jsx'
+import SearchSelect from '../components/SearchSelect.jsx'
 import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const dobProofOptions = [
   { value: 'voter-id', label: 'வாக்காளர் அட்டை / Voter ID' },
@@ -508,6 +508,17 @@ export default function ApplicationFormPage({ formId }) {
     customData: {},
   })
 
+  const districtOptions = useMemo(
+    () => tamilNaduDistricts.map((district) => ({ value: district.code, label: bilingualName(district) })),
+    []
+  )
+  const [districtCode, setDistrictCode] = useState('')
+  const handleDistrictChange = (code) => {
+    setDistrictCode(code)
+    const district = tamilNaduDistricts.find((item) => item.code === code)
+    handleInputChange('district', district?.name || '')
+  }
+
   const [previews, setPreviews] = useState({
     photo: '',
     dobDocument: '',
@@ -521,8 +532,7 @@ export default function ApplicationFormPage({ formId }) {
     signature: '',
     livePhoto: '',
     paymentScreenshot: '',
-    childAadhar: '',
-    bonafide: '',
+    childAadhar: '',    bonafide: '',
     markSheet: '',
   })
 
@@ -1003,11 +1013,18 @@ export default function ApplicationFormPage({ formId }) {
 
               {/* Text & Dropdown Inputs Group 2 */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SearchableDistrictSelect
-                  onChange={(val) => handleInputChange('district', val)}
-                  required
-                  value={formData.district}
-                />
+                <label className="flex flex-col justify-start gap-2">
+                  <span className="text-sm font-semibold text-neutral-700">
+                    மாவட்டம் / District
+                    <span className="ml-1 text-red-600" aria-label="required">*</span>
+                  </span>
+                  <SearchSelect
+                    onChange={handleDistrictChange}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={districtCode}
+                  />
+                </label>
 
                 <Field
                   max={todayStr}
@@ -1388,11 +1405,18 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               <div className="grid gap-5 md:grid-cols-1 items-start">
-                <SearchableDistrictSelect
-                  onChange={(val) => handleInputChange('district', val)}
-                  required
-                  value={formData.district}
-                />
+                <label className="flex flex-col justify-start gap-2">
+                  <span className="text-sm font-semibold text-neutral-700">
+                    மாவட்டம் / District
+                    <span className="ml-1 text-red-600" aria-label="required">*</span>
+                  </span>
+                  <SearchSelect
+                    onChange={handleDistrictChange}
+                    options={districtOptions}
+                    placeholder="மாவட்டம் தேடவும் / Search district"
+                    value={districtCode}
+                  />
+                </label>
               </div>
 
               <div className="mt-6 pt-6 border-t border-slate-200">
