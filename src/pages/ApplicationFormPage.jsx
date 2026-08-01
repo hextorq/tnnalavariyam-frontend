@@ -8,6 +8,7 @@ import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
+import SearchableDistrictSelect from '../components/SearchableDistrictSelect.jsx'
 import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -953,14 +954,11 @@ export default function ApplicationFormPage({ formId }) {
 
               {/* Text & Dropdown Inputs Group 2 */}
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistrictOptions}
+                <SearchableDistrictSelect
+                  onChange={(val) => handleInputChange('district', val)}
                   required
                   value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
+                />
 
                 <Field
                   max={todayStr}
@@ -1341,14 +1339,11 @@ export default function ApplicationFormPage({ formId }) {
               </div>
 
               <div className="grid gap-5 md:grid-cols-1 items-start">
-                <SelectField
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  options={tamilNaduDistrictOptions}
+                <SearchableDistrictSelect
+                  onChange={(val) => handleInputChange('district', val)}
                   required
                   value={formData.district}
-                >
-                  District / மாவட்டம்
-                </SelectField>
+                />
               </div>
 
               <div className="mt-6 pt-6 border-t border-slate-200">
