@@ -1777,12 +1777,36 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
 function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
 
+  const timeStats = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - today.getDay())
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const startOfYear = new Date(today.getFullYear(), 0, 1)
+
+    let todayCount = 0
+    let weekCount = 0
+    let monthCount = 0
+    let yearCount = 0
+
+    submissions.forEach((sub) => {
+      const d = new Date(sub.createdAt || sub.submittedAt || Date.now())
+      if (d >= today) todayCount++
+      if (d >= startOfWeek) weekCount++
+      if (d >= startOfMonth) monthCount++
+      if (d >= startOfYear) yearCount++
+    })
+    return { todayCount, weekCount, monthCount, yearCount }
+  }, [submissions])
+
   const stats = useMemo(() => {
+    let baseStats = []
     if (isAdmin) {
       const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
-      return [
+      baseStats = [
         ['Pending Signups', pendingRequests.length, Users, 'amber', 'Requires Review'],
         ['Applications to Review', pendingReview, Activity, 'blue', 'Action Needed'],
         ['Returned Applications', returned, ClipboardCheck, 'rose', 'Needs Fix'],
@@ -1792,14 +1816,22 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
       const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
-      return [
+      baseStats = [
         ['My Applications', submissions.length, FileText, 'blue', 'Total Submitted'],
         ['In Progress', inProgress, Activity, 'amber', 'Under Review'],
         ['Needs Correction', needsCorrection, ClipboardCheck, 'rose', 'Action Required'],
         ['Approved Applications', approved, BadgeCheck, 'green', 'Verified'],
       ]
     }
-  }, [isAdmin, pendingRequests.length, submissions])
+
+    return [
+      ...baseStats,
+      ['Today\'s Applications', timeStats.todayCount, Activity, 'blue', 'Today'],
+      ['This Week', timeStats.weekCount, Layers3, 'amber', 'This Week'],
+      ['This Month', timeStats.monthCount, FileText, 'rose', 'This Month'],
+      ['This Year', timeStats.yearCount, History, 'green', 'This Year'],
+    ]
+  }, [isAdmin, pendingRequests.length, submissions, timeStats])
 
   return (
     <div className="grid w-full gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
