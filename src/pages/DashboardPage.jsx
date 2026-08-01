@@ -1186,6 +1186,7 @@ function CheckStatusPanel({ onSelectSubmission }) {
                       } else if (idx === 4) {
                         if (status === 'APPROVED') stepState = 'completed'
                         else if (status === 'REJECTED') stepState = 'rejected'
+                        else if (status === 'FORWARDED_TO_STATE') stepState = 'active'
                         else stepState = 'pending'
                       }
 
@@ -1537,7 +1538,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
         <div className="overflow-y-auto p-4 pt-4 sm:p-7 sm:pt-5 space-y-6">
 
           {/* Action Required Banner for Officer */}
-          {['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status) && (
+          {['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status) && (
             <div className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 border border-amber-200 text-amber-900">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-bold">
                 !
@@ -1827,7 +1828,7 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
   const stats = useMemo(() => {
     let baseStats = []
     if (isAdmin) {
-      const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)).length
+      const pendingReview = submissions.filter((submission) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status)).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
       baseStats = [
@@ -2873,14 +2874,15 @@ export default function DashboardPage() {
 
   const reviewApplication = useCallback(async (submission, status, reason = '') => {
     try {
-      await api.patch(`/applications/submissions/${submission.id}/review`, {
+      const response = await api.patch(`/applications/submissions/${submission.id}/review`, {
         status,
         reason,
       })
+      const resolvedStatus = response.data?.submission?.status || status
       notify({
         type: 'success',
         title: 'Application Updated',
-        message: `Application ${submission.applicationNo} updated to ${status}.`,
+        message: `Application ${submission.applicationNo} updated to ${resolvedStatus}.`,
       })
       loadDashboard()
     } catch (error) {
