@@ -125,6 +125,24 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
       iconBox: 'bg-gradient-to-br from-slate-400 to-slate-500 text-white shadow-md shadow-slate-400/25',
       badge: 'bg-slate-100 text-slate-700 ring-slate-200/80',
     },
+    cyan: {
+      cardBorder: 'hover:border-cyan-500/50',
+      gradientTop: 'bg-gradient-to-r from-cyan-400 via-cyan-500 to-sky-500',
+      iconBox: 'bg-gradient-to-br from-cyan-400 to-cyan-500 text-white shadow-md shadow-cyan-500/25',
+      badge: 'bg-cyan-50 text-cyan-700 ring-cyan-200/80',
+    },
+    indigo: {
+      cardBorder: 'hover:border-indigo-500/50',
+      gradientTop: 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500',
+      iconBox: 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25',
+      badge: 'bg-indigo-50 text-indigo-700 ring-indigo-200/80',
+    },
+    violet: {
+      cardBorder: 'hover:border-violet-500/50',
+      gradientTop: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500',
+      iconBox: 'bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/25',
+      badge: 'bg-violet-50 text-violet-700 ring-violet-200/80',
+    },
   }
 
   const t = tones[tone] || tones.blue
@@ -1832,10 +1850,10 @@ function MetricCardsBar({ isAdmin, loading, signupRequests, submissions }) {
 
     return [
       ...baseStats,
-      ['Today\'s Applications', timeStats.todayCount, Activity, 'slate', 'Today'],
-      ['This Week', timeStats.weekCount, Layers3, 'slate', 'This Week'],
-      ['This Month', timeStats.monthCount, FileText, 'slate', 'This Month'],
-      ['This Year', timeStats.yearCount, History, 'slate', 'This Year'],
+      ['Today\'s Applications', timeStats.todayCount, Activity, 'cyan', 'Today'],
+      ['This Week', timeStats.weekCount, Layers3, 'blue', 'This Week'],
+      ['This Month', timeStats.monthCount, FileText, 'indigo', 'This Month'],
+      ['This Year', timeStats.yearCount, History, 'violet', 'This Year'],
     ]
   }, [isAdmin, pendingRequests.length, submissions, timeStats])
 
