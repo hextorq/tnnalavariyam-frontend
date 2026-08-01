@@ -1381,6 +1381,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [signupTab, setSignupTab] = useState('pending')
   const [appFilter, setAppFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState('list')
   const { notify } = useNotifications()
   const [appPage, setAppPage] = useState(1)
   const ITEMS_PER_PAGE = 5
@@ -1463,38 +1464,90 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   if (!isAdmin) {
     return (
       <Panel>
-        <PanelHeader eyebrow="Work Panel" title="All My Submitted Applications" />
-        <div className="grid gap-3 p-4 sm:p-5">
+        <PanelHeader
+          eyebrow="Work Panel"
+          title="All My Submitted Applications"
+          action={
+            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+              <button
+                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setViewMode('list')}
+                type="button"
+              >
+                List / பட்டியல்
+              </button>
+              <button
+                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setViewMode('grid')}
+                type="button"
+              >
+                Grid / கட்டம்
+              </button>
+            </div>
+          }
+        />
+        <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
           {submissions.length ? (
             submissions.map((submission) => (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:border-[#007cba] hover:shadow-md" key={submission.id}>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{submission.geoUnit?.name || '-'}</p>
-                      {submission.currentReviewReason && (
-                        <p className="mt-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs font-semibold text-rose-800">
-                          {submission.currentReviewReason}
-                        </p>
-                      )}
-                      <p className="mt-1 text-xs text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+              <div
+                className={`rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
+                  viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
+                }`}
+                key={submission.id}
+              >
+                {viewMode === 'list' ? (
+                  // Tighter, aligned horizontal List item layout
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2.5">
+                        <p className="break-all font-bold text-slate-950 text-sm">{submission.applicationNo}</p>
+                        <StatusPill status={submission.status} />
+                      </div>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">
+                        {submission.geoUnit?.name || '-'} • Updated: {formatDate(submission.updatedAt)}
+                      </p>
                     </div>
-                    <StatusPill status={submission.status} />
-                  </div>
 
-                  <div className="mt-1 pt-2.5 border-t border-slate-100 flex justify-end">
                     <button
-                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#007cba] px-4 py-2 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]"
                       onClick={() => onSelectSubmission?.(submission)}
                       type="button"
                     >
-                      <FileText className="shrink-0" size={15} />
-                      <span>View Application / விவரங்களை காண்க</span>
+                      <FileText className="shrink-0" size={13} />
+                      <span>View Details / காண்க</span>
                     </button>
                   </div>
-                </div>
+                ) : (
+                  // Elegant vertical Grid item layout
+                  <div className="flex flex-col justify-between h-full gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="break-all font-bold text-slate-950 text-sm">{submission.applicationNo}</p>
+                        <StatusPill status={submission.status} />
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">{submission.geoUnit?.name || '-'}</p>
+                      {submission.currentReviewReason && (
+                        <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50 p-2 text-[10px] font-semibold text-rose-800 line-clamp-2">
+                          {submission.currentReviewReason}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3 flex flex-col gap-2">
+                      <p className="text-[10px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+                      <button
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#007cba] py-2 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]"
+                        onClick={() => onSelectSubmission?.(submission)}
+                        type="button"
+                      >
+                        <FileText className="shrink-0" size={14} />
+                        <span>View Details / விவரங்களை காண்க</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           ) : (
