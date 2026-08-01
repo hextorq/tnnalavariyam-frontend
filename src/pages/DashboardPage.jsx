@@ -1680,21 +1680,21 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
 
             {/* Check Payment Checkbox */}
             {onReview && (submission.paymentAmount || submission.paymentReference) && (
-              <div className="mt-3 rounded-xl border border-emerald-300 bg-white p-3.5 shadow-2xs">
-                <label className="flex items-start gap-3 cursor-pointer">
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-xs transition-colors hover:border-[#007cba]/30">
+                <label className="flex items-start gap-3 cursor-pointer group">
                   <input
                     checked={paymentVerified}
-                    className="mt-0.5 size-5 shrink-0 accent-emerald-600 rounded"
+                    className="mt-0.5 size-5 shrink-0 rounded border-slate-300 accent-[#007cba] cursor-pointer"
                     onChange={(e) => setPaymentVerified(e.target.checked)}
                     type="checkbox"
                   />
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-[#007cba] transition">
                       Verify UPI Payment Details / கட்டண விவரங்களை சரிபார்த்தேன்
                     </span>
-                    <span className="text-[11px] text-slate-600">
-                      Check that the UPI Transaction ID ({submission.paymentReference || 'UTR'}) matches the payment receipt image before approving this application.
-                    </span>
+                    <p className="mt-1 text-xs font-medium text-slate-500 leading-relaxed">
+                      Confirm that the UPI Transaction ID <strong className="text-slate-800">({submission.paymentReference || 'UTR'})</strong> matches the uploaded payment receipt image before approving this application.
+                    </p>
                   </div>
                 </label>
               </div>
@@ -1703,61 +1703,64 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
 
           {/* Officer Verification & Forwarding Controls */}
           {onReview && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-6 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-amber-200 pb-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
-                  <Activity size={16} />
-                  Officer Verification & Decision Controls / அதிகாரியின் மதிப்பீட்டு முடிவு
-                </p>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold text-amber-800 border border-amber-300">
-                  Officer Action Required
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 space-y-5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <h3 className="text-sm font-bold tracking-wide text-slate-800 flex items-center gap-2">
+                  <Activity className="text-[#007cba]" size={18} />
+                  Officer Decision Controls / அதிகாரியின் முடிவு
+                </h3>
+                <span className="rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+                  Action Required
                 </span>
               </div>
 
-              <label className="grid gap-2 text-sm font-semibold text-slate-800">
+              <label className="grid gap-2 text-sm font-semibold text-slate-700">
                 <span>Review Remarks / Reason for Return or Rejection (குறிப்புகள்)</span>
                 <textarea
-                  className="rounded-xl border border-slate-300 bg-white p-3 outline-none focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20 text-sm font-normal"
+                  className="min-h-[80px] w-full rounded-xl border border-slate-300 bg-slate-50 p-3 outline-none focus:border-[#007cba] focus:bg-white focus:ring-2 focus:ring-[#007cba]/20 text-sm font-normal transition-all"
                   onChange={(e) => setReviewReason(e.target.value)}
-                  placeholder="Enter officer remarks or reason if returning/rejecting..."
+                  placeholder="Enter remarks required if returning or rejecting..."
                   rows={2}
                   value={reviewReason}
                 />
               </label>
 
-              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <button
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs"
+                    disabled={submitting}
+                    onClick={() => handleAction('UNDER_REVIEW')}
+                    type="button"
+                  >
+                    <span>Start Review / மதிப்பாய்வு</span>
+                  </button>
+                  <button
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition shadow-2xs disabled:opacity-50"
+                    disabled={submitting}
+                    onClick={() => handleAction('NEEDS_CORRECTION')}
+                    type="button"
+                  >
+                    <span>Return / திருத்தம்</span>
+                  </button>
+                  <button
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-2xs disabled:opacity-50"
+                    disabled={submitting}
+                    onClick={() => handleAction('REJECTED')}
+                    type="button"
+                  >
+                    <span>Reject / நிராகரிப்பு</span>
+                  </button>
+                </div>
+                
                 <button
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-2xs"
-                  disabled={submitting}
-                  onClick={() => handleAction('UNDER_REVIEW')}
-                  type="button"
-                >
-                  <span>Start Review / மதிப்பாய்வு</span>
-                </button>
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-600 transition disabled:opacity-50"
-                  disabled={submitting}
-                  onClick={() => handleAction('NEEDS_CORRECTION')}
-                  type="button"
-                >
-                  <span>Return for Correction / திருத்தம்</span>
-                </button>
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-700 transition disabled:opacity-50"
-                  disabled={submitting}
-                  onClick={() => handleAction('REJECTED')}
-                  type="button"
-                >
-                  <span>Reject / நிராகரிப்பு</span>
-                </button>
-                <button
-                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition disabled:opacity-50"
                   disabled={submitting}
                   onClick={() => handleAction('APPROVED')}
                   type="button"
                 >
                   <CheckCircle2 size={16} />
-                  <span>Verify Payment & Approve to Next Level / அடுத்த நிலைக்கு அனுப்புக</span>
+                  <span>Approve Application / அங்கீகரிப்பு</span>
                 </button>
               </div>
             </div>
