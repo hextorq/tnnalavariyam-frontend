@@ -836,15 +836,56 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
   const [lightboxImg, setLightboxImg] = useState(null)
   const { notify } = useNotifications()
 
-  if (!submission) return null
-  const applicantData = submission.applicantData || {}
-  const customData = applicantData.customData || {}
+  const rawApplicantData = useMemo(() => {
+    if (!submission?.applicantData) return {}
+    if (typeof submission.applicantData === 'string') {
+      try {
+        return JSON.parse(submission.applicantData)
+      } catch {
+        return {}
+      }
+    }
+    return submission.applicantData
+  }, [submission])
 
-  // Collect all uploaded image/file entries
-  const uploadedDocs = Object.entries(applicantData).filter(([key, val]) => {
-    if (!val || typeof val !== 'string') return false
-    return val.startsWith('data:image/') || val.startsWith('http') || val.startsWith('blob:')
-  })
+  const customData = useMemo(() => {
+    const cd = rawApplicantData.customData || submission?.customData
+    if (typeof cd === 'string') {
+      try {
+        return JSON.parse(cd)
+      } catch {
+        return {}
+      }
+    }
+    return cd || {}
+  }, [rawApplicantData, submission])
+
+  // Collect all uploaded image/file entries from rawApplicantData, customData & paymentData
+  const uploadedDocs = useMemo(() => {
+    const entries = []
+    const sources = [rawApplicantData, customData, submission?.paymentData || {}]
+
+    sources.forEach((source) => {
+      if (!source || typeof source !== 'object') return
+      Object.entries(source).forEach(([key, val]) => {
+        if (!val || typeof val !== 'string') return
+        const isFileUrl =
+          val.startsWith('data:') ||
+          val.startsWith('http') ||
+          val.startsWith('blob:') ||
+          /\.(jpg|jpeg|png|webp|gif|pdf)$/i.test(val)
+
+        if (isFileUrl) {
+          if (!entries.some(([k]) => k === key)) {
+            entries.push([key, val])
+          }
+        }
+      })
+    })
+    return entries
+  }, [rawApplicantData, customData, submission])
+
+  if (!submission) return null
 
   async function handleAction(nextStatus) {
     if ((nextStatus === 'REJECTED' || nextStatus === 'NEEDS_CORRECTION') && !reviewReason.trim()) {
@@ -867,6 +908,10 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
       setSubmitting(false)
     }
   }
+
+  const workerName = rawApplicantData.workerName || submission.applicantName || submission.user?.firstName || '-'
+  const phone = rawApplicantData.phone || submission.user?.phone || '-'
+  const district = rawApplicantData.district || submission.geoUnit?.name || '-'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-sm">
@@ -916,37 +961,53 @@ function SubmissionDetailsModal({ onClose, onReview, submission }) {
               Applicant Worker Information / தொழிலாளி விவரங்கள்
             </h3>
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              <SignupDetailRow label="Worker Name / தொழிலாளி பெயர்" value={applicantData.workerName || submission.applicantName} />
-              <SignupDetailRow label="Mobile Number / அலைபேசி எண்" value={applicantData.phone || submission.user?.phone} />
-              <SignupDetailRow label="District / மாவட்டம்" value={applicantData.district || submission.geoUnit?.name} />
-              <SignupDetailRow label="Date of Birth / பிறந்த தேதி" value={applicantData.dob} />
-              <SignupDetailRow label="DOB Proof Document / ஆவண வகை" value={applicantData.dobProofType} />
-              <SignupDetailRow label="Religion / மதம்" value={applicantData.religion} />
-              <SignupDetailRow label="Caste / சாதி பிரிவு" value={applicantData.caste} />
-              <SignupDetailRow label="Sub-Caste / உட்பிரிவு" value={applicantData.subCaste} />
-              <SignupDetailRow label="Worker Job / தொழிலாளியின் வேலை" value={applicantData.workerJob} />
-              <SignupDetailRow label="Nominee Name / நாமினி பெயர்" value={applicantData.nomineeName} />
+              <SignupDetailRow label="Worker Name / தொழிலாளி பெயர்" value={workerName} />
+              <SignupDetailRow label="Mobile Number / அலைபேசி எண்" value={phone} />
+              <SignupDetailRow label="District / மாவட்டம்" value={district} />
+              {rawApplicantData.dob && <SignupDetailRow label="Date of Birth / பிறந்த தேதி" value={rawApplicantData.dob} />}
+              {rawApplicantData.dobProofType && <SignupDetailRow label="DOB Proof Document / ஆவண வகை" value={rawApplicantData.dobProofType} />}
+              {rawApplicantData.religion && <SignupDetailRow label="Religion / மதம்" value={rawApplicantData.religion} />}
+              {rawApplicantData.caste && <SignupDetailRow label="Caste / சாதி பிரிவு" value={rawApplicantData.caste} />}
+              {rawApplicantData.subCaste && <SignupDetailRow label="Sub-Caste / உட்பிரிவு" value={rawApplicantData.subCaste} />}
+              {rawApplicantData.workerJob && <SignupDetailRow label="Worker Job / தொழிலாளியின் வேலை" value={rawApplicantData.workerJob} />}
+              {rawApplicantData.nomineeName && <SignupDetailRow label="Nominee Name / நாமினி பெயர்" value={rawApplicantData.nomineeName} />}
               <SignupDetailRow label="Submitted On / சமர்ப்பித்த தேதி" value={formatDate(submission.submittedAt || submission.createdAt)} />
               <SignupDetailRow label="Application Status" value={submission.status} />
             </div>
           </div>
 
-          {/* Scheme / Custom Details Section if present */}
-          {Object.keys(customData).length > 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+          {/* Scheme & Child Details Cards Grid for Education & Benefit Forms */}
+          {(Object.keys(customData).length > 0 || rawApplicantData.childName) && (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-4 sm:p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#007cba] mb-3 flex items-center gap-2">
                 <FileText size={16} />
                 Scheme & Child Specific Details / உதவித்தொகை மற்றும் குழந்தையின் விவரங்கள்
               </h3>
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {customData.childName && <SignupDetailRow label="Child's Name / குழந்தையின் பெயர்" value={customData.childName} />}
-                {customData.standard && <SignupDetailRow label="Standard / வகுப்பு" value={`${customData.standard}th Standard`} />}
-                {customData.examPassed && <SignupDetailRow label="Examination Passed / தேர்ச்சி" value={`${customData.examPassed}th Pass`} />}
-                {customData.courseType && <SignupDetailRow label="Course Type / படிப்பு வகை" value={customData.courseType} />}
-                {customData.courseName && <SignupDetailRow label="Course Name / பாடத்தின் பெயர்" value={customData.courseName} />}
-                {customData.courseDuration && <SignupDetailRow label="Duration / கால அளவு" value={`${customData.courseDuration} Years`} />}
-                {customData.applyingYear && <SignupDetailRow label="Applying Year / விண்ணப்பிக்கும் ஆண்டு" value={`Year ${customData.applyingYear}`} />}
-                {customData.academicYear && <SignupDetailRow label="Academic Year / கல்வி ஆண்டு" value={customData.academicYear} />}
+                {(customData.childName || rawApplicantData.childName) && (
+                  <SignupDetailRow label="Child's Name / குழந்தையின் பெயர்" value={customData.childName || rawApplicantData.childName} />
+                )}
+                {(customData.standard || rawApplicantData.standard) && (
+                  <SignupDetailRow label="Standard / வகுப்பு" value={`${customData.standard || rawApplicantData.standard}th Standard`} />
+                )}
+                {(customData.examPassed || rawApplicantData.examPassed) && (
+                  <SignupDetailRow label="Examination Passed / தேர்ச்சி" value={`${customData.examPassed || rawApplicantData.examPassed}th Pass`} />
+                )}
+                {(customData.courseType || rawApplicantData.courseType) && (
+                  <SignupDetailRow label="Course Type / படிப்பு வகை" value={customData.courseType || rawApplicantData.courseType} />
+                )}
+                {(customData.courseName || rawApplicantData.courseName) && (
+                  <SignupDetailRow label="Course Name / பாடத்தின் பெயர்" value={customData.courseName || rawApplicantData.courseName} />
+                )}
+                {(customData.courseDuration || rawApplicantData.courseDuration) && (
+                  <SignupDetailRow label="Duration / கால அளவு" value={`${customData.courseDuration || rawApplicantData.courseDuration} Years`} />
+                )}
+                {(customData.applyingYear || rawApplicantData.applyingYear) && (
+                  <SignupDetailRow label="Applying Year / விண்ணப்பிக்கும் ஆண்டு" value={`Year ${customData.applyingYear || rawApplicantData.applyingYear}`} />
+                )}
+                {(customData.academicYear || rawApplicantData.academicYear) && (
+                  <SignupDetailRow label="Academic Year / கல்வி ஆண்டு" value={customData.academicYear || rawApplicantData.academicYear} />
+                )}
               </div>
             </div>
           )}
@@ -1404,22 +1465,39 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       <Panel>
         <PanelHeader eyebrow="Work Panel" title="All My Submitted Applications" />
         <div className="grid gap-3 p-4 sm:p-5">
-          {submissions.length ? submissions.map((submission) => (
-            <div className="rounded-xl border border-slate-200 p-4" key={submission.id}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                  <p className="mt-1 text-sm text-slate-600">{submission.geoUnit?.name || '-'}</p>
-                  {submission.currentReviewReason && (
-                    <p className="mt-2 border-l-4 border-red-500 bg-red-50 p-2 text-sm font-semibold text-red-800">{submission.currentReviewReason}</p>
-                  )}
-                  <p className="mt-1 text-xs text-slate-500">{formatDate(submission.updatedAt)}</p>
+          {submissions.length ? (
+            submissions.map((submission) => (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:border-[#007cba] hover:shadow-md" key={submission.id}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{submission.geoUnit?.name || '-'}</p>
+                      {submission.currentReviewReason && (
+                        <p className="mt-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs font-semibold text-rose-800">
+                          {submission.currentReviewReason}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+                    </div>
+                    <StatusPill status={submission.status} />
+                  </div>
+
+                  <div className="mt-1 pt-2.5 border-t border-slate-100 flex justify-end">
+                    <button
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#007cba] px-5 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                      onClick={() => onSelectSubmission?.(submission)}
+                      type="button"
+                    >
+                      <FileText className="shrink-0" size={15} />
+                      <span>View Application / விவரங்களை காண்க</span>
+                    </button>
+                  </div>
                 </div>
-                <StatusPill status={submission.status} />
               </div>
-            </div>
-          )) : (
+            ))
+          ) : (
             <EmptyState>No applications submitted yet.</EmptyState>
           )}
         </div>
