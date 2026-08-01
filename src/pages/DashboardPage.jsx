@@ -2088,8 +2088,10 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
   const historyRequests = useMemo(() => signupRequests.filter((item) => item.status !== 'PENDING'), [signupRequests])
 
+  const pendingActionStatuses = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE']
+
   const mySubmissionsCount = useMemo(() => submissions.filter((s) => s.userId === currentUserId || s.user?.id === currentUserId).length, [submissions, currentUserId])
-  const underReviewCount = useMemo(() => submissions.filter((s) => ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(s.status)).length, [submissions])
+  const underReviewCount = useMemo(() => submissions.filter((s) => pendingActionStatuses.includes(s.status)).length, [submissions])
   const needsCorrectionCount = useMemo(() => submissions.filter((s) => s.status === 'NEEDS_CORRECTION').length, [submissions])
   const approvedCount = useMemo(() => submissions.filter((s) => s.status === 'APPROVED').length, [submissions])
   const rejectedCount = useMemo(() => submissions.filter((s) => s.status === 'REJECTED').length, [submissions])
@@ -2097,7 +2099,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const filteredSubmissions = useMemo(() => {
     return submissions.filter((sub) => {
       if (appFilter === 'MY_SUBMISSIONS' && sub.userId !== currentUserId && sub.user?.id !== currentUserId) return false
-      if (appFilter === 'UNDER_REVIEW' && !['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(sub.status)) return false
+      if (appFilter === 'UNDER_REVIEW' && !pendingActionStatuses.includes(sub.status)) return false
       if (appFilter === 'NEEDS_CORRECTION' && sub.status !== 'NEEDS_CORRECTION') return false
       if (appFilter === 'APPROVED' && sub.status !== 'APPROVED') return false
       if (appFilter === 'REJECTED' && sub.status !== 'REJECTED') return false
@@ -2692,7 +2694,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
 
         <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
           {paginatedSubmissions.length ? paginatedSubmissions.map((submission) => {
-            const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)
+            const isPendingAction = pendingActionStatuses.includes(submission.status)
             const isSubmittedByMe = submission.userId === currentUserId || submission.user?.id === currentUserId
             return (
               <div className={`rounded-2xl border transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white shadow-2xs hover:border-[#007cba] hover:shadow-md'} ${
