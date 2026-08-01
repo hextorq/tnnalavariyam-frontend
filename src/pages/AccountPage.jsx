@@ -230,9 +230,9 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
   }
 
   return (
-    <div className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
-      <span className="block lg:min-h-10"><FieldLabel required={required}>{label}</FieldLabel></span>
-      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
+    <div className="flex flex-col justify-between h-full gap-2 text-sm font-semibold text-neutral-700">
+      <span className="block"><FieldLabel required={required}>{label}</FieldLabel></span>
+      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900 min-h-11">
         <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
         <span>JPEG (.jpg, .jpeg) or PNG (.png) images only. Maximum file size 2 MB.</span>
       </div>
@@ -244,7 +244,7 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
         required={required && !file}
         type="file"
       />
-      <div className="overflow-hidden border border-neutral-300 bg-neutral-50">
+      <div className="overflow-hidden border border-neutral-300 bg-neutral-50 mt-auto">
         {file ? (
           <>
             <div className="flex flex-col gap-3 border-b border-neutral-200 bg-white p-3 sm:flex-row sm:items-start sm:justify-between">
@@ -800,7 +800,7 @@ export default function AccountPage({ mode }) {
                 <FieldLabel required>பங்கு / Requested Role</FieldLabel>
                 <SearchSelect onChange={(value) => updateSignupField('requestedRole', value)} options={roleOptions} placeholder="பங்கு தேடவும் / Search role" value={signupForm.requestedRole} />
               </label>
-              <div className="grid items-start gap-4 md:grid-cols-3">
+              <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>மாநிலம் / State</FieldLabel>
                   <input className={`${inputClass} disabled:bg-neutral-100`} disabled value={bilingualName(tamilNaduState)} />
@@ -863,7 +863,7 @@ export default function AccountPage({ mode }) {
             </FormSection>
 
             <FormSection title="ஆவணங்கள் / Documents">
-              <div className="grid items-start gap-4 md:grid-cols-3">
+              <div className="grid items-start gap-4 md:grid-cols-2">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>அடையாள ஆவணம் / ID Proof Type</FieldLabel>
                   <SearchSelect onChange={(value) => updateSignupField('idProofType', value)} options={proofOptions} placeholder="அடையாள ஆவணம் தேடவும் / Search ID proof" value={signupForm.idProofType} />
@@ -873,7 +873,7 @@ export default function AccountPage({ mode }) {
                   <input className={inputClass} inputMode="numeric" maxLength={20} onChange={(event) => updateSignupField('idProofNumber', event.target.value.replace(/\D/g, '').slice(0, 20))} placeholder="ID Proof Number" value={signupForm.idProofNumber} />
                 </label>
               </div>
-              <div className="grid items-start gap-4 lg:grid-cols-2">
+              <div className="grid items-stretch gap-4 md:grid-cols-2">
                 <DocumentUpload file={signupForm.photo} label="பாஸ்போர்ட் அளவு புகைப்படம் / Passport Size Photo" onChange={(file, error) => handleSignupFileChange('photo', file, error)} required uploadConfig={passportConfig} />
                 <DocumentUpload file={signupForm.idProof} label="அடையாள ஆவண படம் / ID Proof Image or Document" onChange={(file, error) => handleSignupFileChange('idProof', file, error)} required uploadConfig={documentConfig} />
               </div>
