@@ -1742,7 +1742,11 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
                   <Activity className="text-[#007cba]" size={18} />
                   Officer Decision Controls / அதிகாரியின் முடிவு
                 </h3>
-                <span className="rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-800 ring-1 ring-amber-300/50 shadow-sm">
+                  <span className="relative flex size-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex size-1.5 rounded-full bg-amber-500"></span>
+                  </span>
                   {submission.status === 'UNDER_REVIEW' ? 'Review in Progress' : 'Action Required'}
                 </span>
               </div>
@@ -2701,7 +2705,11 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
                           {isPendingAction && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300/50 shadow-sm">
+                              <span className="relative flex size-1.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex size-1.5 rounded-full bg-amber-500"></span>
+                              </span>
                               Action Required
                             </span>
                           )}
@@ -2732,7 +2740,11 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                         <div className="min-w-0 flex-1">
                           <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
                           {isPendingAction && (
-                            <span className="inline-block mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
+                            <span className="inline-flex mt-1 items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300/50 shadow-sm">
+                              <span className="relative flex size-1.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex size-1.5 rounded-full bg-amber-500"></span>
+                              </span>
                               Action Required
                             </span>
                           )}
