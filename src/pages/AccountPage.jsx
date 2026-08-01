@@ -1,4 +1,5 @@
 import Button from '../components/Button.jsx'
+import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
@@ -933,7 +934,26 @@ export default function AccountPage({ mode }) {
           </>
         )}
         {mode === 'register' && (
-          <SignupUploadManager idProof={signupForm.idProof} phase={uploadPhase} photo={signupForm.photo} progress={uploadProgress} />
+          <>
+            <SignupUploadManager idProof={signupForm.idProof} phase={uploadPhase} photo={signupForm.photo} progress={uploadProgress} />
+            <FormUploadProgressModal
+              currentStageIndex={uploadPhase === 'checking' ? 0 : uploadPhase === 'uploading' ? 1 : uploadPhase === 'processing' ? 2 : 0}
+              isOpen={submitting && Boolean(uploadPhase)}
+              progress={uploadPhase === 'checking' ? 15 : uploadPhase === 'uploading' ? Math.max(25, uploadProgress) : 95}
+              stages={[
+                { title: 'Validating Username, Email & Phone Availability', tamil: 'விவரங்கள் சரிபார்க்கப்படுகிறது' },
+                { title: 'Uploading Passport Photo & ID Proof Documents', tamil: 'சான்றுகள் பதிவேற்றப்படுகிறது' },
+                { title: 'Routing Request to Administrative Officers Queue', tamil: 'அதிகார வரம்பிற்கு அனுப்பப்படுகிறது' },
+                { title: 'Registration Complete! Request Number Generated', tamil: 'பதிவு எண் உருவாக்கப்பட்டது' },
+              ]}
+              subtitle={`Role: ${signupForm.requestedRole} • District: ${selectedDistrict?.name || '-'}`}
+              title="Signup Request Submission / பயனர் பதிவு"
+              uploadedFiles={[
+                signupForm.photo && { label: `Passport Photo: ${signupForm.photo.name}`, status: uploadProgress >= 50 ? 'completed' : 'uploading' },
+                signupForm.idProof && { label: `ID Proof Document: ${signupForm.idProof.name}`, status: uploadProgress >= 90 ? 'completed' : 'uploading' },
+              ].filter(Boolean)}
+            />
+          </>
         )}
         <Button disabled={submitting} type="submit">{submitting ? 'Submitting...' : title}</Button>
         {mode === 'login' && (

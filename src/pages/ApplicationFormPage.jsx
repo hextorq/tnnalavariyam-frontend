@@ -7,6 +7,7 @@ import { isAuthenticated } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
+import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
 import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -481,6 +482,12 @@ export default function ApplicationFormPage({ formId }) {
   const [submittedAppNo, setSubmittedAppNo] = useState('')
   const [loading, setLoading] = useState(true)
 
+  // Progress Overlay Modal state
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadStageIndex, setUploadStageIndex] = useState(0)
+  const [activeFileList, setActiveFileList] = useState([])
+
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 300)
     return () => clearTimeout(timer)
@@ -740,8 +747,55 @@ export default function ApplicationFormPage({ formId }) {
       }
     }
 
+    // Build file list for visual progress queue
+    const docLabels = {
+      photo: 'Passport Photo / புகைப்பட முகப்பு',
+      livePhoto: 'Live Photo Capture / நேரடி புகைப்படம்',
+      signature: 'Worker Signature / கையொப்பம்',
+      dobDocument: 'DOB Proof Document / பிறந்த தேதிக்கான ஆவணம்',
+      aadharCard: 'Aadhar Card / ஆதார் அட்டை',
+      rationCard: 'Ration Card / குடும்ப அட்டை',
+      bankPassbook: 'Bank Passbook / வங்கி புத்தகம்',
+      bankPassbookFront: 'Passbook Front Page / வங்கி புத்தகம்',
+      bankPassbookLast: 'Passbook Last Transaction / வங்கி புத்தகம்',
+      registrationCard: 'Registration Card / பதிவு அட்டை',
+      nomineeAadhar: "Nominee's Aadhar Card / நாமினி ஆதார்",
+      childAadhar: "Child's Aadhar Card / குழந்தை ஆதார்",
+      bonafide: 'Bonafide Certificate / கல்வி சான்று',
+      markSheet: 'Mark Sheet / மதிப்பெண் பட்டியல்',
+      paymentScreenshot: 'Payment Screenshot / கட்டண ரசீது',
+    }
+    const attachedFiles = Object.entries(previews)
+      .filter(([_, val]) => Boolean(val))
+      .map(([key]) => ({ label: docLabels[key] || key, status: 'uploading' }))
+
+    setActiveFileList(attachedFiles)
+    setUploadProgress(15)
+    setUploadStageIndex(0)
+    setUploadModalOpen(true)
+
+    let progressTimer = null
+
     try {
       setSubmitting(true)
+
+      // Start live smooth progress timer while server process occurs
+      progressTimer = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev < 45) {
+            setUploadStageIndex(1)
+            return prev + 6
+          } else if (prev < 82) {
+            setUploadStageIndex(2)
+            return prev + 3
+          } else if (prev < 96) {
+            setUploadStageIndex(3)
+            return prev + 1
+          }
+          return prev
+        })
+      }, 250)
+
       const payload = {
         formKey: currentKey,
         applicantData: {
@@ -768,14 +822,25 @@ export default function ApplicationFormPage({ formId }) {
       }
 
       const response = await api.post('/applications/submissions', payload)
+      clearInterval(progressTimer)
+      setUploadProgress(100)
+      setUploadStageIndex(3)
+
       const appNo = response.data.submission?.applicationNo || `TNW-${Date.now()}`
+      
+      // Keep progress modal visible for 600ms so user wows at 100% completion
+      await new Promise((res) => setTimeout(res, 600))
+      setUploadModalOpen(false)
       setSubmittedAppNo(appNo)
+      
       notify({
         type: 'success',
         title: 'Application Submitted / விண்ணப்பம் சமர்ப்பிக்கப்பட்டது',
         message: `உங்கள் விண்ணப்ப எண்: ${appNo}`,
       })
     } catch (error) {
+      if (progressTimer) clearInterval(progressTimer)
+      setUploadModalOpen(false)
       notify({
         type: 'error',
         title: 'Submission Failed / சமர்ப்பிக்க முடியவில்லை',
@@ -1394,6 +1459,21 @@ export default function ApplicationFormPage({ formId }) {
           </div>
         </form>
       </div>
+
+      <FormUploadProgressModal
+        currentStageIndex={uploadStageIndex}
+        isOpen={uploadModalOpen}
+        progress={uploadProgress}
+        stages={[
+          { title: 'Validating Attached Images & Files', tamil: 'படங்கள் சரிபார்க்கப்படுகிறது' },
+          { title: 'Compressing & Encrypting Payloads', tamil: 'ஆவணங்கள் தயார் செய்யப்படுகிறது' },
+          { title: 'Transmitting Data & Images to Server', tamil: 'தரவு சேவையகத்திற்கு அனுப்பப்படுகிறது' },
+          { title: 'Finalizing Application Record & No', tamil: 'விண்ணப்ப எண் உருவாக்கப்படுகிறது' },
+        ]}
+        subtitle={`Form: ${form.tamilTitle || form.title}`}
+        title="Application Submission / விண்ணப்ப சமர்ப்பிப்பு"
+        uploadedFiles={activeFileList}
+      />
     </div>
   )
 }
