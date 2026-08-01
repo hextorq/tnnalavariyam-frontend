@@ -907,9 +907,11 @@ export default function AccountPage({ mode }) {
             )}
             {mode === 'register' ? (
               <FormSection title="உள்நுழைவு பாதுகாப்பு / Login Security">
-                <div className="grid items-start gap-4 md:grid-cols-3">
-                  <label className="flex flex-col justify-start gap-2">
-                    <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="flex flex-col h-full gap-2">
+                    <div className="flex-1">
+                      <FieldLabel required>கடவுச்சொல் / Password</FieldLabel>
+                    </div>
                     <PasswordInput
                       minLength={6}
                       onChange={(event) => updateSignupField('password', event.target.value)}
@@ -918,8 +920,10 @@ export default function AccountPage({ mode }) {
                     />
                     <p className="text-xs text-neutral-500">குறைந்தது 6 எழுத்துகள் / Minimum 6 characters</p>
                   </label>
-                  <label className="flex flex-col justify-start gap-2">
-                    <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
+                  <label className="flex flex-col h-full gap-2">
+                    <div className="flex-1">
+                      <FieldLabel required>கடவுச்சொல் உறுதி / Confirm Password</FieldLabel>
+                    </div>
                     <PasswordInput minLength={6} onChange={(event) => updateSignupField('confirmPassword', event.target.value)} placeholder="Confirm Password" value={signupForm.confirmPassword} />
                     <p className="text-xs text-neutral-500">கடவுச்சொல்லுடன் பொருந்த வேண்டும் / Must match the password</p>
                   </label>
