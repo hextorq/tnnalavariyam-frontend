@@ -1320,15 +1320,47 @@ function SignupDocumentCard({ icon: Icon, label, path }) {
           <p className="font-bold text-slate-950 text-sm">{label}</p>
         </div>
         {url && (
-          <a
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]"
-            href={url}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <span>Open Document</span>
-            <ExternalLink size={13} />
-          </a>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={async (e) => {
+                e.preventDefault()
+                try {
+                  const response = await fetch(url)
+                  const blob = await response.blob()
+                  const objectUrl = window.URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = objectUrl
+                  const ext = path?.split('.').pop() || 'jpg'
+                  a.download = `${label.replace(/\s+/g, '_')}.${ext}`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  window.URL.revokeObjectURL(objectUrl)
+                } catch (error) {
+                  console.error('Download failed', error)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.target = '_blank'
+                  a.download = true
+                  a.click()
+                }
+              }}
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]"
+            >
+              <Download size={13} />
+              <span className="hidden sm:inline">Download</span>
+            </button>
+            <a
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-[#007cba] hover:text-[#007cba]"
+              href={url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <span>Open</span>
+              <ExternalLink size={13} />
+            </a>
+          </div>
         )}
       </div>
       {url ? (
@@ -2190,23 +2222,41 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
         />
 
 
-        <div className="grid gap-3 p-4 sm:p-5">
+        <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
           {signupTab === 'pending' ? (
             pendingRequests.length ? (
               pendingRequests.map((request) => (
-                <div className="rounded-xl border border-slate-200 p-4 transition hover:border-[#007cba]" key={request.id}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-950">{request.fullName}</p>
-                      <p className="mt-1 text-sm text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
-                      <p className="mt-1 text-xs text-slate-500">{formatDate(request.createdAt)}</p>
-                      <SignupRejectedHistory history={request.rejectedHistory} />
+                <div className={`rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
+                  viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
+                }`} key={request.id}>
+                  {viewMode === 'list' ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-slate-950">{request.fullName}</p>
+                        <p className="mt-0.5 text-xs text-slate-600">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-400">{request.district} | {request.taluk} | {request.village} • {formatDate(request.createdAt)}</p>
+                        <SignupRejectedHistory history={request.rejectedHistory} />
+                      </div>
+                      <button className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#007cba] px-4 py-2 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]" onClick={() => setSelectedSignup(request)} type="button">
+                        View Details
+                      </button>
                     </div>
-                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
-                      View Details
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col justify-between h-full gap-4">
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-950 text-sm">{request.fullName}</p>
+                        <p className="mt-2 text-xs font-semibold text-slate-700">{request.requestNo} - {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                        <p className="mt-1 text-[10px] text-slate-400">Date: {formatDate(request.createdAt)}</p>
+                        <SignupRejectedHistory history={request.rejectedHistory} />
+                      </div>
+                      <div className="border-t border-slate-100 pt-3">
+                        <button className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#007cba] py-2 text-center text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]" onClick={() => setSelectedSignup(request)} type="button">
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -2215,30 +2265,60 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
           ) : (
             historyRequests.length ? (
               historyRequests.map((request) => (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition hover:border-[#007cba]" key={request.id}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-slate-950">{request.fullName}</p>
-                        <StatusPill status={request.status} />
+                <div className={`rounded-2xl border border-slate-200 bg-slate-50/50 shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
+                  viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
+                }`} key={request.id}>
+                  {viewMode === 'list' ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-950">{request.fullName}</p>
+                          <StatusPill status={request.status} />
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-600">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                        {request.reviewReason && (
+                          <p className="mt-1.5 rounded-lg bg-rose-50 p-2 text-[10px] font-semibold text-rose-800 border border-rose-200">
+                            Reason: {request.reviewReason}
+                          </p>
+                        )}
+                        {request.reviewedBy && (
+                          <p className="mt-1.5 text-[10px] font-semibold text-slate-500">
+                            Reviewed by {request.reviewedBy.username} on {formatDate(request.reviewedAt || request.updatedAt)}
+                          </p>
+                        )}
                       </div>
-                      <p className="mt-1 text-xs font-bold text-slate-700">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
-                      {request.reviewReason && (
-                        <p className="mt-2 rounded-lg bg-rose-50 p-2.5 text-xs font-semibold text-rose-800 border border-rose-200">
-                          Rejection Reason: {request.reviewReason}
-                        </p>
-                      )}
-                      {request.reviewedBy && (
-                        <p className="mt-2 text-[11px] font-semibold text-slate-500">
-                          Reviewed by <span className="font-bold text-slate-800">{request.reviewedBy.username}</span> ({roleLabels[request.reviewedBy.role] || request.reviewedBy.role}) on {formatDate(request.reviewedAt || request.updatedAt)}
-                        </p>
-                      )}
+                      <button className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                        View Details
+                      </button>
                     </div>
-                    <button className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
-                      View Details
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col justify-between h-full gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-slate-950 text-sm">{request.fullName}</p>
+                          <StatusPill status={request.status} />
+                        </div>
+                        <p className="mt-2 text-xs font-semibold text-slate-700">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
+                        {request.reviewReason && (
+                          <p className="mt-2 rounded-lg bg-rose-50 p-2.5 text-[11px] font-semibold text-rose-800 border border-rose-200">
+                            Reason: {request.reviewReason}
+                          </p>
+                        )}
+                        {request.reviewedBy && (
+                          <p className="mt-2 text-[10px] font-semibold text-slate-500">
+                            Reviewed by {request.reviewedBy.username} on {formatDate(request.reviewedAt || request.updatedAt)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="border-t border-slate-100 pt-3">
+                        <button className="inline-flex w-full justify-center items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-[#007cba] hover:text-[#007cba]" onClick={() => setSelectedSignup(request)} type="button">
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -2251,7 +2331,28 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
 
       {mainTab === 'applications' && (
       <Panel>
-        <PanelHeader eyebrow="Work Queue" title="All Applications Review Queue" />
+        <PanelHeader 
+          eyebrow="Work Queue" 
+          title="All Applications Review Queue" 
+          action={
+            <div className="hidden sm:flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+              <button
+                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setViewMode('list')}
+                type="button"
+              >
+                List
+              </button>
+              <button
+                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setViewMode('grid')}
+                type="button"
+              >
+                Grid
+              </button>
+            </div>
+          }
+        />
         
         <div className="border-b border-slate-200 bg-slate-50/70 p-4 space-y-3">
           <div className="relative">
@@ -2320,42 +2421,78 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
           </div>
         </div>
 
-        <div className="grid gap-3 p-4 sm:p-5">
+        <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
           {paginatedSubmissions.length ? paginatedSubmissions.map((submission) => {
             const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW'].includes(submission.status)
             const isSubmittedByMe = submission.userId === currentUserId || submission.user?.id === currentUserId
             return (
-              <div className={`rounded-2xl border p-4 transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white'}`} key={submission.id}>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
-                        {isPendingAction && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
-                            Action Required
-                          </span>
-                        )}
+              <div className={`rounded-2xl border transition ${isPendingAction ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200 bg-white shadow-2xs hover:border-[#007cba] hover:shadow-md'} ${
+                viewMode === 'list' ? 'p-3.5 sm:p-4' : 'p-4 flex flex-col justify-between h-full'
+              }`} key={submission.id}>
+                {viewMode === 'list' ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
+                          {isPendingAction && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
+                              Action Required
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.geoUnit?.name || '-'}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
                       </div>
-                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.geoUnit?.name || '-'}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+                      <div className="shrink-0">
+                        <StatusPill status={submission.status} />
+                      </div>
                     </div>
-                    <div className="shrink-0">
-                      <StatusPill status={submission.status} />
+                    <button
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                      onClick={() => onSelectSubmission?.(submission)}
+                      type="button"
+                    >
+                      <FileText className="shrink-0" size={15} />
+                      <span>View &amp; Review Application / விவரங்களை காண்க</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col justify-between h-full gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
+                          {isPendingAction && (
+                            <span className="inline-block mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-300">
+                              Action Required
+                            </span>
+                          )}
+                        </div>
+                        <StatusPill status={submission.status} />
+                      </div>
+                      <p className="mt-2 text-sm font-semibold text-slate-700 line-clamp-2">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-1.5 text-xs text-slate-500">
+                        Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">{submission.geoUnit?.name || '-'}</p>
+                      <p className="mt-1 text-[10px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
+                    </div>
+                    <div className="border-t border-slate-100 pt-3">
+                      <button
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
+                        onClick={() => onSelectSubmission?.(submission)}
+                        type="button"
+                      >
+                        <FileText className="shrink-0" size={14} />
+                        <span>View / காண்க</span>
+                      </button>
                     </div>
                   </div>
-                  <button
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md transition hover:bg-[#006090]"
-                    onClick={() => onSelectSubmission?.(submission)}
-                    type="button"
-                  >
-                    <FileText className="shrink-0" size={15} />
-                    <span>View &amp; Review Application / விவரங்களை காண்க</span>
-                  </button>
-                </div>
+                )}
               </div>
             )
           }) : (
