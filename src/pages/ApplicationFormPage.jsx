@@ -913,7 +913,7 @@ export default function ApplicationFormPage({ formId }) {
       setUploadModalOpen(false)
       if (uploadedImages.length) {
         uploadedImages.forEach((image) => {
-          api.delete('/applications/uploads/temp', { data: { path: image.path }, showLoader: false }).catch(() => {})
+          api.delete('/applications/uploads/temp', { params: { path: image.path }, showLoader: false }).catch(() => {})
         })
       }
       notify({

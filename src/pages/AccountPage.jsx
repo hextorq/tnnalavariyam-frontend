@@ -457,7 +457,7 @@ export default function AccountPage({ mode }) {
   async function deletePreuploadedPath(path) {
     if (!path) return
     try {
-      await api.delete('/auth/uploads/signup-temp', { data: { path }, showLoader: false })
+      await api.delete('/auth/uploads/signup-temp', { params: { path }, showLoader: false })
     } catch (error) {
       console.warn('[signup upload cleanup failed]', error.response?.data?.message || error.message)
     }
