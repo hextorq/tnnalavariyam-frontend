@@ -276,13 +276,13 @@ function DocumentUpload({ file, label, onChange, required = false, uploadConfig 
             )}
           </>
         ) : (
-          <button className="flex min-h-40 w-full flex-col items-center justify-center gap-3 px-4 py-6 text-center" onClick={openPicker} type="button">
-            <span className="inline-flex size-11 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
-              <Upload size={22} />
-            </span>
-            <span className="font-bold text-neutral-950">Choose file</span>
+          <div className="flex flex-col items-center justify-center gap-3 px-4 py-6 text-center">
+            <button className="inline-flex items-center gap-2 rounded-xl bg-white border border-[#007cba] px-4 py-2 text-sm font-bold text-[#007cba] shadow-xs transition hover:bg-[#eef8ff]" onClick={openPicker} type="button">
+              <Upload size={16} />
+              Choose file
+            </button>
             <span className="text-xs font-normal text-neutral-500">{uploadConfig.hint}</span>
-          </button>
+          </div>
         )}
       </div>
     </div>
@@ -764,7 +764,7 @@ export default function AccountPage({ mode }) {
               </div>
             )}
             <FormSection title="தனிப்பட்ட விவரங்கள் / Personal Details">
-              <div className="grid items-start gap-4 md:grid-cols-3">
+              <div className="grid items-start gap-4 md:grid-cols-2">
                 <label className="flex flex-col justify-start gap-2">
                   <FieldLabel required>முழு பெயர் / Full Name</FieldLabel>
                   <input className={inputClass} onChange={(event) => updateSignupField('fullName', event.target.value.replace(/[^\p{L}\s.]/gu, ''))} placeholder="Full Name" required value={signupForm.fullName} />
