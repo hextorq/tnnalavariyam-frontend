@@ -2149,23 +2149,40 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
       <Panel>
         <PanelHeader
           action={
-            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200">
-              <button
-                className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'pending' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                onClick={() => setSignupTab('pending')}
-                type="button"
-              >
-                Pending ({pendingRequests.length})
-              </button>
-              <button
-                className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'history' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                onClick={() => setSignupTab('history')}
-                type="button"
-              >
-                Approval History ({historyRequests.length})
-              </button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+                <button
+                  className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'pending' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setSignupTab('pending')}
+                  type="button"
+                >
+                  Pending ({pendingRequests.length})
+                </button>
+                <button
+                  className={`rounded-lg px-3 py-1.5 transition ${signupTab === 'history' ? 'bg-[#007cba] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setSignupTab('history')}
+                  type="button"
+                >
+                  History ({historyRequests.length})
+                </button>
+              </div>
+
+              <div className="hidden sm:flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('list')}
+                  type="button"
+                >
+                  List
+                </button>
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('grid')}
+                  type="button"
+                >
+                  Grid
+                </button>
+              </div>
             </div>
           }
           eyebrow="Signup Approval Management"
