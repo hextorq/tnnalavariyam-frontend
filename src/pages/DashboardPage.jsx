@@ -173,9 +173,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
-  if (user?.role === 'SUPER_ADMIN') {
-    items.splice(2, 0, { id: 'create-user', icon: UserPlus, label: 'Create User', description: 'Add & activate' })
-  }
 
   const profilePhoto = getProfilePhoto(user)
 
@@ -819,10 +816,10 @@ function CreateUserPanel({ user }) {
   if (loading) return <DashboardSkeleton />
 
   return (
-    <section className="mx-auto max-w-4xl px-3 py-8 sm:px-5 sm:py-16">
-      <h1 className="text-center text-2xl font-bold sm:text-4xl">Create User / பயனர் உருவாக்கு</h1>
+    <section className="mx-auto w-full max-w-4xl px-1 py-4 sm:px-5 sm:py-6">
+      <h1 className="text-center text-2xl font-bold sm:text-3xl">Create User / பயனர் உருவாக்கு</h1>
       <form
-        className="mt-6 grid gap-4 border border-neutral-200 p-3 sm:mt-10 sm:gap-5 sm:p-8"
+        className="mt-4 grid gap-4 border border-neutral-200 p-3 sm:mt-6 sm:gap-5 sm:p-8"
         noValidate
         onSubmit={handleCreateUserSubmit}
       >
@@ -1949,7 +1946,7 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
   )
 }
 
-function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signupRequests, submissions }) {
+function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -1960,11 +1957,16 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   const [viewMode, setViewMode] = useState('list')
   const { notify } = useNotifications()
   const [appPage, setAppPage] = useState(1)
-  const ITEMS_PER_PAGE = 5
+  const [pendingPage, setPendingPage] = useState(1)
+  const [historyPage, setHistoryPage] = useState(1)
+  const [myAppPage, setMyAppPage] = useState(1)
+  
+  const ITEMS_PER_PAGE = 10
   const currentUserId = useMemo(() => getSession()?.user?.id, [])
 
   useEffect(() => {
     setAppPage(1)
+    setMyAppPage(1)
   }, [appFilter, searchQuery])
 
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
@@ -2005,6 +2007,27 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   }, [filteredSubmissions, appPage])
 
   const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE)
+
+  const paginatedPendingRequests = useMemo(() => {
+    const start = (pendingPage - 1) * ITEMS_PER_PAGE
+    return pendingRequests.slice(start, start + ITEMS_PER_PAGE)
+  }, [pendingRequests, pendingPage])
+
+  const totalPendingPages = Math.ceil(pendingRequests.length / ITEMS_PER_PAGE)
+
+  const paginatedHistoryRequests = useMemo(() => {
+    const start = (historyPage - 1) * ITEMS_PER_PAGE
+    return historyRequests.slice(start, start + ITEMS_PER_PAGE)
+  }, [historyRequests, historyPage])
+
+  const totalHistoryPages = Math.ceil(historyRequests.length / ITEMS_PER_PAGE)
+
+  const paginatedMySubmissions = useMemo(() => {
+    const start = (myAppPage - 1) * ITEMS_PER_PAGE
+    return filteredSubmissions.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredSubmissions, myAppPage])
+
+  const totalMyAppPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE)
 
   async function reviewSignup(request, status) {
     if (status === 'REJECTED' && !reviewReason.trim()) {
@@ -2087,8 +2110,8 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
         </div>
 
         <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
-          {filteredSubmissions.length ? (
-            filteredSubmissions.map((submission) => (
+          {paginatedMySubmissions.length ? (
+            paginatedMySubmissions.map((submission) => (
               <div
                 className={`rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
                   viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
@@ -2154,6 +2177,30 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             <EmptyState>No applications submitted yet.</EmptyState>
           )}
         </div>
+
+        {totalMyAppPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 p-4 rounded-b-2xl">
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={myAppPage === 1}
+              onClick={() => setMyAppPage((prev) => Math.max(1, prev - 1))}
+              type="button"
+            >
+              ← Previous
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              Page <span className="font-bold text-slate-900">{myAppPage}</span> of <span className="font-bold text-slate-900">{totalMyAppPages}</span>
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={myAppPage === totalMyAppPages}
+              onClick={() => setMyAppPage((prev) => Math.min(totalMyAppPages, prev + 1))}
+              type="button"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </Panel>
     )
   }
@@ -2175,6 +2222,15 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
         >
           Signup Requests ({signupRequests.length})
         </button>
+        {user?.role === 'SUPER_ADMIN' && (
+          <button
+            className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'create-user' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setMainTab('create-user')}
+            type="button"
+          >
+            Create User
+          </button>
+        )}
       </div>
 
       {mainTab === 'signups' && (
@@ -2224,8 +2280,8 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
 
         <div className={viewMode === 'grid' ? "grid gap-4 p-4 sm:p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-3 p-4 sm:p-5"}>
           {signupTab === 'pending' ? (
-            pendingRequests.length ? (
-              pendingRequests.map((request) => (
+            paginatedPendingRequests.length ? (
+              paginatedPendingRequests.map((request) => (
                 <div className={`rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
                   viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
                 }`} key={request.id}>
@@ -2263,8 +2319,8 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
               <EmptyState>No pending signup requests for your scope.</EmptyState>
             )
           ) : (
-            historyRequests.length ? (
-              historyRequests.map((request) => (
+            paginatedHistoryRequests.length ? (
+              paginatedHistoryRequests.map((request) => (
                 <div className={`rounded-2xl border border-slate-200 bg-slate-50/50 shadow-2xs transition hover:border-[#007cba] hover:shadow-md ${
                   viewMode === 'list' ? 'p-3.5 sm:py-3 sm:px-4' : 'p-4 flex flex-col justify-between h-full'
                 }`} key={request.id}>
@@ -2326,7 +2382,61 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
             )
           )}
         </div>
+        
+        {/* Pagination for Pending Signups */}
+        {signupTab === 'pending' && totalPendingPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 p-4 rounded-b-2xl">
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={pendingPage === 1}
+              onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
+              type="button"
+            >
+              ← Previous
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              Page <span className="font-bold text-slate-900">{pendingPage}</span> of <span className="font-bold text-slate-900">{totalPendingPages}</span>
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={pendingPage === totalPendingPages}
+              onClick={() => setPendingPage((prev) => Math.min(totalPendingPages, prev + 1))}
+              type="button"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+
+        {/* Pagination for History Signups */}
+        {signupTab === 'history' && totalHistoryPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 p-4 rounded-b-2xl">
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={historyPage === 1}
+              onClick={() => setHistoryPage((prev) => Math.max(1, prev - 1))}
+              type="button"
+            >
+              ← Previous
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              Page <span className="font-bold text-slate-900">{historyPage}</span> of <span className="font-bold text-slate-900">{totalHistoryPages}</span>
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={historyPage === totalHistoryPages}
+              onClick={() => setHistoryPage((prev) => Math.min(totalHistoryPages, prev + 1))}
+              type="button"
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </Panel>
+      )}
+
+      {mainTab === 'create-user' && user?.role === 'SUPER_ADMIN' && (
+        <CreateUserPanel user={user} />
       )}
 
       {mainTab === 'applications' && (
@@ -2796,11 +2906,8 @@ export default function DashboardPage() {
             onSelectSubmission={setSelectedSubmissionDetails}
             signupRequests={signupRequests}
             submissions={submissions}
+            user={user}
           />
-        )}
-
-        {activeTab === 'create-user' && user?.role === 'SUPER_ADMIN' && (
-          <CreateUserPanel user={user} />
         )}
 
         {activeTab === 'profile-image' && (
