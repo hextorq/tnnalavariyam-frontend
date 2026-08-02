@@ -1867,13 +1867,18 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
   )
 }
 
-function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
+function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSubmission, submissions = [] }) {
   const roots = hierarchy?.roots || []
   const [path, setPath] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     setPath([])
   }, [roots])
+
+  useEffect(() => {
+    setSearchQuery('')
+  }, [path])
 
   const currentNode = path[path.length - 1] || null
   const visibleCards = currentNode ? currentNode.children || [] : roots
@@ -1883,6 +1888,54 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
   const pageTitle = currentNode
     ? currentNode.label
     : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+  const filteredCards = useMemo(() => {
+    if (!normalizedSearch) return visibleCards
+    return visibleCards.filter((node) => {
+      const haystack = [
+        node.label,
+        node.name,
+        node.tamilName,
+        node.counts?.applications?.total,
+        node.counts?.users?.partners,
+        node.childCount,
+      ].join(' ').toLowerCase()
+      return haystack.includes(normalizedSearch)
+    })
+  }, [normalizedSearch, visibleCards])
+  const filteredPartners = useMemo(() => {
+    if (!normalizedSearch) return partnerCards
+    return partnerCards.filter((partner) => {
+      const haystack = [
+        partner.name,
+        partner.username,
+        partner.phone,
+        partner.applications?.total,
+      ].join(' ').toLowerCase()
+      return haystack.includes(normalizedSearch)
+    })
+  }, [normalizedSearch, partnerCards])
+  const filteredRecentApplications = useMemo(() => {
+    const recent = currentNode?.recentApplications || []
+    if (!normalizedSearch) return recent
+    return recent.filter((application) => {
+      const haystack = [
+        application.applicationNo,
+        application.status,
+        application.form?.title,
+        application.form?.tamilTitle,
+        application.user?.username,
+        application.user?.firstName,
+        application.user?.phone,
+      ].join(' ').toLowerCase()
+      return haystack.includes(normalizedSearch)
+    })
+  }, [currentNode, normalizedSearch])
+
+  function openApplication(application) {
+    const fullSubmission = submissions.find((submission) => submission.id === application.id) || application
+    onSelectSubmission?.(fullSubmission)
+  }
 
   if (loading) return <DashboardSkeleton />
 
@@ -1971,6 +2024,26 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
             title={hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
           />
 
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+            <input
+              className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-11 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={hasNextLevel ? 'Search this page / இந்த பக்கத்தில் தேடவும்' : 'Search partners or applications / பங்குதாரர் அல்லது விண்ணப்பம் தேடவும்'}
+              type="search"
+              value={searchQuery}
+            />
+            {searchQuery && (
+              <button
+                className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                onClick={() => setSearchQuery('')}
+                type="button"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
           {currentNode && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -1994,7 +2067,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
 
           {hasNextLevel && (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {visibleCards.map((node) => (
+              {filteredCards.map((node) => (
                 <button
                   className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[#007cba]/60 hover:bg-[#eef8ff]/50 hover:shadow-md"
                   key={node.id}
@@ -2023,12 +2096,17 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
                   </div>
                 </button>
               ))}
+              {!filteredCards.length && (
+                <div className="md:col-span-2 xl:col-span-3">
+                  <EmptyState>No matching records found on this page.</EmptyState>
+                </div>
+              )}
             </div>
           )}
 
           {!hasNextLevel && partnerCards.length > 0 && (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {partnerCards.map((partner) => (
+              {filteredPartners.map((partner) => (
                 <div className="rounded-2xl border border-slate-200 bg-white p-4" key={partner.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -2049,6 +2127,11 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
                   </div>
                 </div>
               ))}
+              {!filteredPartners.length && (
+                <div className="md:col-span-2 xl:col-span-3">
+                  <EmptyState>No matching partners found.</EmptyState>
+                </div>
+              )}
             </div>
           )}
 
@@ -2074,17 +2157,30 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications</p>
                   <div className="mt-2 grid gap-2">
-                    {currentNode.recentApplications.map((application) => (
+                    {filteredRecentApplications.map((application) => (
                       <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
                             <p className="break-all text-sm font-bold text-slate-950">{application.applicationNo}</p>
                             <p className="mt-0.5 text-xs text-slate-500">{application.form?.tamilTitle || application.form?.title}</p>
                           </div>
-                          <StatusPill status={application.status} />
+                          <div className="flex shrink-0 flex-wrap items-center gap-2">
+                            <StatusPill status={application.status} />
+                            <button
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#007cba] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#006090]"
+                              onClick={() => openApplication(application)}
+                              type="button"
+                            >
+                              <Eye size={14} />
+                              View
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
+                    {!filteredRecentApplications.length && (
+                      <EmptyState>No matching applications found.</EmptyState>
+                    )}
                   </div>
                 </div>
               )}
@@ -3346,7 +3442,9 @@ export default function DashboardPage() {
           <HierarchyApplicationsPanel
             hierarchy={hierarchyOverview}
             loading={loading}
+            onSelectSubmission={setSelectedSubmissionDetails}
             onRefresh={loadDashboard}
+            submissions={submissions}
           />
         )}
 
