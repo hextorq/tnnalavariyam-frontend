@@ -8,6 +8,7 @@ import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthent
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
+import { transliterateTamil } from '../lib/tamilTransliteration.js'
 import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -201,6 +202,13 @@ function getStatusSummary(counts = {}) {
   return Object.entries(counts.byStatus || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
+}
+
+function hierarchyNodeLabel(node) {
+  if (!node) return ''
+  const tamilName = String(node.tamilName || node.name || '').trim()
+  const englishName = String(node.englishName || '').trim() || transliterateTamil(tamilName)
+  return englishName && englishName !== tamilName ? `${tamilName} / ${englishName}` : tamilName
 }
 
 function getUserDisplayName(user) {
@@ -1886,7 +1894,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
   const hasNextLevel = visibleCards.length > 0
   const pageStatusSummary = getStatusSummary((currentNode || hierarchy?.total)?.counts?.applications)
   const pageTitle = currentNode
-    ? currentNode.label
+    ? hierarchyNodeLabel(currentNode)
     : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`
   const normalizedSearch = searchQuery.trim().toLowerCase()
   const filteredCards = useMemo(() => {
@@ -1894,6 +1902,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
     return visibleCards.filter((node) => {
       const haystack = [
         node.label,
+        hierarchyNodeLabel(node),
         node.name,
         node.tamilName,
         node.counts?.applications?.total,
@@ -2013,7 +2022,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                   onClick={() => setPath((items) => items.slice(0, index + 1))}
                   type="button"
                 >
-                  {node.label}
+                  {hierarchyNodeLabel(node)}
                 </button>
               ))}
             </div>
@@ -2075,7 +2084,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                   type="button"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="min-w-0 truncate text-lg font-extrabold text-slate-950">{node.label}</h3>
+                    <h3 className="min-w-0 truncate text-lg font-extrabold text-slate-950">{hierarchyNodeLabel(node)}</h3>
                     <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-[#007cba] group-hover:text-white">
                       <ChevronRight size={18} />
                     </span>
