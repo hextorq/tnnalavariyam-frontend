@@ -2087,16 +2087,20 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
             </div>
           )}
 
-          <PanelHeader
-            eyebrow={hasNextLevel ? 'Open next page / அடுத்த பக்கம் திறக்கவும்' : 'Partner Details / பங்குதாரர் விவரங்கள்'}
-            title={hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
-          />
+          <div className="flex flex-col gap-1 border-b border-slate-100 pb-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">
+              {hasNextLevel ? 'Open next page / அடுத்த பக்கம் திறக்கவும்' : 'Partner Details / பங்குதாரர் விவரங்கள்'}
+            </p>
+            <h3 className="text-lg font-extrabold leading-snug text-slate-950">
+              {hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
+            </h3>
+          </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="grid items-end gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
               <input
-                className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-11 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
+                className="h-14 w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-11 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder={hasNextLevel ? 'Search this page / இந்த பக்கத்தில் தேடவும்' : 'Search partners or applications / பங்குதாரர் அல்லது விண்ணப்பம் தேடவும்'}
                 type="search"
@@ -2112,10 +2116,10 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                 </button>
               )}
             </div>
-            <label className="grid gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">
-              Sort Order / வரிசை
+            <label className="grid gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+              <span>Sort Order / வரிசை</span>
               <select
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
+                className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
                 onChange={(event) => setSortOrder(event.target.value)}
                 value={sortOrder}
               >
