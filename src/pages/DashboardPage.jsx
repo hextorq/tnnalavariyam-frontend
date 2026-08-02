@@ -211,6 +211,19 @@ function hierarchyNodeLabel(node) {
   return englishName && englishName !== tamilName ? `${tamilName} / ${englishName}` : tamilName
 }
 
+function getApplicationCount(item) {
+  return Number(item?.counts?.applications?.total ?? item?.applications?.total ?? 0)
+}
+
+function compareApplicationCount(first, second, sortOrder) {
+  const countResult = getApplicationCount(first) - getApplicationCount(second)
+  const nameA = hierarchyNodeLabel(first) || first?.name || first?.username || first?.applicationNo || ''
+  const nameB = hierarchyNodeLabel(second) || second?.name || second?.username || second?.applicationNo || ''
+  const nameResult = nameA.localeCompare(nameB, 'ta-IN', { numeric: true, sensitivity: 'base' })
+  const result = countResult || nameResult
+  return sortOrder === 'asc' ? result : -result
+}
+
 function getSubmissionSourceHierarchy(submission) {
   const applicantData = submission?.applicantData || {}
   const nodes = []
@@ -1958,10 +1971,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
       ].join(' ').toLowerCase()
       return haystack.includes(normalizedSearch)
     }) : visibleCards
-    return [...list].sort((a, b) => {
-      const result = hierarchyNodeLabel(a).localeCompare(hierarchyNodeLabel(b), 'ta-IN', { numeric: true, sensitivity: 'base' })
-      return sortOrder === 'asc' ? result : -result
-    })
+    return [...list].sort((a, b) => compareApplicationCount(a, b, sortOrder))
   }, [normalizedSearch, sortOrder, visibleCards])
   const filteredPartners = useMemo(() => {
     const list = normalizedSearch ? partnerCards.filter((partner) => {
@@ -1973,10 +1983,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
       ].join(' ').toLowerCase()
       return haystack.includes(normalizedSearch)
     }) : partnerCards
-    return [...list].sort((a, b) => {
-      const result = (a.name || a.username || '').localeCompare(b.name || b.username || '', 'ta-IN', { numeric: true, sensitivity: 'base' })
-      return sortOrder === 'asc' ? result : -result
-    })
+    return [...list].sort((a, b) => compareApplicationCount(a, b, sortOrder))
   }, [normalizedSearch, partnerCards, sortOrder])
   const filteredRecentApplications = useMemo(() => {
     const recent = currentNode?.recentApplications || []
@@ -1993,9 +2000,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
       return haystack.includes(normalizedSearch)
     }) : recent
     return [...list].sort((a, b) => {
-      const dateA = new Date(a.updatedAt || a.createdAt || 0)
-      const dateB = new Date(b.updatedAt || b.createdAt || 0)
-      const result = dateA - dateB || String(a.applicationNo || '').localeCompare(String(b.applicationNo || ''), 'en-IN', { numeric: true })
+      const result = String(a.applicationNo || '').localeCompare(String(b.applicationNo || ''), 'en-IN', { numeric: true })
       return sortOrder === 'asc' ? result : -result
     })
   }, [currentNode, normalizedSearch, sortOrder])
@@ -2117,7 +2122,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
               )}
             </div>
             <label className="grid gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-              <span>Sort Order / வரிசை</span>
+              <span>Application Count Sort / விண்ணப்ப எண்ணிக்கை வரிசை</span>
               <select
                 className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
                 onChange={(event) => setSortOrder(event.target.value)}
