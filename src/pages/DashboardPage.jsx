@@ -1879,6 +1879,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
   const roots = hierarchy?.roots || []
   const [path, setPath] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortOrder, setSortOrder] = useState('asc')
 
   useEffect(() => {
     setPath([])
@@ -1898,8 +1899,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
     : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`
   const normalizedSearch = searchQuery.trim().toLowerCase()
   const filteredCards = useMemo(() => {
-    if (!normalizedSearch) return visibleCards
-    return visibleCards.filter((node) => {
+    const list = normalizedSearch ? visibleCards.filter((node) => {
       const haystack = [
         node.label,
         hierarchyNodeLabel(node),
@@ -1910,11 +1910,14 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
         node.childCount,
       ].join(' ').toLowerCase()
       return haystack.includes(normalizedSearch)
+    }) : visibleCards
+    return [...list].sort((a, b) => {
+      const result = hierarchyNodeLabel(a).localeCompare(hierarchyNodeLabel(b), 'ta-IN', { numeric: true, sensitivity: 'base' })
+      return sortOrder === 'asc' ? result : -result
     })
-  }, [normalizedSearch, visibleCards])
+  }, [normalizedSearch, sortOrder, visibleCards])
   const filteredPartners = useMemo(() => {
-    if (!normalizedSearch) return partnerCards
-    return partnerCards.filter((partner) => {
+    const list = normalizedSearch ? partnerCards.filter((partner) => {
       const haystack = [
         partner.name,
         partner.username,
@@ -1922,12 +1925,15 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
         partner.applications?.total,
       ].join(' ').toLowerCase()
       return haystack.includes(normalizedSearch)
+    }) : partnerCards
+    return [...list].sort((a, b) => {
+      const result = (a.name || a.username || '').localeCompare(b.name || b.username || '', 'ta-IN', { numeric: true, sensitivity: 'base' })
+      return sortOrder === 'asc' ? result : -result
     })
-  }, [normalizedSearch, partnerCards])
+  }, [normalizedSearch, partnerCards, sortOrder])
   const filteredRecentApplications = useMemo(() => {
     const recent = currentNode?.recentApplications || []
-    if (!normalizedSearch) return recent
-    return recent.filter((application) => {
+    const list = normalizedSearch ? recent.filter((application) => {
       const haystack = [
         application.applicationNo,
         application.status,
@@ -1938,8 +1944,14 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
         application.user?.phone,
       ].join(' ').toLowerCase()
       return haystack.includes(normalizedSearch)
+    }) : recent
+    return [...list].sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0)
+      const dateB = new Date(b.updatedAt || b.createdAt || 0)
+      const result = dateA - dateB || String(a.applicationNo || '').localeCompare(String(b.applicationNo || ''), 'en-IN', { numeric: true })
+      return sortOrder === 'asc' ? result : -result
     })
-  }, [currentNode, normalizedSearch])
+  }, [currentNode, normalizedSearch, sortOrder])
 
   function openApplication(application) {
     const fullSubmission = submissions.find((submission) => submission.id === application.id) || application
@@ -2033,24 +2045,37 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
             title={hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
           />
 
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-            <input
-              className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-11 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={hasNextLevel ? 'Search this page / இந்த பக்கத்தில் தேடவும்' : 'Search partners or applications / பங்குதாரர் அல்லது விண்ணப்பம் தேடவும்'}
-              type="search"
-              value={searchQuery}
-            />
-            {searchQuery && (
-              <button
-                className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                onClick={() => setSearchQuery('')}
-                type="button"
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+              <input
+                className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-11 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={hasNextLevel ? 'Search this page / இந்த பக்கத்தில் தேடவும்' : 'Search partners or applications / பங்குதாரர் அல்லது விண்ணப்பம் தேடவும்'}
+                type="search"
+                value={searchQuery}
+              />
+              {searchQuery && (
+                <button
+                  className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  onClick={() => setSearchQuery('')}
+                  type="button"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <label className="grid gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+              Sort Order / வரிசை
+              <select
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-4 focus:ring-[#007cba]/10"
+                onChange={(event) => setSortOrder(event.target.value)}
+                value={sortOrder}
               >
-                <X size={16} />
-              </button>
-            )}
+                <option value="asc">Ascending / ஏறுவரிசை</option>
+                <option value="desc">Descending / இறங்குவரிசை</option>
+              </select>
+            </label>
           </div>
 
           {currentNode && (
