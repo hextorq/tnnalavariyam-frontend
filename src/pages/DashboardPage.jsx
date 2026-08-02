@@ -177,6 +177,32 @@ function EmptyState({ children }) {
   return <p className="w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">{children}</p>
 }
 
+function formatGeoType(type) {
+  const labels = {
+    STATE: 'State / மாநிலம்',
+    DISTRICT: 'District / மாவட்டம்',
+    TALUK: 'Taluk / தாலுகா',
+    VILLAGE: 'Village / கிராமம்',
+  }
+  return labels[type] || type || 'Scope'
+}
+
+function collectHierarchyNodes(nodes = []) {
+  const result = []
+  function walk(node, parents = []) {
+    result.push({ node, parents })
+    ;(node.children || []).forEach((child) => walk(child, [...parents, node]))
+  }
+  nodes.forEach((node) => walk(node))
+  return result
+}
+
+function getStatusSummary(counts = {}) {
+  return Object.entries(counts.byStatus || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+}
+
 function getUserDisplayName(user) {
   if (!user) return 'User'
   return user.firstName || user.name || user.username || user.email || 'User'
@@ -195,9 +221,11 @@ function getUserInitials(user) {
 
 function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isAdminUser = adminRoles.has(user?.role)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
+    ...(isAdminUser ? [{ id: 'hierarchy-view', icon: Layers3, label: 'Hierarchy View', description: 'Area application counts' }] : []),
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
   ]
 
@@ -1839,6 +1867,205 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
   )
 }
 
+function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
+  const roots = hierarchy?.roots || []
+  const flattened = useMemo(() => collectHierarchyNodes(roots), [roots])
+  const [selectedId, setSelectedId] = useState(null)
+
+  useEffect(() => {
+    if (!selectedId && roots[0]?.id) setSelectedId(roots[0].id)
+  }, [roots, selectedId])
+
+  const selectedEntry = useMemo(() => {
+    if (!flattened.length) return null
+    return flattened.find((entry) => entry.node.id === selectedId) || flattened[0]
+  }, [flattened, selectedId])
+
+  const selectedNode = selectedEntry?.node || null
+  const breadcrumb = selectedEntry ? [...selectedEntry.parents, selectedEntry.node] : []
+  const visibleCards = selectedNode?.children?.length ? selectedNode.children : roots
+  const selectedStatusSummary = getStatusSummary(selectedNode?.counts?.applications)
+
+  if (loading) return <DashboardSkeleton />
+
+  if (!roots.length) {
+    return (
+      <Panel>
+        <PanelHeader
+          action={<button className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={onRefresh} type="button">Refresh</button>}
+          eyebrow="Hierarchy Applications"
+          title="No hierarchy data available"
+        />
+        <div className="p-5">
+          <EmptyState>No districts, taluks, villages or partners are available inside your current scope.</EmptyState>
+        </div>
+      </Panel>
+    )
+  }
+
+  return (
+    <section className="space-y-6">
+      <Panel>
+        <PanelHeader
+          action={
+            <button className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={onRefresh} type="button">
+              <RefreshCw size={16} />
+              Refresh
+            </button>
+          }
+          eyebrow="Hierarchy Applications / நிர்வாக நிலை விண்ணப்பங்கள்"
+          title="Application Count by Area / பகுதி வாரியான விண்ணப்ப எண்ணிக்கை"
+        />
+        <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-4">
+          <StatCard icon={Layers3} label="Visible Areas" loading={false} subtitle="Inside Scope" tone="slate" value={hierarchy?.total?.geoUnits || 0} />
+          <StatCard icon={FileText} label="Applications" loading={false} subtitle="All Statuses" tone="blue" value={hierarchy?.total?.applications || 0} />
+          <StatCard icon={Users} label="Village Partners" loading={false} subtitle="Approved Users" tone="green" value={hierarchy?.total?.partners || 0} />
+          <StatCard icon={UserPlus} label="Signup Requests" loading={false} subtitle="Visible Queue" tone="amber" value={hierarchy?.total?.signupRequests || 0} />
+        </div>
+      </Panel>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Panel>
+          <PanelHeader
+            eyebrow={`${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`}
+            title="Click an area to drill down / பகுதியை தேர்வு செய்யவும்"
+          />
+          <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2">
+            {visibleCards.map((node) => {
+              const isActive = selectedNode?.id === node.id
+              return (
+                <button
+                  className={`group rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${isActive ? 'border-[#007cba] bg-[#eef8ff]' : 'border-slate-200 bg-white hover:border-[#007cba]/60'}`}
+                  key={node.id}
+                  onClick={() => setSelectedId(node.id)}
+                  type="button"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{formatGeoType(node.type)}</p>
+                      <h3 className="mt-1 truncate text-lg font-extrabold text-slate-950">{node.label}</h3>
+                    </div>
+                    <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${isActive ? 'bg-[#007cba] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#eef8ff] group-hover:text-[#007cba]'}`}>
+                      <ChevronRight size={18} />
+                    </span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <div className="rounded-xl bg-slate-50 p-2">
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Apps</p>
+                      <p className="text-xl font-extrabold text-slate-950">{node.counts?.applications?.total || 0}</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-2">
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Partners</p>
+                      <p className="text-xl font-extrabold text-slate-950">{node.counts?.users?.partners || 0}</p>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-2">
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Child</p>
+                      <p className="text-xl font-extrabold text-slate-950">{node.childCount || 0}</p>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </Panel>
+
+        <Panel>
+          <PanelHeader
+            eyebrow="Selected Scope / தேர்ந்தெடுத்த பகுதி"
+            title={selectedNode?.label || 'Scope Details'}
+          />
+          <div className="grid gap-4 p-4 sm:p-5">
+            <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-600">
+              {breadcrumb.map((node, index) => (
+                <button
+                  className={`rounded-full px-3 py-1.5 ring-1 ${node.id === selectedNode?.id ? 'bg-[#007cba] text-white ring-[#007cba]' : 'bg-slate-50 ring-slate-200 hover:bg-white'}`}
+                  key={node.id}
+                  onClick={() => setSelectedId(node.id)}
+                  type="button"
+                >
+                  {index + 1}. {node.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Applications</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.applications?.total || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Partners</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.users?.partners || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Active Users</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.users?.active || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Signups</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.signupRequests?.total || 0}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Application Status</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedStatusSummary.length ? selectedStatusSummary.map(([status, count]) => (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200" key={status}>
+                    <StatusPill status={status} />
+                    {count}
+                  </span>
+                )) : <span className="text-sm text-slate-500">No applications yet.</span>}
+              </div>
+            </div>
+
+            {selectedNode?.partners?.length > 0 && (
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Village Partners / கிராம பங்குதாரர்கள்</p>
+                <div className="mt-2 grid gap-2">
+                  {selectedNode.partners.map((partner) => (
+                    <div className="rounded-xl border border-slate-200 bg-white p-3" key={partner.id}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-slate-950">{partner.name}</p>
+                          <p className="mt-0.5 text-xs text-slate-500">{partner.username} • {partner.phone || '-'}</p>
+                          <p className="mt-0.5 text-[11px] text-slate-400">Last login: {formatDate(partner.lastLoginAt)}</p>
+                        </div>
+                        <span className="rounded-xl bg-[#eef8ff] px-3 py-2 text-center text-xs font-bold text-[#007cba]">
+                          {partner.applications?.total || 0}<br />Apps
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedNode?.recentApplications?.length > 0 && (
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications</p>
+                <div className="mt-2 grid gap-2">
+                  {selectedNode.recentApplications.map((application) => (
+                    <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="break-all text-sm font-bold text-slate-950">{application.applicationNo}</p>
+                          <p className="mt-0.5 text-xs text-slate-500">{application.form?.tamilTitle || application.form?.title}</p>
+                        </div>
+                        <StatusPill status={application.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Panel>
+      </div>
+    </section>
+  )
+}
+
 function MetricCardsBar({ isAdmin, loading, role, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
 
@@ -2872,6 +3099,7 @@ export default function DashboardPage() {
 
   const [signupRequests, setSignupRequests] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [hierarchyOverview, setHierarchyOverview] = useState(null)
   const [loading, setLoading] = useState(true)
   const { notify } = useNotifications()
 
@@ -2890,15 +3118,18 @@ export default function DashboardPage() {
       }
 
       if (isAdmin) {
-        const [signupResponse, submissionResponse] = await Promise.all([
+        const [signupResponse, submissionResponse, hierarchyResponse] = await Promise.all([
           api.get('/auth/signup-requests'),
           api.get('/applications/submissions'),
+          api.get('/admin/hierarchy-applications'),
         ])
         setSignupRequests(signupResponse.data.requests || [])
         setSubmissions(submissionResponse.data.submissions || [])
+        setHierarchyOverview(hierarchyResponse.data.hierarchy || null)
       } else {
         const response = await api.get('/applications/submissions')
         setSubmissions(response.data.submissions || [])
+        setHierarchyOverview(null)
       }
     } catch (error) {
       notify({
@@ -3078,6 +3309,14 @@ export default function DashboardPage() {
             signupRequests={signupRequests}
             submissions={submissions}
             user={user}
+          />
+        )}
+
+        {activeTab === 'hierarchy-view' && isAdmin && (
+          <HierarchyApplicationsPanel
+            hierarchy={hierarchyOverview}
+            loading={loading}
+            onRefresh={loadDashboard}
           />
         )}
 
