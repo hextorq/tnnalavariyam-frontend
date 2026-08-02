@@ -211,6 +211,50 @@ function hierarchyNodeLabel(node) {
   return englishName && englishName !== tamilName ? `${tamilName} / ${englishName}` : tamilName
 }
 
+function getSubmissionSourceHierarchy(submission) {
+  const applicantData = submission?.applicantData || {}
+  const nodes = []
+  let current = submission?.geoUnit || submission?.user?.scope || null
+  while (current) {
+    nodes.push(current)
+    current = current.parent || null
+  }
+
+  const byType = nodes.reduce((acc, node) => {
+    if (node?.type) acc[node.type] = hierarchyNodeLabel(node)
+    return acc
+  }, {})
+
+  return {
+    district: applicantData.district || byType.DISTRICT || '',
+    taluk: applicantData.taluk || applicantData.talukName || byType.TALUK || '',
+    village: applicantData.village || applicantData.villageName || byType.VILLAGE || '',
+    partner: submission?.user?.firstName || submission?.user?.username || '',
+  }
+}
+
+function SubmissionSourceLine({ submission }) {
+  const source = getSubmissionSourceHierarchy(submission)
+  const items = [
+    ['District', source.district],
+    ['Taluk', source.taluk],
+    ['Village', source.village],
+    ['Partner', source.partner],
+  ].filter(([, value]) => value)
+
+  if (!items.length) return null
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-600">
+      {items.map(([label, value]) => (
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 ring-1 ring-slate-200" key={label}>
+          {label}: <span className="font-bold text-slate-800">{value}</span>
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function getUserDisplayName(user) {
   if (!user) return 'User'
   return user.firstName || user.name || user.username || user.email || 'User'
@@ -1556,7 +1600,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
 
   const workerName = rawApplicantData.workerName || submission.applicantName || submission.user?.firstName || '-'
   const phone = rawApplicantData.phone || submission.user?.phone || '-'
-  const district = rawApplicantData.district || submission.geoUnit?.name || '-'
+  const sourceHierarchy = getSubmissionSourceHierarchy({ ...submission, applicantData: rawApplicantData })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-sm">
@@ -1630,7 +1674,10 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <SignupDetailRow label="Worker Name / தொழிலாளி பெயர்" value={workerName} />
               <SignupDetailRow label="Mobile Number / அலைபேசி எண்" value={phone} />
-              <SignupDetailRow label="District / மாவட்டம்" value={district} />
+              <SignupDetailRow label="District / மாவட்டம்" value={sourceHierarchy.district || '-'} />
+              <SignupDetailRow label="Taluk / தாலுகா" value={sourceHierarchy.taluk || '-'} />
+              <SignupDetailRow label="Village / கிராமம்" value={sourceHierarchy.village || '-'} />
+              <SignupDetailRow label="Submitted By / சமர்ப்பித்தவர்" value={sourceHierarchy.partner || '-'} />
               {rawApplicantData.dob && <SignupDetailRow label="Date of Birth / பிறந்த தேதி" value={rawApplicantData.dob} />}
               {rawApplicantData.dobProofType && <SignupDetailRow label="DOB Proof Document / ஆவண வகை" value={rawApplicantData.dobProofType} />}
               {rawApplicantData.religion && <SignupDetailRow label="Religion / மதம்" value={rawApplicantData.religion} />}
@@ -3105,8 +3152,9 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                         </div>
                         <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
-                          Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span> • {submission.applicantData?.district ? `District: ${submission.applicantData.district}` : ''} {submission.geoUnit?.name ? `• ${submission.geoUnit.name}` : ''}
+                          Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
                         </p>
+                        <SubmissionSourceLine submission={submission} />
                         <p className="mt-0.5 text-[11px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
                       </div>
                       <div className="shrink-0">
@@ -3144,7 +3192,7 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
                       <p className="mt-1.5 text-xs text-slate-500">
                         Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
                       </p>
-                      <p className="mt-0.5 text-xs text-slate-500">{submission.applicantData?.district ? `District: ${submission.applicantData.district} ` : ''}{submission.geoUnit?.name || ''}</p>
+                      <SubmissionSourceLine submission={submission} />
                       <p className="mt-1 text-[10px] text-slate-400">Updated: {formatDate(submission.updatedAt)}</p>
                     </div>
                     <div className="border-t border-slate-100 pt-3">
