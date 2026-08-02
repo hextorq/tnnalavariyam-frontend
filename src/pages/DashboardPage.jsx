@@ -1869,22 +1869,20 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
 
 function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
   const roots = hierarchy?.roots || []
-  const flattened = useMemo(() => collectHierarchyNodes(roots), [roots])
-  const [selectedId, setSelectedId] = useState(null)
+  const [path, setPath] = useState([])
 
   useEffect(() => {
-    if (!selectedId && roots[0]?.id) setSelectedId(roots[0].id)
-  }, [roots, selectedId])
+    setPath([])
+  }, [roots])
 
-  const selectedEntry = useMemo(() => {
-    if (!flattened.length) return null
-    return flattened.find((entry) => entry.node.id === selectedId) || flattened[0]
-  }, [flattened, selectedId])
-
-  const selectedNode = selectedEntry?.node || null
-  const breadcrumb = selectedEntry ? [...selectedEntry.parents, selectedEntry.node] : []
-  const visibleCards = selectedNode?.children?.length ? selectedNode.children : roots
-  const selectedStatusSummary = getStatusSummary(selectedNode?.counts?.applications)
+  const currentNode = path[path.length - 1] || null
+  const visibleCards = currentNode ? currentNode.children || [] : roots
+  const partnerCards = currentNode?.type === 'VILLAGE' ? currentNode.partners || [] : []
+  const hasNextLevel = visibleCards.length > 0
+  const pageStatusSummary = getStatusSummary((currentNode || hierarchy?.total)?.counts?.applications)
+  const pageTitle = currentNode
+    ? currentNode.label
+    : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`
 
   if (loading) return <DashboardSkeleton />
 
@@ -1924,28 +1922,88 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
         </div>
       </Panel>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Panel>
-          <PanelHeader
-            eyebrow={`${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`}
-            title="Click an area to drill down / பகுதியை தேர்வு செய்யவும்"
-          />
-          <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2">
-            {visibleCards.map((node) => {
-              const isActive = selectedNode?.id === node.id
-              return (
+      <Panel>
+        <PanelHeader
+          action={
+            <div className="flex flex-wrap gap-2">
+              {path.length > 0 && (
                 <button
-                  className={`group rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${isActive ? 'border-[#007cba] bg-[#eef8ff]' : 'border-slate-200 bg-white hover:border-[#007cba]/60'}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                  onClick={() => setPath((items) => items.slice(0, -1))}
+                  type="button"
+                >
+                  <ChevronLeft size={16} />
+                  Back
+                </button>
+              )}
+              {path.length > 0 && (
+                <button
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                  onClick={() => setPath([])}
+                  type="button"
+                >
+                  First Page
+                </button>
+              )}
+            </div>
+          }
+          eyebrow={path.length ? 'Selected Area / தேர்ந்தெடுத்த பகுதி' : 'First Page / முதல் பக்கம்'}
+          title={pageTitle}
+        />
+        <div className="grid gap-4 p-4 sm:p-5">
+          {path.length > 0 && (
+            <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-600">
+              {path.map((node, index) => (
+                <button
+                  className="rounded-full bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200 hover:bg-white"
                   key={node.id}
-                  onClick={() => setSelectedId(node.id)}
+                  onClick={() => setPath((items) => items.slice(0, index + 1))}
+                  type="button"
+                >
+                  {node.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <PanelHeader
+            eyebrow={hasNextLevel ? 'Open next page / அடுத்த பக்கம் திறக்கவும்' : 'Partner Details / பங்குதாரர் விவரங்கள்'}
+            title={hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
+          />
+
+          {currentNode && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Applications</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.applications?.total || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Partners</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.users?.partners || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Active Users</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.users?.active || 0}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">Signups</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.signupRequests?.total || 0}</p>
+              </div>
+            </div>
+          )}
+
+          {hasNextLevel && (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {visibleCards.map((node) => (
+                <button
+                  className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[#007cba]/60 hover:bg-[#eef8ff]/50 hover:shadow-md"
+                  key={node.id}
+                  onClick={() => setPath((items) => [...items, node])}
                   type="button"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{formatGeoType(node.type)}</p>
-                      <h3 className="mt-1 truncate text-lg font-extrabold text-slate-950">{node.label}</h3>
-                    </div>
-                    <span className={`inline-flex size-10 shrink-0 items-center justify-center rounded-xl ${isActive ? 'bg-[#007cba] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#eef8ff] group-hover:text-[#007cba]'}`}>
+                    <h3 className="min-w-0 truncate text-lg font-extrabold text-slate-950">{node.label}</h3>
+                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-[#007cba] group-hover:text-white">
                       <ChevronRight size={18} />
                     </span>
                   </div>
@@ -1959,109 +2017,81 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh }) {
                       <p className="text-xl font-extrabold text-slate-950">{node.counts?.users?.partners || 0}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Child</p>
-                      <p className="text-xl font-extrabold text-slate-950">{node.childCount || 0}</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Next</p>
+                      <p className="text-xl font-extrabold text-slate-950">{node.childCount || node.partners?.length || 0}</p>
                     </div>
                   </div>
                 </button>
-              )
-            })}
-          </div>
-        </Panel>
-
-        <Panel>
-          <PanelHeader
-            eyebrow="Selected Scope / தேர்ந்தெடுத்த பகுதி"
-            title={selectedNode?.label || 'Scope Details'}
-          />
-          <div className="grid gap-4 p-4 sm:p-5">
-            <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-600">
-              {breadcrumb.map((node, index) => (
-                <button
-                  className={`rounded-full px-3 py-1.5 ring-1 ${node.id === selectedNode?.id ? 'bg-[#007cba] text-white ring-[#007cba]' : 'bg-slate-50 ring-slate-200 hover:bg-white'}`}
-                  key={node.id}
-                  onClick={() => setSelectedId(node.id)}
-                  type="button"
-                >
-                  {index + 1}. {node.label}
-                </button>
               ))}
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Applications</p>
-                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.applications?.total || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Partners</p>
-                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.users?.partners || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Active Users</p>
-                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.users?.active || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Signups</p>
-                <p className="mt-2 text-3xl font-extrabold text-slate-950">{selectedNode?.counts?.signupRequests?.total || 0}</p>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Application Status</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {selectedStatusSummary.length ? selectedStatusSummary.map(([status, count]) => (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200" key={status}>
-                    <StatusPill status={status} />
-                    {count}
-                  </span>
-                )) : <span className="text-sm text-slate-500">No applications yet.</span>}
-              </div>
-            </div>
-
-            {selectedNode?.partners?.length > 0 && (
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Village Partners / கிராம பங்குதாரர்கள்</p>
-                <div className="mt-2 grid gap-2">
-                  {selectedNode.partners.map((partner) => (
-                    <div className="rounded-xl border border-slate-200 bg-white p-3" key={partner.id}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-slate-950">{partner.name}</p>
-                          <p className="mt-0.5 text-xs text-slate-500">{partner.username} • {partner.phone || '-'}</p>
-                          <p className="mt-0.5 text-[11px] text-slate-400">Last login: {formatDate(partner.lastLoginAt)}</p>
-                        </div>
-                        <span className="rounded-xl bg-[#eef8ff] px-3 py-2 text-center text-xs font-bold text-[#007cba]">
-                          {partner.applications?.total || 0}<br />Apps
-                        </span>
-                      </div>
+          {!hasNextLevel && partnerCards.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {partnerCards.map((partner) => (
+                <div className="rounded-2xl border border-slate-200 bg-white p-4" key={partner.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-extrabold text-slate-950">{partner.name}</p>
+                      <p className="mt-1 text-xs text-slate-500">{partner.username} • {partner.phone || '-'}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">Last login: {formatDate(partner.lastLoginAt)}</p>
                     </div>
-                  ))}
+                    <span className="rounded-xl bg-[#eef8ff] px-3 py-2 text-center text-xs font-bold text-[#007cba]">
+                      {partner.applications?.total || 0}<br />Apps
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {getStatusSummary(partner.applications).map(([status, count]) => (
+                      <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200" key={status}>
+                        {STATUS_META[status]?.en || status}: {count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!hasNextLevel && !partnerCards.length && (
+            <EmptyState>No next level or partner records found for this area.</EmptyState>
+          )}
+
+          {currentNode && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Application Status</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {pageStatusSummary.length ? pageStatusSummary.map(([status, count]) => (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200" key={status}>
+                      <StatusPill status={status} />
+                      {count}
+                    </span>
+                  )) : <span className="text-sm text-slate-500">No applications yet.</span>}
                 </div>
               </div>
-            )}
 
-            {selectedNode?.recentApplications?.length > 0 && (
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications</p>
-                <div className="mt-2 grid gap-2">
-                  {selectedNode.recentApplications.map((application) => (
-                    <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="break-all text-sm font-bold text-slate-950">{application.applicationNo}</p>
-                          <p className="mt-0.5 text-xs text-slate-500">{application.form?.tamilTitle || application.form?.title}</p>
+              {currentNode.recentApplications?.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications</p>
+                  <div className="mt-2 grid gap-2">
+                    {currentNode.recentApplications.map((application) => (
+                      <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="break-all text-sm font-bold text-slate-950">{application.applicationNo}</p>
+                            <p className="mt-0.5 text-xs text-slate-500">{application.form?.tamilTitle || application.form?.title}</p>
+                          </div>
+                          <StatusPill status={application.status} />
                         </div>
-                        <StatusPill status={application.status} />
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </Panel>
-      </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Panel>
     </section>
   )
 }
