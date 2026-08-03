@@ -315,7 +315,7 @@ function getUserInitials(user) {
   return initials || 'U'
 }
 
-function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, onNavigate, user }) {
+function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, user }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const isAdminUser = adminRoles.has(user?.role)
   const items = [
@@ -327,8 +327,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
     { id: 'payment-receipt', icon: ReceiptText, label: 'Payment Receipt', description: 'Receipt placeholder' },
     { id: 'profile-image', icon: User, label: 'Profile', description: 'Photo & account' },
   ]
-
-  const profilePhoto = getProfilePhoto(user)
 
   function handleSelectTab(tabId) {
     onNavigate(tabId)
@@ -389,28 +387,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                 )
               })}
             </nav>
-          </div>
-
-          <div className="border-t border-slate-800 p-4">
-            <button
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 py-3 text-sm font-semibold text-slate-200"
-              onClick={() => handleSelectTab('profile-image')}
-              type="button"
-            >
-              <User className="text-[#007cba]" size={16} />
-              <span>Profile Update / சுயவிவரம்</span>
-            </button>
-            <button
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600/90 py-3 text-sm font-semibold text-white"
-              onClick={() => {
-                setMobileOpen(false)
-                onLogout()
-              }}
-              type="button"
-            >
-              <LogOut size={16} />
-              <span>Logout / வெளியேறு</span>
-            </button>
           </div>
         </div>
       )}
@@ -475,60 +451,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
                 )
               })}
             </nav>
-          </div>
-
-          <div className="mt-auto border-t border-slate-800 pt-4">
-            {collapsed ? (
-              <div className="flex flex-col items-center justify-center pt-2">
-                <button
-                  className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 transition hover:scale-105"
-                  onClick={() => onNavigate('profile-image')}
-                  title={`${getUserDisplayName(user)} - Profile Update`}
-                  type="button"
-                >
-                  {profilePhoto ? (
-                    <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
-                  )}
-                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/80 p-3.5 backdrop-blur-xs">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-slate-800 ring-2 ring-[#007cba]/50 shadow-md">
-                    {profilePhoto ? (
-                      <img alt="" className="h-full w-full object-cover" src={profilePhoto} />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">{getUserInitials(user)}</span>
-                    )}
-                    <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-white">{getUserDisplayName(user)}</p>
-                    <p className="truncate text-xs font-medium text-slate-400">{roleLabels[user?.role] || user?.role}</p>
-                  </div>
-                  <button
-                    aria-label="Logout"
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400 transition hover:bg-rose-600 hover:text-white"
-                    onClick={onLogout}
-                    type="button"
-                  >
-                    <LogOut size={15} />
-                  </button>
-                </div>
-
-                <button
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-[#007cba]/50 hover:bg-slate-800 hover:text-white"
-                  onClick={() => onNavigate('profile-image')}
-                  type="button"
-                >
-                  <User className="text-[#007cba]" size={14} />
-                  <span>Profile Update</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </aside>
@@ -3512,7 +3434,6 @@ export default function DashboardPage() {
         activeTab={activeNavId}
         collapsed={sidebarCollapsed}
         onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
-        onLogout={handleLogout}
         onNavigate={handleSidebarNav}
         user={user}
       />
