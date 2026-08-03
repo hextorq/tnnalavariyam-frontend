@@ -2,13 +2,14 @@ import AuthRequired from '../components/AuthRequired.jsx'
 import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
 import { STATUS_META } from '../constants/statusMeta.js'
 import { bilingualName, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
+import NewApplicationList from './NewApplicationList.jsx'
 import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, ReceiptText, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FilePlus2, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, ReceiptText, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -320,6 +321,7 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
   const isAdminUser = adminRoles.has(user?.role)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & metrics' },
+    { id: 'new-application', icon: FilePlus2, label: 'New Application', description: 'Create new application' },
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Applications', description: 'All applications' },
     ...(isAdminUser ? [{ id: 'signup-queue', icon: UserPlus, label: 'Signup Requests', description: 'Approve signups' }] : []),
     ...(isAdminUser ? [{ id: 'hierarchy-view', icon: Layers3, label: 'Hierarchy View', description: 'Area application counts' }] : []),
@@ -3315,6 +3317,7 @@ export default function DashboardPage() {
 
   const navLabels = {
     'dashboard-overview': 'My Dashboard / என் டாஷ்போர்டு',
+    'new-application': 'New Application / புதிய விண்ணப்பம்',
     'work-panel': 'Applications / விண்ணப்பங்கள்',
     'signup-queue': 'Signup Requests / பதிவு கோரிக்கைகள்',
     'hierarchy-view': 'Hierarchy View / படிநிலை பார்வை',
@@ -3407,6 +3410,8 @@ export default function DashboardPage() {
             </section>
           </>
         )}
+
+        {activeTab === 'new-application' && <NewApplicationList />}
 
         {activeTab === 'work-panel' && (
           <FullWorkPanel
