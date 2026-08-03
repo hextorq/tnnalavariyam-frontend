@@ -3340,46 +3340,46 @@ export default function DashboardPage() {
       />
 
       <main className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto p-3 sm:p-5 lg:h-screen lg:p-6 xl:p-8">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur sm:px-4">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3.5 shadow-sm backdrop-blur sm:px-5">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
-            <p className="truncate text-base font-bold leading-tight text-slate-950 sm:text-lg">{navLabels[activeNavId] || 'Dashboard'}</p>
+            <p className="truncate text-lg font-bold leading-tight text-slate-950 sm:text-xl">{navLabels[activeNavId] || 'Dashboard'}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-1.5 pr-3 sm:flex">
+          <div className="flex shrink-0 items-center gap-2.5">
+            <div className="hidden items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 py-2 pl-2 pr-4 sm:flex">
               {profilePhotoUrl ? (
-                <img alt={getUserDisplayName(user)} className="size-9 shrink-0 rounded-lg object-cover ring-2 ring-[#007cba]/30" src={profilePhotoUrl} />
+                <img alt={getUserDisplayName(user)} className="size-14 shrink-0 rounded-xl object-cover ring-2 ring-[#007cba]/30" src={profilePhotoUrl} />
               ) : (
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#007cba] text-xs font-black text-white">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-[#007cba] text-base font-black text-white">
                   {getUserInitials(user)}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="max-w-40 truncate text-sm font-bold leading-tight text-slate-950">{getUserDisplayName(user)}</p>
-                <p className="text-[10px] font-bold leading-tight text-[#007cba]">{roleLabels[user?.role] || user?.role}</p>
-                <p className="flex items-center gap-1 text-[10px] font-semibold leading-tight text-slate-500">
-                  <MapPin size={9} />
-                  <span className="max-w-36 truncate">{getJurisdictionName(user)}</span>
+                <p className="max-w-44 truncate text-base font-bold leading-tight text-slate-950">{getUserDisplayName(user)}</p>
+                <p className="text-xs font-bold leading-tight text-[#007cba]">{roleLabels[user?.role] || user?.role}</p>
+                <p className="flex items-center gap-1 text-xs font-semibold leading-tight text-slate-500">
+                  <MapPin size={11} />
+                  <span className="max-w-40 truncate">{getJurisdictionName(user)}</span>
                 </p>
               </div>
             </div>
             <button
               aria-label="Refresh"
-              className="inline-flex size-10 items-center justify-center rounded-xl border border-slate-300 bg-slate-950 text-white shadow-xs transition hover:bg-slate-800"
+              className="inline-flex size-12 items-center justify-center rounded-xl border border-slate-300 bg-slate-950 text-white shadow-xs transition hover:bg-slate-800"
               onClick={() => loadDashboard()}
               title="Refresh / புதுப்பிக்க"
               type="button"
             >
-              <RefreshCw size={16} />
+              <RefreshCw size={18} />
             </button>
             <button
               aria-label="Logout"
-              className="inline-flex size-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-700 shadow-xs transition hover:bg-rose-100"
+              className="inline-flex size-12 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-700 shadow-xs transition hover:bg-rose-100"
               onClick={handleLogout}
               title="Logout / வெளியேறு"
               type="button"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
             </button>
           </div>
         </header>

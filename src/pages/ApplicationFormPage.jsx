@@ -9,6 +9,7 @@ import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { Link, navigate } from '../lib/router.jsx'
 import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
 import SearchSelect from '../components/SearchSelect.jsx'
+import { features } from '../config.js'
 import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -256,6 +257,15 @@ function SelectWithOther({ children, customPlaceholder, onCustomChange, onSelect
   )
 }
 
+function UploadDisclaimer() {
+  return (
+    <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900">
+      <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
+      <span>JPEG (.jpg, .jpeg) or PNG (.png) images only. File size within 2 MB. / JPEG அல்லது PNG படங்கள் மட்டும். அளவு 2 MB க்குள்.</span>
+    </div>
+  )
+}
+
 function FileField({ children, className = '', preview = '', onChange, required = false, ...props }) {
   const inputRef = useRef(null)
   const isImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
@@ -276,11 +286,6 @@ function FileField({ children, className = '', preview = '', onChange, required 
         {children}
         {required && <span className="ml-1 text-red-600">*</span>}
       </span>
-
-      <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold text-amber-900">
-        <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
-        <span>JPEG (.jpg, .jpeg) or PNG (.png) images only. File size within 2 MB.</span>
-      </div>
 
       <input
         ref={inputRef}
@@ -837,7 +842,7 @@ export default function ApplicationFormPage({ formId }) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'கையொப்பம் பதிவேற்றவும். / Upload signature.' })
       return
     }
-    if (!previews.livePhoto) {
+    if (features.livePhoto && !previews.livePhoto) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நேரடி புகைப்படம் எடுக்கவும். / Capture live photo.' })
       return
     }
@@ -1183,6 +1188,7 @@ export default function ApplicationFormPage({ formId }) {
               {/* Document Uploads Section - Grouped Cleanly in Pairs */}
               <div className="mt-6 pt-6 border-t border-slate-200">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Mandatory Documents / ஆவணங்கள் பதிவேற்றம்</p>
+                <UploadDisclaimer />
                 <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
                   <FileField
                     accept="image/*,.pdf,.doc,.docx"
@@ -1263,17 +1269,6 @@ export default function ApplicationFormPage({ formId }) {
                   </FileField>
                 </div>
               </div>
-
-              {/* Dedicated Full-Width Live Photo Section */}
-              <div className="mt-6 pt-6 border-t border-slate-200 grid gap-5 grid-cols-1">
-                <LivePhotoSection
-                  required
-                  onCapture={(dataUrl) => {
-                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                  }}
-                  preview={previews.livePhoto}
-                />
-              </div>
             </Section>
           )}
 
@@ -1316,6 +1311,7 @@ export default function ApplicationFormPage({ formId }) {
 
               <div className="mt-6 pt-6 border-t border-slate-200">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <UploadDisclaimer />
                 <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
                   <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
                     Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
@@ -1368,6 +1364,7 @@ export default function ApplicationFormPage({ formId }) {
 
               <div className="mt-6 pt-6 border-t border-slate-200">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <UploadDisclaimer />
                 <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
                   <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
                     Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
@@ -1451,6 +1448,7 @@ export default function ApplicationFormPage({ formId }) {
 
               <div className="mt-6 pt-6 border-t border-slate-200">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Upload Child Documents / குழந்தையின் ஆவணங்கள்</p>
+                <UploadDisclaimer />
                 <div className="mt-4 grid gap-5 md:grid-cols-2 items-start">
                   <FileField onChange={(e) => handleFileSelect('childAadhar', e)} preview={previews.childAadhar} required>
                     Child's Aadhar card / குழந்தையின் ஆதார் அட்டை
@@ -1536,17 +1534,6 @@ export default function ApplicationFormPage({ formId }) {
                   </FileField>
                 </div>
               </div>
-
-              <div className="mt-6 pt-6 border-t border-slate-200 grid gap-5 grid-cols-1">
-                <LivePhotoSection
-                  label="Worker Live Photo / தொழிலாளியின் நேரடி புகைப்படம்"
-                  required
-                  onCapture={(dataUrl) => {
-                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                  }}
-                  preview={previews.livePhoto}
-                />
-              </div>
             </Section>
           )}
 
@@ -1596,6 +1583,16 @@ export default function ApplicationFormPage({ formId }) {
                       </span>
                     </label>
                   </div>
+
+                  {features.livePhoto && (
+                    <LivePhotoSection
+                      required
+                      onCapture={(dataUrl) => {
+                        setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                      }}
+                      preview={previews.livePhoto}
+                    />
+                  )}
                 </div>
               </div>
             </Section>
@@ -1615,6 +1612,18 @@ export default function ApplicationFormPage({ formId }) {
                   </span>
                 </label>
               </div>
+
+              {features.livePhoto && (
+                <div className="mt-5">
+                  <LivePhotoSection
+                    required
+                    onCapture={(dataUrl) => {
+                      setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                    }}
+                    preview={previews.livePhoto}
+                  />
+                </div>
+              )}
             </Section>
           )}
 
