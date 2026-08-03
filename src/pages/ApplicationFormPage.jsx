@@ -128,17 +128,20 @@ const standardOptions = [
   { value: '7', label: '7ம் வகுப்பு / 7th Standard' },
   { value: '8', label: '8ம் வகுப்பு / 8th Standard' },
   { value: '9', label: '9ம் வகுப்பு / 9th Standard' },
+  { value: 'Other', label: 'பிற வகுப்பு / Other' },
 ]
 
 const girlsStandardOptions = [
   { value: '10', label: '10ம் வகுப்பு / 10th Standard' },
   { value: '11', label: '11ம் வகுப்பு / 11th Standard' },
   { value: '12', label: '12ம் வகுப்பு / 12th Standard' },
+  { value: 'Other', label: 'பிற வகுப்பு / Other' },
 ]
 
 const examPassedOptions = [
   { value: '10', label: '10ம் வகுப்பு தேர்ச்சி / 10th Pass' },
   { value: '12', label: '12ம் வகுப்பு தேர்ச்சி / 12th Pass' },
+  { value: 'Other', label: 'பிற தேர்ச்சி / Other' },
 ]
 
 const courseTypeOptions = [
@@ -774,9 +777,17 @@ export default function ApplicationFormPage({ formId }) {
           notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தேர்ச்சி பெற்ற வகுப்பைத் தேர்ந்தெடுக்கவும். / Select examination passed.' })
           return
         }
+        if (formData.customData.examPassed === 'Other') {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தேர்ச்சி வகுப்பின் பெயரை உள்ளிடவும். / Type the passed class name.' })
+          return
+        }
       } else {
         if (!formData.customData.standard) {
           notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வகுப்பைத் தேர்ந்தெடுக்கவும். / Select standard.' })
+          return
+        }
+        if (formData.customData.standard === 'Other') {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வகுப்பின் பெயரை உள்ளிடவும். / Type the standard name.' })
           return
         }
       }
@@ -1270,14 +1281,16 @@ export default function ApplicationFormPage({ formId }) {
           {(currentKey === 'education-6-9' || isGirls) && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SelectField
-                  onChange={(e) => handleCustomChange('standard', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="வகுப்பின் பெயரை உள்ளிடவும் / Type the standard name"
+                  onCustomChange={(text) => handleCustomChange('standard', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleCustomChange('standard', v)}
                   options={isGirls ? girlsStandardOptions : standardOptions}
                   required
                   value={formData.customData.standard || ''}
                 >
                   Choose the standard in which studying / படிக்கும் வகுப்பைத் தேர்ந்தெடுக்கவும்
-                </SelectField>
+                </SelectWithOther>
 
                 <Field
                   onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
@@ -1320,14 +1333,16 @@ export default function ApplicationFormPage({ formId }) {
           {isPass && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SelectField
-                  onChange={(e) => handleCustomChange('examPassed', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="தேர்ச்சி வகுப்பின் பெயரை உள்ளிடவும் / Type the passed class name"
+                  onCustomChange={(text) => handleCustomChange('examPassed', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleCustomChange('examPassed', v)}
                   options={examPassedOptions}
                   required
                   value={formData.customData.examPassed || ''}
                 >
                   Examination passed / தேர்ச்சி பெற்ற வகுப்பு
-                </SelectField>
+                </SelectWithOther>
 
                 <Field
                   onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
