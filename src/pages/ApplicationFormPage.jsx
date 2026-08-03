@@ -213,6 +213,46 @@ function SelectField({ children, options, className = '', required = false, ...p
   )
 }
 
+function SelectWithOther({ children, customPlaceholder, onCustomChange, onSelectChange, options, required = false, value = '' }) {
+  const isCustom = value === 'Other' || (typeof value === 'string' && value.startsWith('Other - '))
+  const customText = isCustom ? String(value).replace(/^Other - /, '') : ''
+  return (
+    <div className="flex flex-col justify-start gap-2 text-sm font-semibold text-neutral-700">
+      <span>
+        {children}
+        {required && <span className="ml-1 text-red-600">*</span>}
+      </span>
+      <select
+        className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 font-normal text-neutral-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+        onChange={(e) => onSelectChange?.(e.target.value)}
+        value={isCustom ? 'Other' : value || ''}
+      >
+        <option value="">Select an option / தேர்வு செய்யவும்</option>
+        {options.map((option) => {
+          if (typeof option === 'string') {
+            return <option key={option} value={option}>{option}</option>
+          }
+          const val = option.value || option.name || option.code
+          const lbl = option.label || option.name || option.englishName || option.code
+          return (
+            <option key={val} value={val}>
+              {lbl}
+            </option>
+          )
+        })}
+      </select>
+      {isCustom && (
+        <input
+          className="w-full rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 font-normal outline-none transition focus:border-[#f0ad4e] focus:ring-2 focus:ring-[#f0ad4e]/20"
+          onChange={(e) => onCustomChange?.(e.target.value)}
+          placeholder={customPlaceholder || 'Type here / இங்கே உள்ளிடவும்'}
+          value={customText}
+        />
+      )}
+    </div>
+  )
+}
+
 function FileField({ children, className = '', preview = '', onChange, required = false, ...props }) {
   const inputRef = useRef(null)
   const isImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
@@ -652,16 +692,32 @@ export default function ApplicationFormPage({ formId }) {
         notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மதம் தேர்வு செய்யவும். / Select religion.' })
         return
       }
+      if (formData.religion === 'Other') {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'மதத்தின் பெயரை உள்ளிடவும். / Type the religion name.' })
+        return
+      }
       if (!formData.caste) {
         notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'சாதி பிரிவு தேர்வு செய்யவும். / Select caste.' })
+        return
+      }
+      if (formData.caste === 'Other') {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'சாதி பிரிவின் பெயரை உள்ளிடவும். / Type the community name.' })
         return
       }
       if (!formData.subCaste) {
         notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'உட்பிரிவு தேர்வு செய்யவும். / Select sub-caste.' })
         return
       }
+      if (formData.subCaste === 'Other') {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'உட்பிரிவின் பெயரை உள்ளிடவும். / Type the sub-caste name.' })
+        return
+      }
       if (!formData.workerJob) {
         notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'தொழிலாளியின் வேலை தேர்வு செய்யவும். / Select worker job.' })
+        return
+      }
+      if (formData.workerJob === 'Other') {
+        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'வேலையின் பெயரை உள்ளிடவும். / Type the other work name.' })
         return
       }
       if (!formData.nomineeName.trim()) {
@@ -695,6 +751,10 @@ export default function ApplicationFormPage({ formId }) {
       if (isHigherEducation) {
         if (!formData.customData.courseType) {
           notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'படிப்பு வகையைத் தேர்ந்தெடுக்கவும். / Select course type.' })
+          return
+        }
+        if (formData.customData.courseType === 'Other') {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'படிப்பு வகையின் பெயரை உள்ளிடவும். / Type the other course type.' })
           return
         }
         if (!formData.customData.courseName?.trim()) {
@@ -1061,44 +1121,52 @@ export default function ApplicationFormPage({ formId }) {
 
               {/* Text & Dropdown Inputs Group 4 */}
               <div className="grid gap-5 md:grid-cols-3 items-start">
-                <SelectField
-                  onChange={(e) => handleInputChange('religion', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="மதத்தின் பெயரை உள்ளிடவும் / Type the religion name"
+                  onCustomChange={(text) => handleInputChange('religion', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleInputChange('religion', v)}
                   options={religionOptions}
                   required
                   value={formData.religion}
                 >
                   Religion / மதம்
-                </SelectField>
+                </SelectWithOther>
 
-                <SelectField
-                  onChange={(e) => handleInputChange('caste', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="உங்கள் பிரிவின் பெயரை உள்ளிடவும் / Type the community name"
+                  onCustomChange={(text) => handleInputChange('caste', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleInputChange('caste', v)}
                   options={casteOptions}
                   required
                   value={formData.caste}
                 >
                   Caste / ஜாதி
-                </SelectField>
+                </SelectWithOther>
 
-                <SelectField
-                  onChange={(e) => handleInputChange('subCaste', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="உங்கள் உட்பிரிவின் பெயரை உள்ளிடவும் / Type the sub-caste name"
+                  onCustomChange={(text) => handleInputChange('subCaste', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleInputChange('subCaste', v)}
                   options={subCasteOptions}
                   required
                   value={formData.subCaste}
                 >
                   Sub-Caste / உட்பிரிவு
-                </SelectField>
+                </SelectWithOther>
               </div>
 
               {/* Text & Dropdown Inputs Group 5 */}
               <div className="grid gap-5 md:grid-cols-1 items-start">
-                <SelectField
-                  onChange={(e) => handleInputChange('workerJob', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="வேலையின் பெயரை உள்ளிடவும் / Type the other work name"
+                  onCustomChange={(text) => handleInputChange('workerJob', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleInputChange('workerJob', v)}
                   options={workerJobOptions}
                   required
                   value={formData.workerJob}
                 >
                   Worker's job / தொழிலாளியின் வேலை
-                </SelectField>
+                </SelectWithOther>
               </div>
 
               {/* Document Uploads Section - Grouped Cleanly in Pairs */}
@@ -1302,14 +1370,16 @@ export default function ApplicationFormPage({ formId }) {
           {isHigherEducation && (
             <Section eyebrow="Child Details" title="Child details / குழந்தையின் விவரங்கள்">
               <div className="grid gap-5 md:grid-cols-2 items-start">
-                <SelectField
-                  onChange={(e) => handleCustomChange('courseType', e.target.value)}
+                <SelectWithOther
+                  customPlaceholder="படிப்பு வகையின் பெயரை உள்ளிடவும் / Type the other course type"
+                  onCustomChange={(text) => handleCustomChange('courseType', text.trim() ? `Other - ${text}` : 'Other')}
+                  onSelectChange={(v) => handleCustomChange('courseType', v)}
                   options={courseTypeOptions}
                   required
                   value={formData.customData.courseType || ''}
                 >
                   Choose the standard in which studying / படிக்கும் வகுப்பைத் தேர்ந்தெடுக்கவும்
-                </SelectField>
+                </SelectWithOther>
 
                 <Field
                   onChange={(e) => handleCustomChange('childName', e.target.value.replace(/[^A-Za-z\s]/g, ''))}
