@@ -2336,142 +2336,6 @@ function MetricCardsBar({ isAdmin, loading, onNavigate, role, signupRequests, su
   )
 }
 
-function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupRequests, submissions }) {
-  const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
-  const recentSignups = useMemo(() => pendingRequests.slice(0, 3), [pendingRequests])
-  const recentSubmissions = useMemo(() => submissions.slice(0, 3), [submissions])
-  const [overviewTab, setOverviewTab] = useState('applications')
-
-  if (!isAdmin) {
-    return (
-      <Panel>
-        <PanelHeader
-          action={
-            <button className="inline-flex items-center gap-1.5 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
-              View All Applications <ArrowRight size={14} />
-            </button>
-          }
-          eyebrow="Recent Work"
-          title="Recent Applications (Latest)"
-        />
-        <div className="grid gap-3 p-4 sm:p-5">
-          {recentSubmissions.length ? (
-            recentSubmissions.map((submission) => (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs" key={submission.id}>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="break-all font-bold text-slate-950 text-base">{submission.applicationNo}</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">Updated: {formatDate(submission.updatedAt)}</p>
-                    </div>
-                    <StatusPill status={submission.status} />
-                  </div>
-                  <button
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-center text-xs font-bold text-[#007cba] transition hover:bg-blue-100 hover:border-blue-300"
-                    onClick={() => onSelectSubmission?.(submission)}
-                    type="button"
-                  >
-                    <FileText className="shrink-0" size={15} />
-                    <span>View Application / விவரங்களை காண்க</span>
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState>No applications submitted yet.</EmptyState>
-          )}
-        </div>
-      </Panel>
-    )
-  }
-
-  return (
-    <div className="flex flex-col w-full gap-6">
-      <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
-        <button
-          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${overviewTab === 'applications' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-          onClick={() => setOverviewTab('applications')}
-          type="button"
-        >
-          Recent Applications
-        </button>
-        <button
-          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${overviewTab === 'signups' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-          onClick={() => setOverviewTab('signups')}
-          type="button"
-        >
-          Recent Signups
-        </button>
-      </div>
-
-      {overviewTab === 'signups' && (
-      <Panel>
-        <PanelHeader
-          action={
-            <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
-              Work Panel ({pendingRequests.length}) <ArrowRight size={14} />
-            </button>
-          }
-          eyebrow="Signup Approval"
-          title="User Signup Requests (Recent)"
-        />
-        <div className="grid gap-3 p-4 sm:p-5">
-          {recentSignups.length ? (
-            recentSignups.map((request) => (
-              <div className="rounded-xl border border-slate-200 p-3.5" key={request.id}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-950">{request.fullName}</p>
-                    <p className="mt-0.5 text-xs text-slate-600">{request.requestNo} • {roleLabels[request.requestedRole] || request.requestedRole}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">{request.district} | {request.taluk} | {request.village}</p>
-                  </div>
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 ring-1 ring-amber-200">Pending</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState>No pending signup requests for your scope.</EmptyState>
-          )}
-        </div>
-      </Panel>
-      )}
-
-      {overviewTab === 'applications' && (
-      <Panel>
-        <PanelHeader
-          action={
-            <button className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] hover:underline" onClick={onNavigateWorkPanel} type="button">
-              Work Panel <ArrowRight size={14} />
-            </button>
-          }
-          eyebrow="Work Queue"
-          title="Applications Queue (Recent)"
-        />
-        <div className="grid gap-3 p-4 sm:p-5">
-          {recentSubmissions.length ? (
-            recentSubmissions.map((submission) => (
-              <div className="rounded-xl border border-slate-200 p-3.5" key={submission.id}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="break-all font-bold text-slate-950">{submission.applicationNo}</p>
-                    <p className="mt-0.5 text-xs text-slate-600">{submission.form?.tamilTitle || submission.form?.title}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">{submission.user?.firstName || submission.user?.username || 'Applicant'}</p>
-                  </div>
-                  <StatusPill status={submission.status} />
-                </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState>No applications found.</EmptyState>
-          )}
-        </div>
-      </Panel>
-      )}
-    </div>
-  )
-}
-
 function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
@@ -2479,6 +2343,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
   const [mainTab, setMainTab] = useState(initialMainTab)
   const [signupTab, setSignupTab] = useState('pending')
   const [appFilter, setAppFilter] = useState(initialAppFilter)
+  const [formFilter, setFormFilter] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [areaFilter, setAreaFilter] = useState('ALL')
@@ -2495,7 +2360,17 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
   useEffect(() => {
     setAppPage(1)
     setMyAppPage(1)
-  }, [appFilter, searchQuery, areaFilter, sortBy])
+  }, [appFilter, formFilter, searchQuery, areaFilter, sortBy])
+
+  const formOptions = useMemo(() => {
+    const seen = new Map()
+    for (const sub of submissions) {
+      if (sub.form?.key && !seen.has(sub.form.key)) {
+        seen.set(sub.form.key, sub.form.tamilTitle || sub.form.title)
+      }
+    }
+    return [...seen.entries()].map(([key, label]) => ({ key, label }))
+  }, [submissions])
 
   const areaOptions = useMemo(() => {
     const areas = new Set()
@@ -2525,6 +2400,8 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
       if (appFilter === 'APPROVED' && sub.status !== 'APPROVED') return false
       if (appFilter === 'REJECTED' && sub.status !== 'REJECTED') return false
 
+      if (formFilter !== 'ALL' && sub.form?.key !== formFilter) return false
+
       if (areaFilter !== 'ALL') {
         const district = sub.applicantData?.district || sub.applicantData?.area
         if ((typeof district !== 'string' || district.trim() !== areaFilter)) return false
@@ -2543,7 +2420,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
       }
       return true
     })
-  }, [submissions, appFilter, searchQuery, areaFilter, currentUserId])
+  }, [submissions, appFilter, formFilter, searchQuery, areaFilter, currentUserId])
 
   const sortedSubmissions = useMemo(() => {
     const list = [...filteredSubmissions]
@@ -3042,6 +2919,17 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
           <div className="flex flex-wrap items-center gap-2">
             <select
               className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+              onChange={(e) => { setFormFilter(e.target.value); setAppPage(1); }}
+              value={formFilter}
+            >
+              <option value="ALL">All Forms / அனைத்து படிவங்கள்</option>
+              {formOptions.map((option) => (
+                <option key={option.key} value={option.key}>{option.label}</option>
+              ))}
+            </select>
+
+            <select
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
               onChange={(e) => { setAreaFilter(e.target.value); setAppPage(1); }}
               value={areaFilter}
             >
@@ -3425,6 +3313,16 @@ export default function DashboardPage() {
     setActiveTab(tabId)
   }, [navigateToWorkPanel])
 
+  const navLabels = {
+    'dashboard-overview': 'My Dashboard / என் டாஷ்போர்டு',
+    'work-panel': 'Applications / விண்ணப்பங்கள்',
+    'signup-queue': 'Signup Requests / பதிவு கோரிக்கைகள்',
+    'hierarchy-view': 'Hierarchy View / படிநிலை பார்வை',
+    'check-status': 'Check Status / நிலையை சரிபார்க்க',
+    'payment-receipt': 'Payment Receipt / பண ரசீது',
+    'profile-image': 'Profile / சுயவிவரம்',
+  }
+
   const activeNavId =
     activeTab === 'work-panel' ? (workPanelView.mainTab === 'signups' ? 'signup-queue' : 'work-panel') : activeTab
 
@@ -3439,64 +3337,61 @@ export default function DashboardPage() {
       />
 
       <main className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto p-3 sm:p-5 lg:h-screen lg:p-6 xl:p-8">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur sm:px-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#007cba]">TN NALAVARIYAM</p>
+            <p className="truncate text-base font-bold leading-tight text-slate-950 sm:text-lg">{navLabels[activeNavId] || 'Dashboard'}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="hidden items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-1.5 pr-3 sm:flex">
+              {profilePhotoUrl ? (
+                <img alt={getUserDisplayName(user)} className="size-9 shrink-0 rounded-lg object-cover ring-2 ring-[#007cba]/30" src={profilePhotoUrl} />
+              ) : (
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#007cba] text-xs font-black text-white">
+                  {getUserInitials(user)}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="max-w-40 truncate text-sm font-bold leading-tight text-slate-950">{getUserDisplayName(user)}</p>
+                <p className="text-[10px] font-bold leading-tight text-[#007cba]">{roleLabels[user?.role] || user?.role}</p>
+                <p className="flex items-center gap-1 text-[10px] font-semibold leading-tight text-slate-500">
+                  <MapPin size={9} />
+                  <span className="max-w-36 truncate">{getJurisdictionName(user)}</span>
+                </p>
+              </div>
+            </div>
+            <button
+              aria-label="Refresh"
+              className="inline-flex size-10 items-center justify-center rounded-xl border border-slate-300 bg-slate-950 text-white shadow-xs transition hover:bg-slate-800"
+              onClick={() => loadDashboard()}
+              title="Refresh / புதுப்பிக்க"
+              type="button"
+            >
+              <RefreshCw size={16} />
+            </button>
+            <button
+              aria-label="Logout"
+              className="inline-flex size-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-700 shadow-xs transition hover:bg-rose-100"
+              onClick={handleLogout}
+              title="Logout / வெளியேறு"
+              type="button"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </header>
+
         {loading && activeTab === 'dashboard-overview' ? (
           <DashboardSkeleton />
         ) : activeTab === 'dashboard-overview' && (
           <>
             {/* Header Banner */}
             <section id="dashboard-overview" className="w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-7 shadow-xs">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
-                  <h1 className="mt-2 text-2xl sm:text-4xl font-bold text-slate-950">My Dashboard</h1>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span> ({roleLabels[user?.role] || user?.role}).
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2.5 sm:p-3 border border-slate-200 text-xs font-semibold text-slate-700">
-                    <span className="inline-flex items-center gap-1 font-bold text-[#007cba]">
-                      <MapPin size={15} /> Assigned Jurisdiction / அதிகார வரம்பு:
-                    </span>
-                    <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                      {getJurisdictionName(user)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 pr-4 shadow-2xs">
-                    {profilePhotoUrl ? (
-                      <img
-                        alt={getUserDisplayName(user)}
-                        className="size-10 shrink-0 rounded-xl object-cover ring-2 ring-[#007cba]/30"
-                        src={profilePhotoUrl}
-                      />
-                    ) : (
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#007cba] text-sm font-black text-white">
-                        {getUserInitials(user)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-slate-950">{getUserDisplayName(user)}</p>
-                      <p className="text-[11px] font-bold text-[#007cba]">{roleLabels[user?.role] || user?.role}</p>
-                      <p className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-                        <MapPin size={11} />
-                        <span className="truncate">{getJurisdictionName(user)}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => loadDashboard()} type="button">
-                    <RefreshCw size={16} />
-                    Refresh
-                  </button>
-                  <button
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-700 shadow-xs transition hover:bg-rose-100"
-                    onClick={handleLogout}
-                    type="button"
-                  >
-                    <LogOut size={16} />
-                    Logout / வெளியேறு
-                  </button>
-                </div>
-              </div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">User Dashboard / பயனர் டாஷ்போர்டு</p>
+              <h1 className="mt-2 text-2xl sm:text-4xl font-bold text-slate-950">My Dashboard</h1>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Welcome back, <span className="font-bold text-slate-900">{getUserDisplayName(user)}</span> ({roleLabels[user?.role] || user?.role}).
+              </p>
             </section>
 
             {/* 1. METRICS / STAT CARDS BAR FIRST */}
@@ -3506,18 +3401,6 @@ export default function DashboardPage() {
                 loading={loading}
                 onNavigate={navigateToWorkPanel}
                 role={user?.role}
-                signupRequests={signupRequests}
-                submissions={submissions}
-              />
-            </section>
-
-            {/* 2. WORK PANELS / REVIEW QUEUES SECOND (RECENT 5 ITEMS ONLY) */}
-            <section id="dashboard-work" className="w-full space-y-6">
-              <OverviewWorkPanels
-                isAdmin={isAdmin}
-                loading={loading}
-                onNavigateWorkPanel={() => setActiveTab('work-panel')}
-                onSelectSubmission={setSelectedSubmissionDetails}
                 signupRequests={signupRequests}
                 submissions={submissions}
               />

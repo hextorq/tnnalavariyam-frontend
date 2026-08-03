@@ -46,6 +46,11 @@ export function clearSession() {
 
 export function saveProfilePhoto(photoUrl) {
   if (photoUrl) {
+    const session = getSession()
+    const profilePhotoKey = getProfilePhotoKey(session?.user)
+    if (profilePhotoKey) {
+      localStorage.setItem(profilePhotoKey, photoUrl)
+    }
     localStorage.setItem(PENDING_PROFILE_PHOTO_KEY, photoUrl)
     window.dispatchEvent(new Event('authchange'))
   }
@@ -62,10 +67,12 @@ export function getUploadUrl(path) {
 
 export function getProfilePhoto(user) {
   const profilePhotoKey = getProfilePhotoKey(user)
-  const localPhoto = (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || (!profilePhotoKey && localStorage.getItem(PENDING_PROFILE_PHOTO_KEY)) || ''
+  const localPhoto = (profilePhotoKey && localStorage.getItem(profilePhotoKey)) || ''
   if (localPhoto) return localPhoto
   const serverPhoto = user?.photoPath || user?.photo || user?.photoUrl || ''
   if (serverPhoto) return getUploadUrl(serverPhoto)
+  const pendingPhoto = localStorage.getItem(PENDING_PROFILE_PHOTO_KEY)
+  if (pendingPhoto) return pendingPhoto
   return ''
 }
 
