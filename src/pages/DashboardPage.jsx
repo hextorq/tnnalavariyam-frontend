@@ -1,15 +1,14 @@
 import AuthRequired from '../components/AuthRequired.jsx'
 import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
 import { STATUS_META } from '../constants/statusMeta.js'
-import { applicationForms } from '../data/applicationForms.js'
 import { bilingualName, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
-import { Link, navigate } from '../lib/router.jsx'
+import { navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, ReceiptText, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
@@ -69,6 +68,15 @@ function getUserLocationDetails(user) {
   return roleScopeLabels[user.role] || 'Assigned Jurisdiction'
 }
 
+function getJurisdictionName(user) {
+  if (!user) return 'Tamil Nadu'
+  const isPlaceholder = (value) => !value || value.startsWith('All ') || value.startsWith('Assigned ')
+  if (!isPlaceholder(user.village)) return user.village
+  if (!isPlaceholder(user.taluk)) return user.taluk
+  if (!isPlaceholder(user.district)) return user.district
+  return user.state || user.scope?.name || 'Tamil Nadu'
+}
+
 function StatusPill({ status }) {
   const meta = STATUS_META[status]
   const cls = meta?.cls || 'bg-amber-50 text-amber-800 ring-amber-200'
@@ -97,7 +105,7 @@ function PanelHeader({ action, eyebrow, title }) {
   )
 }
 
-function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone = 'blue', value }) {
+function StatCard({ icon: Icon, label, loading, onClick, subtitle = 'Live Metric', tone = 'blue', value }) {
   const tones = {
     blue: {
       cardBorder: 'hover:border-blue-500/50',
@@ -151,8 +159,8 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
 
   const t = tones[tone] || tones.blue
 
-  return (
-    <div className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${t.cardBorder}`}>
+  const body = (
+    <>
       <div className={`absolute top-0 left-0 right-0 h-1.5 ${t.gradientTop}`} />
 
       <div className="flex items-start justify-between gap-3 pt-1">
@@ -169,7 +177,30 @@ function StatCard({ icon: Icon, label, loading, subtitle = 'Live Metric', tone =
         <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-bold ring-1 ${t.badge}`}>
           {subtitle}
         </span>
+        {onClick && (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#007cba] opacity-0 transition group-hover:opacity-100">
+            View <ArrowRight size={11} />
+          </span>
+        )}
       </div>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer ${t.cardBorder}`}
+        onClick={onClick}
+        type="button"
+      >
+        {body}
+      </button>
+    )
+  }
+
+  return (
+    <div className={`group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${t.cardBorder}`}>
+      {body}
     </div>
   )
 }
@@ -288,10 +319,13 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onLogout, on
   const [mobileOpen, setMobileOpen] = useState(false)
   const isAdminUser = adminRoles.has(user?.role)
   const items = [
-    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & Forms' },
-    { id: 'work-panel', icon: BriefcaseBusiness, label: 'Work Panel', description: 'Admin or partner' },
+    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & metrics' },
+    { id: 'work-panel', icon: BriefcaseBusiness, label: 'Applications', description: 'All applications' },
+    ...(isAdminUser ? [{ id: 'signup-queue', icon: UserPlus, label: 'Signup Requests', description: 'Approve signups' }] : []),
     ...(isAdminUser ? [{ id: 'hierarchy-view', icon: Layers3, label: 'Hierarchy View', description: 'Area application counts' }] : []),
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
+    { id: 'payment-receipt', icon: ReceiptText, label: 'Payment Receipt', description: 'Receipt placeholder' },
+    { id: 'profile-image', icon: User, label: 'Profile', description: 'Photo & account' },
   ]
 
   const profilePhoto = getProfilePhoto(user)
@@ -1537,6 +1571,8 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
   const canReviewHere = !!viewerRole && (isSuperAdmin || (viewerLevel !== null && viewerLevel >= submission.currentReviewLevel))
   const isActionable = actionableStatuses.includes(submission.status)
   const levelName = { 1: 'Village', 2: 'Taluk', 3: 'District', 4: 'State' }[submission.currentReviewLevel] || '—'
+  const forwardStatusByLevel = { 1: 'FORWARDED_TO_TALUK', 2: 'FORWARDED_TO_DISTRICT', 3: 'FORWARDED_TO_STATE' }
+  const nextLevelLabel = { 1: 'Taluk', 2: 'District', 3: 'State' }
 
   const rawApplicantData = useMemo(() => {
     if (!submission?.applicantData) return {}
@@ -1884,6 +1920,17 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
                   >
                     <span>Reject / நிராகரிப்பு</span>
                   </button>
+                  {submission.currentReviewLevel < 4 && (
+                    <button
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition shadow-2xs disabled:opacity-50"
+                      disabled={submitting}
+                      onClick={() => handleAction(forwardStatusByLevel[submission.currentReviewLevel])}
+                      type="button"
+                    >
+                      <ArrowUpRight size={14} />
+                      <span>Forward to {nextLevelLabel[submission.currentReviewLevel]} / மேல்நிலைக்கு அனுப்பு</span>
+                    </button>
+                  )}
                 </div>
                 
                 <button
@@ -2282,7 +2329,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
   )
 }
 
-function MetricCardsBar({ isAdmin, loading, role, signupRequests, submissions }) {
+function MetricCardsBar({ isAdmin, loading, onNavigate, role, signupRequests, submissions }) {
   const pendingRequests = useMemo(() => signupRequests.filter((item) => item.status === 'PENDING'), [signupRequests])
 
   const roleLevel = { VILLAGE_ADMIN: 1, TALUK_ADMIN: 2, DISTRICT_ADMIN: 3, STATE_ADMIN: 4, SUPER_ADMIN: null }
@@ -2323,36 +2370,45 @@ function MetricCardsBar({ isAdmin, loading, role, signupRequests, submissions })
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const returned = submissions.filter((submission) => submission.status === 'NEEDS_CORRECTION').length
       baseStats = [
-        ['Pending Signups', pendingRequests.length, Users, 'amber', 'Requires Review'],
-        ['Applications to Review', pendingReview, Activity, 'blue', 'Action Needed'],
-        ['Returned Applications', returned, ClipboardCheck, 'rose', 'Needs Fix'],
-        ['Approved Applications', approved, BadgeCheck, 'green', 'Completed'],
+        ['Pending Signups', pendingRequests.length, Users, 'amber', 'Requires Review', { mainTab: 'signups', appFilter: 'ALL' }],
+        ['Applications to Review', pendingReview, Activity, 'blue', 'Action Needed', { mainTab: 'applications', appFilter: 'UNDER_REVIEW' }],
+        ['Returned Applications', returned, ClipboardCheck, 'rose', 'Needs Fix', { mainTab: 'applications', appFilter: 'NEEDS_CORRECTION' }],
+        ['Approved Applications', approved, BadgeCheck, 'green', 'Completed', { mainTab: 'applications', appFilter: 'APPROVED' }],
       ]
     } else {
       const needsCorrection = submissions.filter((submission) => ['NEEDS_CORRECTION', 'REJECTED'].includes(submission.status)).length
       const approved = submissions.filter((submission) => submission.status === 'APPROVED').length
       const inProgress = submissions.filter((submission) => ['DRAFT', 'SUBMITTED', 'RESUBMITTED', 'UNDER_REVIEW', 'FORWARDED_TO_TALUK', 'FORWARDED_TO_DISTRICT', 'FORWARDED_TO_STATE'].includes(submission.status)).length
       baseStats = [
-        ['My Applications', submissions.length, FileText, 'blue', 'Total Submitted'],
-        ['In Progress', inProgress, Activity, 'amber', 'Under Review'],
-        ['Needs Correction', needsCorrection, ClipboardCheck, 'rose', 'Action Required'],
-        ['Approved Applications', approved, BadgeCheck, 'green', 'Verified'],
+        ['My Applications', submissions.length, FileText, 'blue', 'Total Submitted', { mainTab: 'applications', appFilter: 'MY_SUBMISSIONS' }],
+        ['In Progress', inProgress, Activity, 'amber', 'Under Review', { mainTab: 'applications', appFilter: 'UNDER_REVIEW' }],
+        ['Needs Correction', needsCorrection, ClipboardCheck, 'rose', 'Action Required', { mainTab: 'applications', appFilter: 'NEEDS_CORRECTION' }],
+        ['Approved Applications', approved, BadgeCheck, 'green', 'Verified', { mainTab: 'applications', appFilter: 'APPROVED' }],
       ]
     }
 
     return [
       ...baseStats,
-      ['Today\'s Applications', timeStats.todayCount, Activity, 'cyan', 'Today'],
-      ['This Week', timeStats.weekCount, Layers3, 'blue', 'This Week'],
-      ['This Month', timeStats.monthCount, FileText, 'indigo', 'This Month'],
-      ['This Year', timeStats.yearCount, History, 'violet', 'This Year'],
+      ['Today\'s Applications', timeStats.todayCount, Activity, 'cyan', 'Today', { mainTab: 'applications', appFilter: 'ALL' }],
+      ['This Week', timeStats.weekCount, Layers3, 'blue', 'This Week', { mainTab: 'applications', appFilter: 'ALL' }],
+      ['This Month', timeStats.monthCount, FileText, 'indigo', 'This Month', { mainTab: 'applications', appFilter: 'ALL' }],
+      ['This Year', timeStats.yearCount, History, 'violet', 'This Year', { mainTab: 'applications', appFilter: 'ALL' }],
     ]
   }, [isAdmin, pendingRequests.length, submissions, timeStats])
 
   return (
     <div className="grid w-full gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map(([label, value, Icon, tone, subtitle]) => (
-        <StatCard icon={Icon} key={label} label={label} loading={loading} subtitle={subtitle} tone={tone} value={value} />
+      {stats.map(([label, value, Icon, tone, subtitle, target]) => (
+        <StatCard
+          icon={Icon}
+          key={label}
+          label={label}
+          loading={loading}
+          onClick={target ? () => onNavigate?.(target.mainTab, target.appFilter) : undefined}
+          subtitle={subtitle}
+          tone={tone}
+          value={value}
+        />
       ))}
     </div>
   )
@@ -2494,13 +2550,13 @@ function OverviewWorkPanels({ isAdmin, loading, onNavigateWorkPanel, signupReque
   )
 }
 
-function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
+function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
-  const [mainTab, setMainTab] = useState('applications')
+  const [mainTab, setMainTab] = useState(initialMainTab)
   const [signupTab, setSignupTab] = useState('pending')
-  const [appFilter, setAppFilter] = useState('ALL')
+  const [appFilter, setAppFilter] = useState(initialAppFilter)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [areaFilter, setAreaFilter] = useState('ALL')
@@ -3305,6 +3361,27 @@ function FullWorkPanel({ isAdmin, loading, onRefresh, onSelectSubmission, signup
   )
 }
 
+function PaymentReceiptPlaceholder() {
+  return (
+    <section id="payment-receipt" className="w-full rounded-2xl border border-slate-200 bg-white shadow-xs">
+      <div className="border-b border-slate-100 p-4 sm:p-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Payment Receipt / கட்டண ரசீது</p>
+        <h2 className="mt-1 text-lg font-bold text-slate-950">Payment Receipt</h2>
+      </div>
+      <div className="flex flex-col items-center justify-center gap-3 p-10 text-center sm:p-16">
+        <span className="inline-flex size-14 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
+          <ReceiptText size={28} />
+        </span>
+        <p className="text-sm font-bold text-slate-900">Payment Receipt / கட்டண ரசீது</p>
+        <p className="max-w-md text-xs leading-6 text-slate-500">
+          This section is under preparation. Payment receipts for submitted applications will be available here soon. /
+          இந்த பிரிவு தயாரிப்பில் உள்ளது. சமர்ப்பிக்கப்பட்ட விண்ணப்பங்களுக்கான கட்டண ரசீதுகள் விரைவில் இங்கே கிடைக்கும்.
+        </p>
+      </div>
+    </section>
+  )
+}
+
 export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
   const [user, setUser] = useState(() => getSession()?.user)
@@ -3313,6 +3390,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('dashboard-overview')
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => getProfilePhoto(user))
   const [selectedSubmissionDetails, setSelectedSubmissionDetails] = useState(null)
+  const [workPanelView, setWorkPanelView] = useState({ mainTab: 'applications', appFilter: 'ALL' })
+  const [workPanelKey, setWorkPanelKey] = useState(0)
 
   const [signupRequests, setSignupRequests] = useState([])
   const [submissions, setSubmissions] = useState([])
@@ -3406,14 +3485,35 @@ export default function DashboardPage() {
     navigate('/login')
   }, [])
 
+  const navigateToWorkPanel = useCallback((mainTab, appFilter) => {
+    setWorkPanelView({ mainTab, appFilter })
+    setWorkPanelKey((key) => key + 1)
+    setActiveTab('work-panel')
+  }, [])
+
+  const handleSidebarNav = useCallback((tabId) => {
+    if (tabId === 'work-panel') {
+      navigateToWorkPanel('applications', 'ALL')
+      return
+    }
+    if (tabId === 'signup-queue') {
+      navigateToWorkPanel('signups', 'ALL')
+      return
+    }
+    setActiveTab(tabId)
+  }, [navigateToWorkPanel])
+
+  const activeNavId =
+    activeTab === 'work-panel' ? (workPanelView.mainTab === 'signups' ? 'signup-queue' : 'work-panel') : activeTab
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-100 text-slate-900 lg:flex-row">
       <DashboardSidebar
-        activeTab={activeTab}
+        activeTab={activeNavId}
         collapsed={sidebarCollapsed}
         onCollapseToggle={() => setSidebarCollapsed((current) => !current)}
         onLogout={handleLogout}
-        onNavigate={(tabId) => setActiveTab(tabId)}
+        onNavigate={handleSidebarNav}
         user={user}
       />
 
@@ -3436,26 +3536,32 @@ export default function DashboardPage() {
                       <MapPin size={15} /> Assigned Jurisdiction / அதிகார வரம்பு:
                     </span>
                     <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                      State: {user?.state || 'Tamil Nadu'}
+                      {getJurisdictionName(user)}
                     </span>
-                    {user?.district && (
-                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                        District: {user.district}
-                      </span>
-                    )}
-                    {user?.taluk && (
-                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                        Taluk: {user.taluk}
-                      </span>
-                    )}
-                    {user?.village && (
-                      <span className="rounded-md bg-white px-2.5 py-1 font-bold text-slate-900 shadow-2xs border border-slate-200">
-                        Village: {user.village}
-                      </span>
-                    )}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 pr-4 shadow-2xs">
+                    {profilePhotoUrl ? (
+                      <img
+                        alt={getUserDisplayName(user)}
+                        className="size-10 shrink-0 rounded-xl object-cover ring-2 ring-[#007cba]/30"
+                        src={profilePhotoUrl}
+                      />
+                    ) : (
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#007cba] text-sm font-black text-white">
+                        {getUserInitials(user)}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-950">{getUserDisplayName(user)}</p>
+                      <p className="text-[11px] font-bold text-[#007cba]">{roleLabels[user?.role] || user?.role}</p>
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
+                        <MapPin size={11} />
+                        <span className="truncate">{getJurisdictionName(user)}</span>
+                      </p>
+                    </div>
+                  </div>
                   <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={() => loadDashboard()} type="button">
                     <RefreshCw size={16} />
                     Refresh
@@ -3469,41 +3575,14 @@ export default function DashboardPage() {
               <MetricCardsBar
                 isAdmin={isAdmin}
                 loading={loading}
+                onNavigate={navigateToWorkPanel}
                 role={user?.role}
                 signupRequests={signupRequests}
                 submissions={submissions}
               />
             </section>
 
-            {/* 2. SELECTABLE APPLICATION FORMS QUICK BAR SECOND */}
-            <Panel>
-              <PanelHeader
-                eyebrow="Application Forms / விண்ணப்பப் படிவங்கள்"
-                title="Select Application Form / விண்ணப்பத்தை தேர்வு செய்க"
-              />
-              <div className="grid w-full gap-3 p-3 sm:p-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {applicationForms.map((form) => (
-                  <Link
-                    className="group flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:border-[#007cba] hover:bg-[#eef8ff]/40 hover:shadow-md"
-                    key={form.id}
-                    to={`/app/forms/${form.id}`}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-base font-bold text-slate-950">{form.tamilTitle}</p>
-                      <p className="mt-1 text-xs text-slate-500">{form.title}</p>
-                      <p className="mt-3 text-xs font-bold text-[#007cba] group-hover:underline">
-                        Apply Form / விண்ணப்பிக்க →
-                      </p>
-                    </div>
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#eef8ff] text-[#007cba]">
-                      <FileText size={18} />
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </Panel>
-
-            {/* 3. WORK PANELS / REVIEW QUEUES THIRD (RECENT 5 ITEMS ONLY) */}
+            {/* 2. WORK PANELS / REVIEW QUEUES SECOND (RECENT 5 ITEMS ONLY) */}
             <section id="dashboard-work" className="w-full space-y-6">
               <OverviewWorkPanels
                 isAdmin={isAdmin}
@@ -3519,7 +3598,10 @@ export default function DashboardPage() {
 
         {activeTab === 'work-panel' && (
           <FullWorkPanel
+            initialAppFilter={workPanelView.appFilter}
+            initialMainTab={workPanelView.mainTab}
             isAdmin={isAdmin}
+            key={workPanelKey}
             loading={loading}
             onRefresh={loadDashboard}
             onSelectSubmission={setSelectedSubmissionDetails}
@@ -3542,6 +3624,8 @@ export default function DashboardPage() {
         {activeTab === 'profile-image' && (
           <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
         )}
+
+        {activeTab === 'payment-receipt' && <PaymentReceiptPlaceholder />}
 
         {activeTab === 'check-status' && (
           <section id="check-status">
