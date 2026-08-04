@@ -3166,42 +3166,39 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
 
   return (
     <div className="flex flex-col w-full gap-6">
-      <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
-        <span className="flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg bg-white text-[#007cba] shadow-xs whitespace-nowrap">
-          {mainTab === 'applications'
-            ? `Applications Queue (${submissions.length})`
-            : mainTab === 'signups'
-              ? `Signup Requests (${signupRequests.length})`
-              : mainTab === 'active-users'
-                ? 'Active Users / செயலில் உள்ள பயனர்கள்'
-                : 'Create User'}
-        </span>
-        {mainTab === 'signups' && user?.role === 'SUPER_ADMIN' && (
-          <button
-            className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'create-user' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-            onClick={() => setMainTab('create-user')}
-            type="button"
-          >
-            Create User
-          </button>
-        )}
-        {(mainTab === 'signups' || mainTab === 'active-users') && ['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
-          <button
-            className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'active-users' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-            onClick={() => setMainTab('active-users')}
-            type="button"
-          >
-            Active Users / பயனர் மேலாண்மை
-          </button>
-        )}
-        {mainTab === 'active-users' && (
-          <button
-            className="flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-            onClick={() => setMainTab('signups')}
-            type="button"
-          >
-            Signup Requests
-          </button>
+      <div className="flex w-full flex-wrap self-start rounded-xl border border-slate-200 bg-slate-200/50 p-1.5 text-sm font-bold shadow-xs sm:w-auto">
+        {mainTab === 'applications' ? (
+          <span className="flex-1 rounded-lg bg-white px-4 py-2 whitespace-nowrap text-[#007cba] shadow-xs sm:flex-none sm:px-6">
+            Applications Queue ({submissions.length})
+          </span>
+        ) : (
+          <>
+            <button
+              className={`flex-1 rounded-lg px-4 py-2 whitespace-nowrap transition sm:flex-none sm:px-6 ${mainTab === 'signups' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              onClick={() => setMainTab('signups')}
+              type="button"
+            >
+              Signup Requests ({signupRequests.length})
+            </button>
+            {user?.role === 'SUPER_ADMIN' && (
+              <button
+                className={`flex-1 rounded-lg px-4 py-2 whitespace-nowrap transition sm:flex-none sm:px-6 ${mainTab === 'create-user' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setMainTab('create-user')}
+                type="button"
+              >
+                Create User
+              </button>
+            )}
+            {['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
+              <button
+                className={`flex-1 rounded-lg px-4 py-2 whitespace-nowrap transition sm:flex-none sm:px-6 ${mainTab === 'active-users' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setMainTab('active-users')}
+                type="button"
+              >
+                Active Users / பயனர் மேலாண்மை
+              </button>
+            )}
+          </>
         )}
       </div>
 
