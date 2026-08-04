@@ -1,4 +1,4 @@
-import { ArrowRight, FileText, ReceiptText } from 'lucide-react'
+import { ArrowRight, FileText } from 'lucide-react'
 import { applicationForms } from '../data/applicationForms.js'
 import { navigate } from '../lib/router.jsx'
 
@@ -28,10 +28,6 @@ export default function NewApplicationList() {
               <span className="block text-base font-bold leading-snug text-slate-950">{form.tamilTitle}</span>
               <span className="mt-1 block text-xs font-semibold leading-snug text-slate-500">{form.title}</span>
               <span className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#eef8ff] px-2.5 py-1 text-[11px] font-bold text-[#007cba] ring-1 ring-[#007cba]/15">
-                  <ReceiptText size={11} />
-                  {form.fee ? `Fee: ₹${form.fee}` : 'Free / இலவசம்'}
-                </span>
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] opacity-0 transition group-hover:opacity-100">
                   Open Form <ArrowRight size={13} />
                 </span>

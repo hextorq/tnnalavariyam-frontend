@@ -321,7 +321,6 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
   const isAdminUser = adminRoles.has(user?.role)
   const items = [
     { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'new-application', icon: FilePlus2, label: 'New Application' },
     { id: 'work-panel', icon: BriefcaseBusiness, label: 'Applications' },
     ...(isAdminUser ? [{ id: 'signup-queue', icon: UserPlus, label: 'Signup Requests' }] : []),
     { id: 'check-status', icon: ClipboardCheck, label: 'Check Status' },
@@ -455,13 +454,68 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
   )
 }
 
-function UserImageCard({ onProfilePhotoChange, user }) {
+function ProfileField({ label, onChange, placeholder, required, type = 'text', value }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</span>
+      <input
+        className="min-w-0 w-full rounded-lg border border-neutral-300 px-4 py-3 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        type={type}
+        value={value}
+      />
+    </label>
+  )
+}
+
+function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
   const inputRef = useRef(null)
+  const { notify } = useNotifications()
   const [previewUrl, setPreviewUrl] = useState(() => getProfilePhoto(user))
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const [profileForm, setProfileForm] = useState({
+    fullName: user?.fullName || '',
+    phone: user?.phone || '',
+    addressLine: user?.addressLine || '',
+    state: user?.state || 'Tamil Nadu',
+    district: user?.district || '',
+    taluk: user?.taluk || '',
+    village: user?.village || '',
+    pincode: user?.pincode || '',
+  })
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
 
   useEffect(() => {
     setPreviewUrl(getProfilePhoto(user))
   }, [user])
+
+  useEffect(() => {
+    setProfileForm({
+      fullName: user?.fullName || '',
+      phone: user?.phone || '',
+      addressLine: user?.addressLine || '',
+      state: user?.state || 'Tamil Nadu',
+      district: user?.district || '',
+      taluk: user?.taluk || '',
+      village: user?.village || '',
+      pincode: user?.pincode || '',
+    })
+  }, [user])
+
+  function setProfileField(field, value) {
+    setProfileForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function setPasswordField(field, value) {
+    setPasswordForm((prev) => ({ ...prev, [field]: value }))
+  }
 
   function openPicker() {
     inputRef.current?.click()
@@ -513,12 +567,94 @@ function UserImageCard({ onProfilePhotoChange, user }) {
     reader.readAsDataURL(file)
   }
 
+  async function handleSaveProfile(event) {
+    event.preventDefault()
+    setSavingProfile(true)
+    try {
+      const payload = {}
+      for (const [key, value] of Object.entries(profileForm)) {
+        if (String(value || '').trim()) payload[key] = String(value).trim()
+      }
+      const response = await api.patch('/auth/profile', payload)
+      const updatedUser = response.data.user
+      if (updatedUser) {
+        updateSessionUser(updatedUser)
+        onUserUpdated?.(updatedUser)
+      }
+      notify({
+        type: 'success',
+        title: 'Profile Updated / சுயவிவரம் புதுப்பிக்கப்பட்டது',
+        message: response.data.message,
+      })
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Update Failed / புதுப்பிக்க முடியவில்லை',
+        message: error.response?.data?.message || 'சுயவிவரம் புதுப்பிக்க முடியவில்லை. / Profile could not be updated.',
+      })
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  async function handleChangePassword(event) {
+    event.preventDefault()
+    setSavingPassword(true)
+    try {
+      await api.patch('/auth/profile/password', passwordForm)
+      notify({
+        type: 'success',
+        title: 'Password Changed / கடவுச்சொல் மாற்றப்பட்டது',
+        message: 'உங்கள் கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது. / Your password was changed successfully.',
+      })
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Password Change Failed / கடவுச்சொல் மாற்ற முடியவில்லை',
+        message: error.response?.data?.message || 'கடவுச்சொல் மாற்ற முடியவில்லை. / Password could not be changed.',
+      })
+    } finally {
+      setSavingPassword(false)
+    }
+  }
+
+  const passwordInputClass =
+    'min-w-0 w-full rounded-lg border border-neutral-300 py-3 pl-4 pr-11 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20'
+
+  function PasswordField({ field, label, show, onToggleShow }) {
+    return (
+      <label className="flex flex-col gap-1.5">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</span>
+        <span className="relative block">
+          <input
+            className={passwordInputClass}
+            minLength={6}
+            onChange={(e) => setPasswordField(field, e.target.value)}
+            placeholder="••••••••"
+            required
+            type={show ? 'text' : 'password'}
+            value={passwordForm[field]}
+          />
+          <button
+            aria-label={show ? 'Hide password' : 'Show password'}
+            className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            onClick={() => onToggleShow()}
+            type="button"
+          >
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </span>
+      </label>
+    )
+  }
+
   return (
     <section id="profile-image" className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-[#007cba]">Profile Management / சுயவிவர மேலாண்மை</p>
-          <h2 className="mt-1 text-xl font-extrabold text-slate-950 sm:text-2xl">Update Profile Photo / சுயவிவர புகைப்படம்</h2>
+          <h2 className="mt-1 text-xl font-extrabold text-slate-950 sm:text-2xl">Edit Profile Details / சுயவிவர விவரங்கள்</h2>
         </div>
         <button
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-slate-800"
@@ -554,38 +690,135 @@ function UserImageCard({ onProfilePhotoChange, user }) {
             </span>
           </div>
           <p className="text-xs font-semibold text-slate-500 text-center">3:4 Passport Portrait Frame</p>
-        </div>
 
-        <div className="grid content-start gap-5">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Photo Details & Settings</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Your profile photo is displayed across your dashboard, sidebar, and application submissions. Uploading a clear passport-size photo ensures quick verification by officials.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-6 py-3 text-sm font-bold text-slate-950 shadow-md transition hover:bg-[#f78a0c]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-md transition hover:bg-[#f78a0c]"
               onClick={openPicker}
               type="button"
             >
-              <Upload size={16} />
+              <Upload size={14} />
               Upload New Photo / புதிய புகைப்படம்
             </button>
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-950"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-950"
               onClick={clearImage}
               type="button"
             >
-              Reset to Default / இயல்புநிலைக்கு மாற்றுக
+              Reset / மீட்டமை
             </button>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-950">
-            <span className="font-bold text-amber-700 shrink-0">⚠️ Disclaimer / குறிப்பு:</span>
-            <span>Only JPEG (.jpg, .jpeg) or PNG (.png) images allowed. Maximum file size is strictly 2 MB.</span>
-          </div>
+        <div className="grid content-start gap-6">
+          <form className="grid gap-6" onSubmit={handleSaveProfile}>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Information / கணக்கு தகவல்</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Username / பயனர் பெயர்</p>
+                  <p className="truncate text-sm font-bold text-slate-900">{user?.username || '-'}</p>
+                </div>
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Email / மின்னஞ்சல்</p>
+                  <p className="truncate text-sm font-bold text-slate-900">{user?.email || '-'}</p>
+                </div>
+                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                  <p className="text-[10px] font-bold uppercase text-slate-400">Role / பதவி</p>
+                  <p className="truncate text-sm font-bold text-[#007cba]">{roleLabels[user?.role] || user?.role || '-'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Personal Details / தனிப்பட்ட விவரங்கள்</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <ProfileField
+                  label="Full Name / முழு பெயர்"
+                  onChange={(e) => setProfileField('fullName', e.target.value)}
+                  placeholder="உங்கள் முழு பெயர்"
+                  required
+                  value={profileForm.fullName}
+                />
+                <ProfileField
+                  label="Phone Number / அலைபேசி எண்"
+                  onChange={(e) => setProfileField('phone', normalizePhone(e.target.value))}
+                  placeholder="10 digit mobile number"
+                  required
+                  type="tel"
+                  value={profileForm.phone}
+                />
+                <ProfileField
+                  label="Address / முகவரி"
+                  onChange={(e) => setProfileField('addressLine', e.target.value)}
+                  placeholder="வீட்டு முகவரி"
+                  value={profileForm.addressLine}
+                />
+                <ProfileField
+                  label="State / மாநிலம்"
+                  onChange={(e) => setProfileField('state', e.target.value)}
+                  placeholder="Tamil Nadu"
+                  value={profileForm.state}
+                />
+                <ProfileField
+                  label="District / மாவட்டம்"
+                  onChange={(e) => setProfileField('district', e.target.value)}
+                  placeholder="மாவட்டம்"
+                  value={profileForm.district}
+                />
+                <ProfileField
+                  label="Taluk / தாலுகா"
+                  onChange={(e) => setProfileField('taluk', e.target.value)}
+                  placeholder="தாலுகா"
+                  value={profileForm.taluk}
+                />
+                <ProfileField
+                  label="Village / கிராமம்"
+                  onChange={(e) => setProfileField('village', e.target.value)}
+                  placeholder="கிராமம்"
+                  value={profileForm.village}
+                />
+                <ProfileField
+                  label="Pincode / அஞ்சல் குறியீடு"
+                  onChange={(e) => setProfileField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="6 digit pincode"
+                  type="tel"
+                  value={profileForm.pincode}
+                />
+              </div>
+              <div className="mt-5 flex justify-end">
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090] disabled:opacity-50"
+                  disabled={savingProfile}
+                  type="submit"
+                >
+                  {savingProfile ? <LoaderCircle className="animate-spin" size={17} /> : null}
+                  {savingProfile ? 'Saving...' : 'Save Changes / மாற்றங்களை சேமிக்கவும்'}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <form className="grid gap-6" onSubmit={handleChangePassword}>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Change Password / கடவுச்சொல்லை மாற்றவும்</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <PasswordField field="currentPassword" label="Current Password / தற்போதைய கடவுச்சொல்" onToggleShow={() => setShowCurrent((v) => !v)} show={showCurrent} />
+                <PasswordField field="newPassword" label="New Password / புதிய கடவுச்சொல்" onToggleShow={() => setShowNew((v) => !v)} show={showNew} />
+                <PasswordField field="confirmPassword" label="Confirm Password / மீண்டும் புதிய கடவுச்சொல்" onToggleShow={() => setShowConfirm((v) => !v)} show={showConfirm} />
+              </div>
+              <div className="mt-5 flex justify-end">
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-slate-800 disabled:opacity-50"
+                  disabled={savingPassword}
+                  type="submit"
+                >
+                  {savingPassword ? <LoaderCircle className="animate-spin" size={17} /> : null}
+                  {savingPassword ? 'Updating...' : 'Update Password / கடவுச்சொல்லை மாற்றவும்'}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </section>
@@ -1758,7 +1991,6 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-center">
               <SignupDetailRow label="Payment Status" value={submission.paymentStatus || 'PAID'} />
-              <SignupDetailRow label="Fee Amount" value={submission.paymentAmount ? `₹${submission.paymentAmount}` : (submission.paymentData?.amount ? `₹${submission.paymentData.amount}` : 'Free / இலவசம்')} />
               <SignupDetailRow label="UPI Transaction ID / UTR" value={submission.paymentReference || submission.paymentData?.upiTransactionId || 'N/A'} />
             </div>
 
@@ -2122,38 +2354,39 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
           )}
 
           {hasNextLevel && (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {filteredCards.map((node) => (
-                <button
-                  className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[#007cba]/60 hover:bg-[#eef8ff]/50 hover:shadow-md"
-                  key={node.id}
-                  onClick={() => setPath((items) => [...items, node])}
-                  type="button"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="min-w-0 truncate text-lg font-extrabold text-slate-950">{hierarchyNodeLabel(node)}</h3>
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-[#007cba] group-hover:text-white">
-                      <ChevronRight size={18} />
-                    </span>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Apps / விண்ணப்பங்கள்</p>
-                      <p className="text-xl font-extrabold text-slate-950">{node.counts?.applications?.total || 0}</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Partners / பங்குதாரர்கள்</p>
-                      <p className="text-xl font-extrabold text-slate-950">{node.counts?.users?.partners || 0}</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Next / அடுத்தது</p>
-                      <p className="text-xl font-extrabold text-slate-950">{node.childCount || node.partners?.length || 0}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Name / பெயர்</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Applications / விண்ணப்பங்கள்</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Partners / பங்குதாரர்கள்</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Next / அடுத்தது</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCards.map((node) => (
+                      <tr
+                        className="cursor-pointer border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60"
+                        key={node.id}
+                        onClick={() => setPath((items) => [...items, node])}
+                      >
+                        <td className="px-4 py-3 font-extrabold text-slate-950">{hierarchyNodeLabel(node)}</td>
+                        <td className="px-4 py-3 text-right font-extrabold text-slate-950">{node.counts?.applications?.total || 0}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-700">{node.counts?.users?.partners || 0}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-700">{node.childCount || node.partners?.length || 0}</td>
+                        <td className="px-4 py-3 text-right">
+                          <ChevronRight className="ml-auto text-slate-400" size={16} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {!filteredCards.length && (
-                <div className="md:col-span-2 xl:col-span-3">
+                <div className="p-4">
                   <EmptyState>No matching records found on this page. / இந்த பக்கத்தில் பொருந்தக்கூடிய பதிவுகள் இல்லை.</EmptyState>
                 </div>
               )}
@@ -2161,30 +2394,45 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
           )}
 
           {!hasNextLevel && partnerCards.length > 0 && (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {filteredPartners.map((partner) => (
-                <div className="rounded-2xl border border-slate-200 bg-white p-4" key={partner.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-extrabold text-slate-950">{partner.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">{partner.username} • {partner.phone || '-'}</p>
-                      <p className="mt-1 text-[11px] text-slate-400">Last login / கடைசி உள்நுழைவு: {formatDate(partner.lastLoginAt)}</p>
-                    </div>
-                    <span className="rounded-xl bg-[#eef8ff] px-3 py-2 text-center text-xs font-bold text-[#007cba]">
-                      {partner.applications?.total || 0}<br />Apps / விண்ணப்பங்கள்
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {getStatusSummary(partner.applications).map(([status, count]) => (
-                      <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200" key={status}>
-                        {STATUS_META[status]?.en || status}: {count}
-                      </span>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Name / பெயர்</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Username / Phone</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Last Login / கடைசி உள்நுழைவு</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Apps / விண்ணப்பங்கள்</th>
+                      <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Status / நிலை</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPartners.map((partner) => (
+                      <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={partner.id}>
+                        <td className="px-4 py-3 font-extrabold text-slate-950">{partner.name}</td>
+                        <td className="px-4 py-3 text-slate-600">{partner.username} • {partner.phone || '-'}</td>
+                        <td className="px-4 py-3 text-xs font-semibold text-slate-500">{formatDate(partner.lastLoginAt)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="inline-block rounded-lg bg-[#eef8ff] px-3 py-1.5 text-xs font-bold text-[#007cba]">
+                            {partner.applications?.total || 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1.5">
+                            {getStatusSummary(partner.applications).map(([status, count]) => (
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200" key={status}>
+                                {STATUS_META[status]?.en || status}: {count}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                </div>
-              ))}
+                  </tbody>
+                </table>
+              </div>
               {!filteredPartners.length && (
-                <div className="md:col-span-2 xl:col-span-3">
+                <div className="p-4">
                   <EmptyState>No matching partners found. / பொருந்தக்கூடிய பங்குதாரர்கள் இல்லை.</EmptyState>
                 </div>
               )}
@@ -2212,30 +2460,44 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
               {currentNode.recentApplications?.length > 0 && (
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications / சமீபத்திய விண்ணப்பங்கள்</p>
-                  <div className="mt-2 grid gap-2">
-                    {filteredRecentApplications.map((application) => (
-                      <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <p className="break-all text-sm font-bold text-slate-950">{application.applicationNo}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{application.form?.tamilTitle || application.form?.title}</p>
-                          </div>
-                          <div className="flex shrink-0 flex-wrap items-center gap-2">
-                            <StatusPill status={application.status} />
-                            <button
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#007cba] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#006090]"
-                              onClick={() => openApplication(application)}
-                              type="button"
-                            >
-                              <Eye size={14} />
-                              View / பார்க்க
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[480px] border-collapse text-left text-sm">
+                        <thead>
+                          <tr className="bg-slate-50">
+                            <th className="border-b border-slate-200 px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">Application No / விண்ணப்ப எண்</th>
+                            <th className="border-b border-slate-200 px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">Form / படிவம்</th>
+                            <th className="border-b border-slate-200 px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">Status / நிலை</th>
+                            <th className="border-b border-slate-200 px-3 py-2.5 text-right text-xs font-bold uppercase tracking-wide text-slate-500"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredRecentApplications.map((application) => (
+                            <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={application.id}>
+                              <td className="break-all px-3 py-2.5 font-bold text-slate-950">{application.applicationNo}</td>
+                              <td className="px-3 py-2.5 text-xs font-semibold text-slate-600">{application.form?.tamilTitle || application.form?.title}</td>
+                              <td className="px-3 py-2.5">
+                                <StatusPill status={application.status} />
+                              </td>
+                              <td className="px-3 py-2.5 text-right">
+                                <button
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#007cba] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#006090]"
+                                  onClick={() => openApplication(application)}
+                                  type="button"
+                                >
+                                  <Eye size={14} />
+                                  View / பார்க்க
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                     {!filteredRecentApplications.length && (
-                      <EmptyState>No matching applications found. / பொருந்தக்கூடிய விண்ணப்பங்கள் இல்லை.</EmptyState>
+                      <div className="p-3">
+                        <EmptyState>No matching applications found. / பொருந்தக்கூடிய விண்ணப்பங்கள் இல்லை.</EmptyState>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -2333,7 +2595,7 @@ function MetricCardsBar({ isAdmin, loading, onNavigate, role, signupRequests, su
   )
 }
 
-function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
+function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onNewApplication, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -2495,21 +2757,31 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
           eyebrow="Work Panel"
           title="All My Submitted Applications"
           action={
-            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <button
-                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-                onClick={() => setViewMode('list')}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#007cba] px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]"
+                onClick={onNewApplication}
                 type="button"
               >
-                List / பட்டியல்
+                <FilePlus2 size={14} />
+                New Application / புதிய விண்ணப்பம்
               </button>
-              <button
-                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-                onClick={() => setViewMode('grid')}
-                type="button"
-              >
-                Grid / கட்டம்
-              </button>
+              <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('list')}
+                  type="button"
+                >
+                  List / பட்டியல்
+                </button>
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('grid')}
+                  type="button"
+                >
+                  Grid / கட்டம்
+                </button>
+              </div>
             </div>
           }
         />
@@ -2636,21 +2908,14 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
   return (
     <div className="flex flex-col w-full gap-6">
       <div className="flex rounded-xl bg-slate-200/50 p-1.5 w-full sm:w-auto self-start text-sm font-bold border border-slate-200 shadow-xs">
-        <button
-          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'applications' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-          onClick={() => setMainTab('applications')}
-          type="button"
-        >
-          Applications Queue ({submissions.length})
-        </button>
-        <button
-          className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'signups' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-          onClick={() => setMainTab('signups')}
-          type="button"
-        >
-          Signup Requests ({signupRequests.length})
-        </button>
-        {user?.role === 'SUPER_ADMIN' && (
+        <span className="flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg bg-white text-[#007cba] shadow-xs whitespace-nowrap">
+          {mainTab === 'applications'
+            ? `Applications Queue (${submissions.length})`
+            : mainTab === 'signups'
+              ? `Signup Requests (${signupRequests.length})`
+              : 'Create User'}
+        </span>
+        {mainTab === 'signups' && user?.role === 'SUPER_ADMIN' && (
           <button
             className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'create-user' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
             onClick={() => setMainTab('create-user')}
@@ -2873,21 +3138,31 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
           eyebrow="Work Queue" 
           title="All Applications Review Queue" 
           action={
-            <div className="hidden sm:flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <button
-                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-                onClick={() => setViewMode('list')}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#007cba] px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]"
+                onClick={onNewApplication}
                 type="button"
               >
-                List
+                <FilePlus2 size={14} />
+                New Application / புதிய விண்ணப்பம்
               </button>
-              <button
-                className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
-                onClick={() => setViewMode('grid')}
-                type="button"
-              >
-                Grid
-              </button>
+              <div className="hidden sm:flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-[11px] font-bold border border-slate-200 shadow-2xs">
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'list' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('list')}
+                  type="button"
+                >
+                  List
+                </button>
+                <button
+                  className={`rounded-lg px-2.5 py-1.5 transition ${viewMode === 'grid' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setViewMode('grid')}
+                  type="button"
+                >
+                  Grid
+                </button>
+              </div>
             </div>
           }
         />
@@ -3200,15 +3475,25 @@ export default function DashboardPage() {
   const [workPanelView, setWorkPanelView] = useState({ mainTab: 'applications', appFilter: 'ALL' })
   const [workPanelKey, setWorkPanelKey] = useState(0)
 
-  const [signupRequests, setSignupRequests] = useState([])
-  const [submissions, setSubmissions] = useState([])
-  const [hierarchyOverview, setHierarchyOverview] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const dashboardCacheKey = `tn_nalavariyam_dashboard_${getSession()?.user?.id || 'guest'}`
+  const cachedDashboard = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem(dashboardCacheKey)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }, [dashboardCacheKey])
+
+  const [signupRequests, setSignupRequests] = useState(cachedDashboard?.signupRequests || [])
+  const [submissions, setSubmissions] = useState(cachedDashboard?.submissions || [])
+  const [hierarchyOverview, setHierarchyOverview] = useState(cachedDashboard?.hierarchy || null)
+  const [loading, setLoading] = useState(!cachedDashboard)
   const { notify } = useNotifications()
 
   const loadDashboard = useCallback(async () => {
     try {
-      setLoading(true)
+      if (!cachedDashboard) setLoading(true)
 
       try {
         const meRes = await api.get('/auth/me')
@@ -3229,10 +3514,30 @@ export default function DashboardPage() {
         setSignupRequests(signupResponse.data.requests || [])
         setSubmissions(submissionResponse.data.submissions || [])
         setHierarchyOverview(hierarchyResponse.data.hierarchy || null)
+        try {
+          sessionStorage.setItem(
+            dashboardCacheKey,
+            JSON.stringify({
+              signupRequests: signupResponse.data.requests || [],
+              submissions: submissionResponse.data.submissions || [],
+              hierarchy: hierarchyResponse.data.hierarchy || null,
+            })
+          )
+        } catch {
+          // Cache full, ignore
+        }
       } else {
         const response = await api.get('/applications/submissions')
         setSubmissions(response.data.submissions || [])
         setHierarchyOverview(null)
+        try {
+          sessionStorage.setItem(
+            dashboardCacheKey,
+            JSON.stringify({ submissions: response.data.submissions || [] })
+          )
+        } catch {
+          // Cache full, ignore
+        }
       }
     } catch (error) {
       notify({
@@ -3243,7 +3548,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }, [isAdmin, notify])
+  }, [cachedDashboard, dashboardCacheKey, isAdmin, notify])
 
   useEffect(() => {
     loadDashboard()
@@ -3427,6 +3732,7 @@ export default function DashboardPage() {
             isAdmin={isAdmin}
             key={workPanelKey}
             loading={loading}
+            onNewApplication={() => setActiveTab('new-application')}
             onRefresh={loadDashboard}
             onSelectSubmission={setSelectedSubmissionDetails}
             signupRequests={signupRequests}
@@ -3436,7 +3742,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'profile-image' && (
-          <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} user={user} />
+          <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} onUserUpdated={updateSessionUser} user={user} />
         )}
 
         {activeTab === 'payment-receipt' && <PaymentReceiptPlaceholder />}

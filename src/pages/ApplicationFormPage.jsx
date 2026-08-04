@@ -860,11 +860,9 @@ export default function ApplicationFormPage({ formId }) {
       notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'நேரடி புகைப்படம் எடுக்கவும். / Capture live photo.' })
       return
     }
-    if (form.fee) {
-      if (!formData.upiTransactionId.trim()) {
-        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'UPI transaction ID உள்ளிடவும். / Enter UPI transaction ID.' })
-        return
-      }
+    if (!formData.upiTransactionId.trim()) {
+      notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'UPI transaction ID உள்ளிடவும். / Enter UPI transaction ID.' })
+      return
     }
     if (!formData.declared) {
       notify({ type: 'warning', title: 'Declaration Required', message: 'உறுதிமொழியை டிக் செய்ய வேண்டும். / Please accept the declaration.' })
@@ -978,7 +976,6 @@ export default function ApplicationFormPage({ formId }) {
         },
         images: uploadedImages,
         paymentData: {
-          amount: form.fee || 150,
           upiTransactionId: formData.upiTransactionId.trim(),
         },
         paymentReference: formData.upiTransactionId.trim(),
@@ -1067,11 +1064,6 @@ export default function ApplicationFormPage({ formId }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-bold text-[#007cba] border border-[#007cba]/20 whitespace-nowrap">
-              {form.fee ? `Fee: ₹${form.fee}` : 'Free / இலவசம்'}
-            </span>
-          </div>
         </div>
 
         <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
@@ -1543,83 +1535,52 @@ export default function ApplicationFormPage({ formId }) {
           )}
 
           {/* Payment Section */}
-          {form.fee ? (
-            <Section eyebrow="Payment Information" title="Registration Fee Payment / பதிவுக் கட்டண செலுத்துதல்">
-              <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
-                  <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
-                  <div className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-black shadow-xs" aria-label="QR placeholder" />
-                  <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
-                    Pay the amount ₹{form.fee} / ₹{form.fee} தொகையை செலுத்தவும்
-                  </p>
-                </div>
+          <Section eyebrow="Payment Information" title="Scan & Pay / ஸ்கேன் செய்து செலுத்துங்கள்">
+            <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
+                <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
+                <div className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-black shadow-xs" aria-label="QR placeholder" />
+                <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
+                  Scan the QR and pay the amount / QR ஐ ஸ்கேன் செய்து தொகையை செலுத்துங்கள்
+                </p>
+              </div>
 
-                <div className="grid gap-4">
-                  <Field
-                    onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
-                    placeholder="Enter UPI Transaction ID / UTR Number"
-                    required
-                    type="text"
-                    value={formData.upiTransactionId}
-                  >
-                    Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
-                  </Field>
+              <div className="grid gap-4">
+                <Field
+                  onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
+                  placeholder="Enter UPI Transaction ID / UTR Number"
+                  required
+                  type="text"
+                  value={formData.upiTransactionId}
+                >
+                  Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
+                </Field>
 
-                  <FileField
-                    accept="image/*,.pdf"
-                    onChange={(e) => handleFileSelect('paymentScreenshot', e)}
-                    preview={previews.paymentScreenshot}
-                    required
-                  >
-                    Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
-                  </FileField>
+                <FileField
+                  accept="image/*,.pdf"
+                  onChange={(e) => handleFileSelect('paymentScreenshot', e)}
+                  preview={previews.paymentScreenshot}
+                  required
+                >
+                  Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
+                </FileField>
 
-                  <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                    <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
-                      <input
-                        checked={formData.declared}
-                        className="mt-1 size-5 shrink-0 accent-[#007cba]"
-                        onChange={(e) => handleInputChange('declared', e.target.checked)}
-                        required
-                        type="checkbox"
-                      />
-                      <span>
-                        I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
-                      </span>
-                    </label>
-                  </div>
-
-                  {features.livePhoto && (
-                    <LivePhotoSection
+                <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                  <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
+                    <input
+                      checked={formData.declared}
+                      className="mt-1 size-5 shrink-0 accent-[#007cba]"
+                      onChange={(e) => handleInputChange('declared', e.target.checked)}
                       required
-                      onCapture={(dataUrl) => {
-                        setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                      }}
-                      preview={previews.livePhoto}
+                      type="checkbox"
                     />
-                  )}
+                    <span>
+                      I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
+                    </span>
+                  </label>
                 </div>
-              </div>
-            </Section>
-          ) : (
-            <Section eyebrow="Declaration" title="Self Declaration / சுய உறுதிமொழி">
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
-                  <input
-                    checked={formData.declared}
-                    className="mt-1 size-5 shrink-0 accent-[#007cba]"
-                    onChange={(e) => handleInputChange('declared', e.target.checked)}
-                    required
-                    type="checkbox"
-                  />
-                  <span>
-                    I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
-                  </span>
-                </label>
-              </div>
 
-              {features.livePhoto && (
-                <div className="mt-5">
+                {features.livePhoto && (
                   <LivePhotoSection
                     required
                     onCapture={(dataUrl) => {
@@ -1627,10 +1588,10 @@ export default function ApplicationFormPage({ formId }) {
                     }}
                     preview={previews.livePhoto}
                   />
-                </div>
-              )}
-            </Section>
-          )}
+                )}
+              </div>
+            </div>
+          </Section>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Link className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-700 transition hover:bg-neutral-50" to="/app">
