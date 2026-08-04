@@ -2595,6 +2595,154 @@ function MetricCardsBar({ isAdmin, loading, onNavigate, role, signupRequests, su
   )
 }
 
+function ActiveUsersPanel({ user: currentUser }) {
+  const { notify } = useNotifications()
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState(null)
+
+  async function loadUsers() {
+    try {
+      setLoading(true)
+      const response = await api.get('/admin/users')
+      setUsers(response.data.users || [])
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Load Failed / ஏற்ற முடியவில்லை',
+        message: error.response?.data?.message || 'பயனர் பட்டியலை ஏற்ற முடியவில்லை. / Could not load the user list.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function toggleUser(targetUser) {
+    setBusyId(targetUser.id)
+    try {
+      const response = await api.patch(`/admin/users/${targetUser.id}/login-status`, {
+        isActive: !targetUser.isActive,
+      })
+      const updated = response.data.user
+      setUsers((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)))
+      notify({
+        type: 'success',
+        title: updated.isActive ? 'User Enabled / பயனர் செயல்படுத்தப்பட்டார்' : 'User Disabled / பயனர் முடக்கப்பட்டார்',
+        message: updated.isActive
+          ? `${updated.username} can now log in again / மீண்டும் உள்நுழையலாம்.`
+          : `${updated.username} is disabled and cannot log in until re-enabled / உள்நுழைய முடியாது.`,
+      })
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Update Failed / புதுப்பிக்க முடியவில்லை',
+        message: error.response?.data?.message || 'பயனர் நிலையை மாற்ற முடியவில்லை. / Could not change the user status.',
+      })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  if (loading && !users.length) return <DashboardSkeleton />
+
+  return (
+    <Panel>
+      <PanelHeader
+        action={
+          <button
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+            onClick={loadUsers}
+            type="button"
+          >
+            <RefreshCw size={15} />
+            Refresh / புதுப்பிக்க
+          </button>
+        }
+        eyebrow="User Account Management / பயனர் கணக்கு மேலாண்மை"
+        title="Active & Disabled Users / செயலில் மற்றும் முடக்கப்பட்ட பயனர்கள்"
+      />
+      <div className="overflow-x-auto border-t border-slate-200">
+        <table className="w-full min-w-[820px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="bg-slate-50">
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Name / பெயர்</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Username</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Role / பதவி</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Phone</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Scope / எல்லை</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Last Login / கடைசி உள்நுழைவு</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Status / நிலை</th>
+              <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Action / செயல்</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((item) => (
+              <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={item.id}>
+                <td className="px-4 py-3 font-extrabold text-slate-950">{item.name || item.firstName || item.username}</td>
+                <td className="px-4 py-3 font-semibold text-slate-700">{item.username}</td>
+                <td className="px-4 py-3 text-slate-600">{roleLabels[item.role] || item.role}</td>
+                <td className="px-4 py-3 text-slate-600">{item.phone || '-'}</td>
+                <td className="px-4 py-3 text-xs font-semibold text-slate-600">{item.scope?.name || '-'}</td>
+                <td className="px-4 py-3 text-xs font-semibold text-slate-500">{formatDate(item.lastLoginAt)}</td>
+                <td className="px-4 py-3">
+                  {item.id === currentUser?.id ? (
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                      You / நீங்கள்
+                    </span>
+                  ) : item.isActive ? (
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                      Active / செயலில்
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 ring-1 ring-rose-200">
+                      Disabled / முடக்கப்பட்டது
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {item.id === currentUser?.id ? null : item.isActive ? (
+                    <button
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-200 transition hover:bg-rose-100 disabled:opacity-50"
+                      disabled={busyId === item.id}
+                      onClick={() => toggleUser(item)}
+                      type="button"
+                    >
+                      {busyId === item.id ? <LoaderCircle className="animate-spin" size={13} /> : <Ban size={13} />}
+                      Disable / முடக்கு
+                    </button>
+                  ) : (
+                    <button
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100 disabled:opacity-50"
+                      disabled={busyId === item.id}
+                      onClick={() => toggleUser(item)}
+                      type="button"
+                    >
+                      {busyId === item.id ? <LoaderCircle className="animate-spin" size={13} /> : <BadgeCheck size={13} />}
+                      Enable / செயல்படுத்து
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {!users.length && (
+              <tr>
+                <td className="px-4 py-6" colSpan={8}>
+                  <EmptyState>No users found in your scope / உங்கள் எல்லைக்குள் பயனர்கள் இல்லை.</EmptyState>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  )
+}
+
 function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onNewApplication, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
@@ -2913,7 +3061,9 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
             ? `Applications Queue (${submissions.length})`
             : mainTab === 'signups'
               ? `Signup Requests (${signupRequests.length})`
-              : 'Create User'}
+              : mainTab === 'active-users'
+                ? 'Active Users / செயலில் உள்ள பயனர்கள்'
+                : 'Create User'}
         </span>
         {mainTab === 'signups' && user?.role === 'SUPER_ADMIN' && (
           <button
@@ -2922,6 +3072,24 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
             type="button"
           >
             Create User
+          </button>
+        )}
+        {(mainTab === 'signups' || mainTab === 'active-users') && ['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
+          <button
+            className={`flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg transition ${mainTab === 'active-users' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setMainTab('active-users')}
+            type="button"
+          >
+            Active Users / பயனர் மேலாண்மை
+          </button>
+        )}
+        {mainTab === 'active-users' && (
+          <button
+            className="flex-1 sm:flex-none px-4 py-2 sm:px-6 rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            onClick={() => setMainTab('signups')}
+            type="button"
+          >
+            Signup Requests
           </button>
         )}
       </div>
@@ -3130,6 +3298,10 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
 
       {mainTab === 'create-user' && user?.role === 'SUPER_ADMIN' && (
         <CreateUserPanel user={user} />
+      )}
+
+      {mainTab === 'active-users' && ['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
+        <ActiveUsersPanel user={user} />
       )}
 
       {mainTab === 'applications' && (
