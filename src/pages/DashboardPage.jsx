@@ -2600,6 +2600,43 @@ function ActiveUsersPanel({ user: currentUser }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [scopeFilter, setScopeFilter] = useState('ALL')
+
+  const roleOptions = useMemo(() => {
+    const roles = new Set(users.map((item) => item.role))
+    return [...roles].sort()
+  }, [users])
+
+  const scopeOptions = useMemo(() => {
+    const scopes = new Set(users.map((item) => item.scope?.name).filter(Boolean))
+    return [...scopes].sort((a, b) => a.localeCompare(b))
+  }, [users])
+
+  const statusCounts = useMemo(
+    () => ({
+      all: users.length,
+      active: users.filter((item) => item.isActive).length,
+      disabled: users.filter((item) => !item.isActive).length,
+    }),
+    [users]
+  )
+
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return users.filter((item) => {
+      if (statusFilter !== 'ALL' && (statusFilter === 'active') !== !!item.isActive) return false
+      if (roleFilter !== 'ALL' && item.role !== roleFilter) return false
+      if (scopeFilter !== 'ALL' && item.scope?.name !== scopeFilter) return false
+      if (q) {
+        const haystack = [item.name, item.firstName, item.username, item.phone, item.email, item.scope?.name].join(' ').toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
+      return true
+    })
+  }, [users, searchQuery, roleFilter, statusFilter, scopeFilter])
 
   async function loadUsers() {
     try {
@@ -2666,7 +2703,81 @@ function ActiveUsersPanel({ user: currentUser }) {
         eyebrow="User Account Management / பயனர் கணக்கு மேலாண்மை"
         title="Active & Disabled Users / செயலில் மற்றும் முடக்கப்பட்ட பயனர்கள்"
       />
-      <div className="overflow-x-auto border-t border-slate-200">
+      <div className="flex flex-wrap items-end gap-3 border-b border-slate-200 bg-slate-50/70 p-4">
+        <div className="flex flex-wrap items-center rounded-xl bg-slate-200/60 p-1 text-xs font-bold">
+          <button
+            className={`rounded-lg px-3 py-1.5 transition ${statusFilter === 'ALL' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setStatusFilter('ALL')}
+            type="button"
+          >
+            All / அனைத்தும் ({statusCounts.all})
+          </button>
+          <button
+            className={`rounded-lg px-3 py-1.5 transition ${statusFilter === 'active' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setStatusFilter('active')}
+            type="button"
+          >
+            Active / செயலில் ({statusCounts.active})
+          </button>
+          <button
+            className={`rounded-lg px-3 py-1.5 transition ${statusFilter === 'disabled' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setStatusFilter('disabled')}
+            type="button"
+          >
+            Disabled / முடக்கப்பட்டது ({statusCounts.disabled})
+          </button>
+        </div>
+
+        <div className="relative min-w-56 flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            className="h-11 w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-9 text-xs font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search name, username, phone... / பெயர், பயனர்பெயர், எண் தேடவும்"
+            type="search"
+            value={searchQuery}
+          />
+          {searchQuery && (
+            <button
+              className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              onClick={() => setSearchQuery('')}
+              type="button"
+            >
+              <X size={15} />
+            </button>
+          )}
+        </div>
+
+        <label className="grid gap-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+          Role / பதவி
+          <select
+            className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+            onChange={(e) => setRoleFilter(e.target.value)}
+            value={roleFilter}
+          >
+            <option value="ALL">All Roles / அனைத்து பதவிகள்</option>
+            {roleOptions.map((role) => (
+              <option key={role} value={role}>{roleLabels[role] || role}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grid gap-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+          Scope / எல்லை
+          <select
+            className="h-11 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold normal-case tracking-normal text-slate-800 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+            onChange={(e) => setScopeFilter(e.target.value)}
+            value={scopeFilter}
+          >
+            <option value="ALL">All Areas / அனைத்து பகுதிகள்</option>
+            {scopeOptions.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-slate-50">
@@ -2681,7 +2792,7 @@ function ActiveUsersPanel({ user: currentUser }) {
             </tr>
           </thead>
           <tbody>
-            {users.map((item) => (
+            {filteredUsers.map((item) => (
               <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={item.id}>
                 <td className="px-4 py-3 font-extrabold text-slate-950">{item.name || item.firstName || item.username}</td>
                 <td className="px-4 py-3 font-semibold text-slate-700">{item.username}</td>

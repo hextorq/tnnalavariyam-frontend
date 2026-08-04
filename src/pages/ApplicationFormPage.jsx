@@ -1536,66 +1536,115 @@ export default function ApplicationFormPage({ formId }) {
 
           {/* Payment Section */}
           <Section eyebrow="Payment Information" title="Scan & Pay / ஸ்கேன் செய்து செலுத்துங்கள்">
-            <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
-                <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
-                <div className="mx-auto mt-3 h-52 w-52 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs">
-                  <img
-                    alt="Payment QR"
-                    className="h-full w-full object-contain"
-                    src="/assets/images/payment-qr.png"
-                  />
-                </div>
-                <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
-                  Scan the QR and pay the amount / QR ஐ ஸ்கேன் செய்து தொகையை செலுத்துங்கள்
-                </p>
-              </div>
-
-              <div className="grid gap-4">
-                <Field
-                  onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
-                  placeholder="Enter UPI Transaction ID / UTR Number"
-                  required
-                  type="text"
-                  value={formData.upiTransactionId}
-                >
-                  Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
-                </Field>
-
-                <FileField
-                  accept="image/*,.pdf"
-                  onChange={(e) => handleFileSelect('paymentScreenshot', e)}
-                  preview={previews.paymentScreenshot}
-                  required
-                >
-                  Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
-                </FileField>
-
-                <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                  <label className="flex items-start gap-3 text-sm font-semibold text-neutral-800 cursor-pointer">
-                    <input
-                      checked={formData.declared}
-                      className="mt-1 size-5 shrink-0 accent-[#007cba]"
-                      onChange={(e) => handleInputChange('declared', e.target.checked)}
-                      required
-                      type="checkbox"
-                    />
-                    <span>
-                      I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
+            <div className="grid gap-6">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { num: '1', title: 'Scan the QR Code', tamil: 'QR குறியீட்டை ஸ்கேன் செய்யவும்' },
+                  { num: '2', title: 'Pay & Note the UPI ID', tamil: 'பணம் செலுத்தி யுபிஐ ஐடியை குறியுங்கள்' },
+                  { num: '3', title: 'Enter ID & Upload Proof', tamil: 'ஐடியை உள்ளிட்டு சான்று பதிவேற்றவும்' },
+                ].map((item) => (
+                  <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3" key={item.num}>
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#007cba] text-xs font-bold text-white">
+                      {item.num}
                     </span>
-                  </label>
+                    <div>
+                      <p className="text-sm font-bold text-neutral-900">{item.title}</p>
+                      <p className="mt-0.5 text-xs font-semibold text-neutral-500">{item.tamil}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid items-stretch gap-6 lg:grid-cols-2">
+                <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+                    Step 1 · Scan & Pay / QR ஐ ஸ்கேன் செய்யவும்
+                  </p>
+
+                  <div className="mt-4 flex justify-center rounded-2xl border border-neutral-200 bg-white p-4 shadow-xs">
+                    <div className="h-56 w-56">
+                      <img
+                        alt="Payment QR"
+                        className="h-full w-full object-contain"
+                        src="/assets/images/payment-qr.png"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-bold text-emerald-700">
+                    Scan the QR and pay the amount / QR ஐ ஸ்கேன் செய்து தொகையை செலுத்துங்கள்
+                  </p>
+
+                  <ol className="mt-4 space-y-2 text-xs font-semibold text-neutral-600">
+                    <li className="flex gap-2">
+                      <span className="font-bold text-[#007cba]">1.</span>
+                      <span>Open any UPI app — Google Pay / PhonePe / Paytm / பணம் செலுத்தும் ஆப்.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold text-[#007cba]">2.</span>
+                      <span>Scan the QR and complete the payment / QR ஐ ஸ்கேன் செய்து பணம் செலுத்தவும்.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold text-[#007cba]">3.</span>
+                      <span>Copy the Transaction ID (UTR) shown after payment / பரிவர்த்தனை ஐடி (UTR) எண்ணை நகலெடுக்கவும்.</span>
+                    </li>
+                  </ol>
                 </div>
 
-                {features.livePhoto && (
-                  <LivePhotoSection
-                    required
-                    onCapture={(dataUrl) => {
-                      setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                    }}
-                    preview={previews.livePhoto}
-                  />
-                )}
+                <div className="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+                  <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+                    Step 2 & 3 · Payment Details / கட்டண விவரங்கள்
+                  </p>
+
+                  <div className="mt-4 grid gap-4">
+                    <Field
+                      onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
+                      placeholder="Enter UPI Transaction ID / UTR Number"
+                      required
+                      type="text"
+                      value={formData.upiTransactionId}
+                    >
+                      Enter the upi Transaction ID / யுபிஐ பரிவர்த்தனை ஐடி எண்ணை உள்ளிடவும்
+                    </Field>
+
+                    <FileField
+                      accept="image/*,.pdf"
+                      onChange={(e) => handleFileSelect('paymentScreenshot', e)}
+                      preview={previews.paymentScreenshot}
+                      required
+                    >
+                      Upload the payment screenshot / கட்டணத் தொகையின் ஸ்கிரீன்ஷாட்டை பதிவேற்றம் செய்யவும்
+                    </FileField>
+
+                    <UploadDisclaimer />
+                  </div>
+                </div>
               </div>
+
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+                <label className="flex cursor-pointer items-start gap-3 text-sm font-semibold text-neutral-800">
+                  <input
+                    checked={formData.declared}
+                    className="mt-0.5 size-5 shrink-0 accent-[#007cba]"
+                    onChange={(e) => handleInputChange('declared', e.target.checked)}
+                    required
+                    type="checkbox"
+                  />
+                  <span>
+                    I hereby declare that all the information provided above is true to the best of my knowledge. / மேலே கொடுக்கப்பட்டுள்ள அனைத்து தகவல்களும் நான் அறிந்த வகையில் உண்மை என உறுதி கூறுகிறேன். *
+                  </span>
+                </label>
+              </div>
+
+              {features.livePhoto && (
+                <LivePhotoSection
+                  required
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
+                  preview={previews.livePhoto}
+                />
+              )}
             </div>
           </Section>
 
