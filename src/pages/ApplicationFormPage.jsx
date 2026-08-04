@@ -1539,7 +1539,13 @@ export default function ApplicationFormPage({ formId }) {
             <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
               <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center">
                 <p className="text-xs font-bold uppercase text-neutral-500">QR Image / க்யூஆர் படம்</p>
-                <div className="mx-auto mt-3 h-52 w-52 rounded-xl border border-neutral-200 bg-black shadow-xs" aria-label="QR placeholder" />
+                <div className="mx-auto mt-3 h-52 w-52 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xs">
+                  <img
+                    alt="Payment QR"
+                    className="h-full w-full object-contain"
+                    src="/assets/images/payment-qr.png"
+                  />
+                </div>
                 <p className="mt-4 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl">
                   Scan the QR and pay the amount / QR ஐ ஸ்கேன் செய்து தொகையை செலுத்துங்கள்
                 </p>

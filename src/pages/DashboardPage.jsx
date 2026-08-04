@@ -9,7 +9,7 @@ import { useNotifications } from '../lib/notifications.js'
 import { normalizePhone, phoneInputProps } from '../lib/phone.js'
 import { navigate } from '../lib/router.jsx'
 import { transliterateTamil } from '../lib/tamilTransliteration.js'
-import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FilePlus2, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, ReceiptText, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
+import { Activity, ArrowRight, ArrowUpRight, BadgeCheck, Ban, BriefcaseBusiness, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, Download, ExternalLink, Eye, EyeOff, FilePlus2, FileText, History, IdCard, Image as ImageIcon, Layers3, LayoutDashboard, LoaderCircle, LogOut, MapPin, Menu, ReceiptText, RefreshCw, Search, ShieldCheck, Upload, User, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const adminRoles = new Set(['SUPER_ADMIN', 'STATE_ADMIN', 'DISTRICT_ADMIN', 'TALUK_ADMIN', 'VILLAGE_ADMIN'])
