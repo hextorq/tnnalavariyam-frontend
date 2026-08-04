@@ -3723,7 +3723,7 @@ export default function DashboardPage() {
           </>
         )}
 
-        {activeTab === 'new-application' && <NewApplicationList />}
+        {activeTab === 'new-application' && <NewApplicationList onBack={() => setActiveTab('work-panel')} />}
 
         {activeTab === 'work-panel' && (
           <FullWorkPanel

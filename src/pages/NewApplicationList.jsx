@@ -1,16 +1,28 @@
-import { ArrowRight, FileText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, FileText } from 'lucide-react'
 import { applicationForms } from '../data/applicationForms.js'
 import { navigate } from '../lib/router.jsx'
 
-export default function NewApplicationList() {
+export default function NewApplicationList({ onBack }) {
   return (
     <section id="new-application" className="w-full">
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Create New Application / புதிய விண்ணப்பம்</p>
-        <h2 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">Choose an Application Form</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          உங்களுக்கு தேவையான விண்ணப்ப படிவத்தை தேர்வு செய்து, விண்ணப்பத்தை பூர்த்தி செய்யவும். / Select the form you need and fill in the application.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Create New Application / புதிய விண்ணப்பம்</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">Choose an Application Form</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              உங்களுக்கு தேவையான விண்ணப்ப படிவத்தை தேர்வு செய்து, விண்ணப்பத்தை பூர்த்தி செய்யவும். / Select the form you need and fill in the application.
+            </p>
+          </div>
+          <button
+            className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-950"
+            onClick={() => (onBack ? onBack() : navigate('/app'))}
+            type="button"
+          >
+            <ArrowLeft size={16} />
+            Back to Applications / விண்ணப்பங்களுக்கு திரும்பு
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
