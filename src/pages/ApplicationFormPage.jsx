@@ -10,7 +10,7 @@ import { Link, navigate } from '../lib/router.jsx'
 import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
 import SearchSelect from '../components/SearchSelect.jsx'
 import { features } from '../config.js'
-import { ArrowLeft, Camera, CheckCircle2, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, Camera, CheckCircle2, Download, FileText, Image as ImageIcon, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 const dobProofOptions = [
@@ -414,6 +414,16 @@ function LivePhotoSection({ preview, onCapture, label = 'Live Photo / நேர�
     onCapture('')
   }
 
+  function handleDownload() {
+    if (!preview) return
+    const link = document.createElement('a')
+    link.href = preview
+    link.download = `live-photo-${Date.now()}.jpg`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const isValidImageSrc = preview && (preview.startsWith('data:image/') || preview.startsWith('http') || preview.startsWith('blob:'))
 
   return (
@@ -460,16 +470,24 @@ function LivePhotoSection({ preview, onCapture, label = 'Live Photo / நேர�
                   <RefreshCw size={14} />
                   Retake Live Photo / மீண்டும் படம் எடுக்க
                 </button>
+                <button
+                  className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#006090]"
+                  onClick={handleDownload}
+                  type="button"
+                >
+                  <Download size={14} />
+                  Download Photo / புகைப்படத்தை பதிவிறக்கு
+                </button>
               </div>
             </div>
           </div>
         ) : mode === 'streaming' ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-2xl border-2 border-[#007cba] bg-slate-950 shadow-lg">
+            <div className="relative aspect-[4/3] w-full max-w-[16rem] overflow-hidden rounded-2xl border-2 border-[#007cba] bg-slate-950 shadow-lg">
               <video autoPlay muted playsInline ref={videoRef} className="h-full w-full object-cover" />
 
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <div className="h-48 w-40 rounded-[50%/60%] border-2 border-dashed border-white/80 shadow-2xl ring-8 ring-black/40" />
+                <div className="h-36 w-28 rounded-[50%/60%] border-2 border-dashed border-white/80 shadow-2xl ring-8 ring-black/40" />
                 <p className="mt-2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
                   Align face inside frame / முகத்தை சரியாக வைக்கவும்
                 </p>
@@ -734,10 +752,6 @@ export default function ApplicationFormPage({ formId }) {
       }
       if (!previews.dobDocument) {
         notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'பிறந்த தேதிக்கான ஆவணம் பதிவேற்றவும். / Upload DOB proof document.' })
-        return
-      }
-      if (!previews.photo) {
-        notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'புகைப்படம் பதிவேற்றவும். / Upload passport photo.' })
         return
       }
       if (!previews.nomineeAadhar) {
@@ -1197,15 +1211,6 @@ export default function ApplicationFormPage({ formId }) {
                     required
                   >
                     Submit a document for date of birth / பிறந்த தேதிக்கான ஆவணத்தை சமர்ப்பிக்கவும்
-                  </FileField>
-
-                  <FileField
-                    accept="image/*"
-                    onChange={(e) => handleFileSelect('photo', e)}
-                    preview={previews.photo}
-                    required
-                  >
-                    Photo / புகைப்படம்
                   </FileField>
                 </div>
 
