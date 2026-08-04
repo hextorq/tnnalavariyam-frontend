@@ -1550,7 +1550,7 @@ export default function ApplicationFormPage({ formId }) {
                 </p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4">
                 <Field
                   onChange={(e) => handleInputChange('upiTransactionId', e.target.value)}
                   placeholder="Enter UPI Transaction ID / UTR Number"
