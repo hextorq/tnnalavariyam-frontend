@@ -320,14 +320,13 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
   const [mobileOpen, setMobileOpen] = useState(false)
   const isAdminUser = adminRoles.has(user?.role)
   const items = [
-    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard', description: 'Summary & metrics' },
-    { id: 'new-application', icon: FilePlus2, label: 'New Application', description: 'Create new application' },
-    { id: 'work-panel', icon: BriefcaseBusiness, label: 'Applications', description: 'All applications' },
-    ...(isAdminUser ? [{ id: 'signup-queue', icon: UserPlus, label: 'Signup Requests', description: 'Approve signups' }] : []),
-    ...(isAdminUser ? [{ id: 'hierarchy-view', icon: Layers3, label: 'Hierarchy View', description: 'Area application counts' }] : []),
-    { id: 'check-status', icon: ClipboardCheck, label: 'Check Status', description: 'Track request' },
-    { id: 'payment-receipt', icon: ReceiptText, label: 'Payment Receipt', description: 'Receipt placeholder' },
-    { id: 'profile-image', icon: User, label: 'Profile', description: 'Photo & account' },
+    { id: 'dashboard-overview', icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'new-application', icon: FilePlus2, label: 'New Application' },
+    { id: 'work-panel', icon: BriefcaseBusiness, label: 'Applications' },
+    ...(isAdminUser ? [{ id: 'signup-queue', icon: UserPlus, label: 'Signup Requests' }] : []),
+    { id: 'check-status', icon: ClipboardCheck, label: 'Check Status' },
+    { id: 'payment-receipt', icon: ReceiptText, label: 'Payment Receipt' },
+    { id: 'profile-image', icon: User, label: 'Profile' },
   ]
 
   function handleSelectTab(tabId) {
@@ -381,10 +380,7 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
                     type="button"
                   >
                     <Icon size={20} />
-                    <div>
-                      <p className="text-base">{item.label}</p>
-                      <p className="text-xs font-normal opacity-80">{item.description}</p>
-                    </div>
+                    <p className="text-base">{item.label}</p>
                   </button>
                 )
               })}
@@ -446,9 +442,8 @@ function DashboardSidebar({ activeTab, collapsed, onCollapseToggle, onNavigate, 
                       <Icon size={16} />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-sm leading-tight">{item.label}</span>
-                      <span className={`block text-[11px] font-normal ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{item.description}</span>
-                    </span>
+                    <span className="block text-sm leading-tight">{item.label}</span>
+                  </span>
                   </button>
                 )
               })}
@@ -1927,7 +1922,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
   const pageStatusSummary = getStatusSummary((currentNode || hierarchy?.total)?.counts?.applications)
   const pageTitle = currentNode
     ? hierarchyNodeLabel(currentNode)
-    : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List`
+    : `${formatGeoType(visibleCards[0]?.type || hierarchy?.firstType)} List / பட்டியல்`
   const normalizedSearch = searchQuery.trim().toLowerCase()
   const filteredCards = useMemo(() => {
     const list = normalizedSearch ? visibleCards.filter((node) => {
@@ -1988,11 +1983,11 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
       <Panel>
         <PanelHeader
           action={<button className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white" onClick={onRefresh} type="button">Refresh</button>}
-          eyebrow="Hierarchy Applications"
-          title="No hierarchy data available"
+          eyebrow="Hierarchy Applications / நிர்வாக விண்ணப்பங்கள்"
+          title="No hierarchy data available / படிநிலை தரவு கிடைக்கவில்லை"
         />
         <div className="p-5">
-          <EmptyState>No districts, taluks, villages or partners are available inside your current scope.</EmptyState>
+          <EmptyState>No districts, taluks, villages or partners are available inside your current scope. / உங்கள் எல்லைக்குள் மாவட்டம், தாலுகா, கிராமம் அல்லது பங்குதாரர்கள் எதுவும் இல்லை.</EmptyState>
         </div>
       </Panel>
     )
@@ -2005,17 +2000,17 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
           action={
             <button className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-xs" onClick={onRefresh} type="button">
               <RefreshCw size={16} />
-              Refresh
+              Refresh / புதுப்பிக்க
             </button>
           }
           eyebrow="Hierarchy Applications / நிர்வாக நிலை விண்ணப்பங்கள்"
           title="Application Count by Area / பகுதி வாரியான விண்ணப்ப எண்ணிக்கை"
         />
         <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-4">
-          <StatCard icon={Layers3} label="Visible Areas" loading={false} subtitle="Inside Scope" tone="slate" value={hierarchy?.total?.geoUnits || 0} />
-          <StatCard icon={FileText} label="Applications" loading={false} subtitle="All Statuses" tone="blue" value={hierarchy?.total?.applications || 0} />
-          <StatCard icon={Users} label="Village Partners" loading={false} subtitle="Approved Users" tone="green" value={hierarchy?.total?.partners || 0} />
-          <StatCard icon={UserPlus} label="Signup Requests" loading={false} subtitle="Visible Queue" tone="amber" value={hierarchy?.total?.signupRequests || 0} />
+          <StatCard icon={Layers3} label="Visible Areas / காணக்கூடிய பகுதிகள்" loading={false} subtitle="Inside Scope / என் எல்லைக்குள்" tone="slate" value={hierarchy?.total?.geoUnits || 0} />
+          <StatCard icon={FileText} label="Applications / விண்ணப்பங்கள்" loading={false} subtitle="All Statuses / அனைத்து நிலைகள்" tone="blue" value={hierarchy?.total?.applications || 0} />
+          <StatCard icon={Users} label="Village Partners / கிராம பங்குதாரர்கள்" loading={false} subtitle="Approved Users / அங்கீகரிக்கப்பட்ட பயனர்கள்" tone="green" value={hierarchy?.total?.partners || 0} />
+          <StatCard icon={UserPlus} label="Signup Requests / பதிவு கோரிக்கைகள்" loading={false} subtitle="Visible Queue / காணக்கூடிய வரிசை" tone="amber" value={hierarchy?.total?.signupRequests || 0} />
         </div>
       </Panel>
 
@@ -2030,7 +2025,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                   type="button"
                 >
                   <ChevronLeft size={16} />
-                  Back
+                  Back / பின்
                 </button>
               )}
               {path.length > 0 && (
@@ -2039,7 +2034,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                   onClick={() => setPath([])}
                   type="button"
                 >
-                  First Page
+                  First Page / முதல் பக்கம்
                 </button>
               )}
             </div>
@@ -2068,7 +2063,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
               {hasNextLevel ? 'Open next page / அடுத்த பக்கம் திறக்கவும்' : 'Partner Details / பங்குதாரர் விவரங்கள்'}
             </p>
             <h3 className="text-lg font-extrabold leading-snug text-slate-950">
-              {hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts'}
+              {hasNextLevel ? 'Select one card / ஒன்றைத் தேர்வு செய்யவும்' : 'Village partner application counts / கிராம பங்குதாரர் விண்ணப்ப எண்ணிக்கைகள்'}
             </h3>
           </div>
 
@@ -2108,19 +2103,19 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
           {currentNode && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Applications</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Applications / விண்ணப்பங்கள்</p>
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.applications?.total || 0}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Partners</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Partners / பங்குதாரர்கள்</p>
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.users?.partners || 0}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Active Users</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Active Users / செயலில் உள்ள பயனர்கள்</p>
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.users?.active || 0}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">Signups</p>
+                <p className="text-xs font-bold uppercase text-slate-500">Signups / பதிவுகள்</p>
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">{currentNode.counts?.signupRequests?.total || 0}</p>
               </div>
             </div>
@@ -2143,15 +2138,15 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Apps</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Apps / விண்ணப்பங்கள்</p>
                       <p className="text-xl font-extrabold text-slate-950">{node.counts?.applications?.total || 0}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Partners</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Partners / பங்குதாரர்கள்</p>
                       <p className="text-xl font-extrabold text-slate-950">{node.counts?.users?.partners || 0}</p>
                     </div>
                     <div className="rounded-xl bg-slate-50 p-2">
-                      <p className="text-[10px] font-bold uppercase text-slate-500">Next</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-500">Next / அடுத்தது</p>
                       <p className="text-xl font-extrabold text-slate-950">{node.childCount || node.partners?.length || 0}</p>
                     </div>
                   </div>
@@ -2159,7 +2154,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
               ))}
               {!filteredCards.length && (
                 <div className="md:col-span-2 xl:col-span-3">
-                  <EmptyState>No matching records found on this page.</EmptyState>
+                  <EmptyState>No matching records found on this page. / இந்த பக்கத்தில் பொருந்தக்கூடிய பதிவுகள் இல்லை.</EmptyState>
                 </div>
               )}
             </div>
@@ -2173,10 +2168,10 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                     <div className="min-w-0">
                       <p className="truncate text-base font-extrabold text-slate-950">{partner.name}</p>
                       <p className="mt-1 text-xs text-slate-500">{partner.username} • {partner.phone || '-'}</p>
-                      <p className="mt-1 text-[11px] text-slate-400">Last login: {formatDate(partner.lastLoginAt)}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">Last login / கடைசி உள்நுழைவு: {formatDate(partner.lastLoginAt)}</p>
                     </div>
                     <span className="rounded-xl bg-[#eef8ff] px-3 py-2 text-center text-xs font-bold text-[#007cba]">
-                      {partner.applications?.total || 0}<br />Apps
+                      {partner.applications?.total || 0}<br />Apps / விண்ணப்பங்கள்
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -2190,33 +2185,33 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
               ))}
               {!filteredPartners.length && (
                 <div className="md:col-span-2 xl:col-span-3">
-                  <EmptyState>No matching partners found.</EmptyState>
+                  <EmptyState>No matching partners found. / பொருந்தக்கூடிய பங்குதாரர்கள் இல்லை.</EmptyState>
                 </div>
               )}
             </div>
           )}
 
           {!hasNextLevel && !partnerCards.length && (
-            <EmptyState>No next level or partner records found for this area.</EmptyState>
+            <EmptyState>No next level or partner records found for this area. / இந்த பகுதிக்கு அடுத்த நிலை அல்லது பங்குதாரர் பதிவுகள் இல்லை.</EmptyState>
           )}
 
           {currentNode && (
             <div className="grid gap-4 lg:grid-cols-2">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Application Status</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Application Status / விண்ணப்ப நிலை</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {pageStatusSummary.length ? pageStatusSummary.map(([status, count]) => (
                     <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200" key={status}>
                       <StatusPill status={status} />
                       {count}
                     </span>
-                  )) : <span className="text-sm text-slate-500">No applications yet.</span>}
+                  )) : <span className="text-sm text-slate-500">No applications yet. / இன்னும் விண்ணப்பங்கள் இல்லை.</span>}
                 </div>
               </div>
 
               {currentNode.recentApplications?.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent Applications / சமீபத்திய விண்ணப்பங்கள்</p>
                   <div className="mt-2 grid gap-2">
                     {filteredRecentApplications.map((application) => (
                       <div className="rounded-xl border border-slate-200 bg-white p-3" key={application.id}>
@@ -2233,14 +2228,14 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                               type="button"
                             >
                               <Eye size={14} />
-                              View
+                              View / பார்க்க
                             </button>
                           </div>
                         </div>
                       </div>
                     ))}
                     {!filteredRecentApplications.length && (
-                      <EmptyState>No matching applications found.</EmptyState>
+                      <EmptyState>No matching applications found. / பொருந்தக்கூடிய விண்ணப்பங்கள் இல்லை.</EmptyState>
                     )}
                   </div>
                 </div>
@@ -3320,7 +3315,6 @@ export default function DashboardPage() {
     'new-application': 'New Application / புதிய விண்ணப்பம்',
     'work-panel': 'Applications / விண்ணப்பங்கள்',
     'signup-queue': 'Signup Requests / பதிவு கோரிக்கைகள்',
-    'hierarchy-view': 'Hierarchy View / படிநிலை பார்வை',
     'check-status': 'Check Status / நிலையை சரிபார்க்க',
     'payment-receipt': 'Payment Receipt / பண ரசீது',
     'profile-image': 'Profile / சுயவிவரம்',
@@ -3408,6 +3402,19 @@ export default function DashboardPage() {
                 submissions={submissions}
               />
             </section>
+
+            {/* 2. FULL HIERARCHY BELOW THE CARDS */}
+            {isAdmin && (
+              <section id="dashboard-hierarchy" className="w-full">
+                <HierarchyApplicationsPanel
+                  hierarchy={hierarchyOverview}
+                  loading={loading}
+                  onSelectSubmission={setSelectedSubmissionDetails}
+                  onRefresh={loadDashboard}
+                  submissions={submissions}
+                />
+              </section>
+            )}
           </>
         )}
 
@@ -3425,16 +3432,6 @@ export default function DashboardPage() {
             signupRequests={signupRequests}
             submissions={submissions}
             user={user}
-          />
-        )}
-
-        {activeTab === 'hierarchy-view' && isAdmin && (
-          <HierarchyApplicationsPanel
-            hierarchy={hierarchyOverview}
-            loading={loading}
-            onSelectSubmission={setSelectedSubmissionDetails}
-            onRefresh={loadDashboard}
-            submissions={submissions}
           />
         )}
 
