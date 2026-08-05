@@ -470,6 +470,15 @@ function ProfileField({ label, onChange, placeholder, required, type = 'text', v
   )
 }
 
+function ReadonlyTile({ label, value }) {
+  return (
+    <div className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200">
+      <p className="text-[10px] font-bold uppercase text-slate-400">{label}</p>
+      <p className="truncate text-sm font-bold text-slate-900">{value || '-'}</p>
+    </div>
+  )
+}
+
 function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
   const inputRef = useRef(null)
   const { notify } = useNotifications()
@@ -491,6 +500,7 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
     pincode: user?.pincode || '',
   })
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [profileTab, setProfileTab] = useState('personal')
 
   useEffect(() => {
     setPreviewUrl(getProfilePhoto(user))
@@ -573,6 +583,7 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
     try {
       const payload = {}
       for (const [key, value] of Object.entries(profileForm)) {
+        if (['state', 'district', 'taluk', 'village'].includes(key)) continue
         if (String(value || '').trim()) payload[key] = String(value).trim()
       }
       const response = await api.patch('/auth/profile', payload)
@@ -711,26 +722,25 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
         </div>
 
         <div className="grid content-start gap-6">
-          <form className="grid gap-6" onSubmit={handleSaveProfile}>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Information / கணக்கு தகவல்</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Username / பயனர் பெயர்</p>
-                  <p className="truncate text-sm font-bold text-slate-900">{user?.username || '-'}</p>
-                </div>
-                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Email / மின்னஞ்சல்</p>
-                  <p className="truncate text-sm font-bold text-slate-900">{user?.email || '-'}</p>
-                </div>
-                <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Role / பதவி</p>
-                  <p className="truncate text-sm font-bold text-[#007cba]">{roleLabels[user?.role] || user?.role || '-'}</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1.5 text-xs font-bold sm:text-sm">
+            {[
+              { id: 'personal', label: 'Personal / தனிப்பட்ட' },
+              { id: 'residential', label: 'Residential / குடியிருப்பு' },
+              { id: 'security', label: 'Account Security / கணக்கு பாதுகாப்பு' },
+            ].map((tab) => (
+              <button
+                className={`flex-1 whitespace-nowrap rounded-lg px-4 py-2 transition sm:flex-none ${profileTab === tab.id ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                key={tab.id}
+                onClick={() => setProfileTab(tab.id)}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+          {profileTab === 'personal' && (
+            <form className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5" onSubmit={handleSaveProfile}>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Personal Details / தனிப்பட்ட விவரங்கள்</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <ProfileField
@@ -754,37 +764,6 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
                   placeholder="வீட்டு முகவரி"
                   value={profileForm.addressLine}
                 />
-                <ProfileField
-                  label="State / மாநிலம்"
-                  onChange={(e) => setProfileField('state', e.target.value)}
-                  placeholder="Tamil Nadu"
-                  value={profileForm.state}
-                />
-                <ProfileField
-                  label="District / மாவட்டம்"
-                  onChange={(e) => setProfileField('district', e.target.value)}
-                  placeholder="மாவட்டம்"
-                  value={profileForm.district}
-                />
-                <ProfileField
-                  label="Taluk / தாலுகா"
-                  onChange={(e) => setProfileField('taluk', e.target.value)}
-                  placeholder="தாலுகா"
-                  value={profileForm.taluk}
-                />
-                <ProfileField
-                  label="Village / கிராமம்"
-                  onChange={(e) => setProfileField('village', e.target.value)}
-                  placeholder="கிராமம்"
-                  value={profileForm.village}
-                />
-                <ProfileField
-                  label="Pincode / அஞ்சல் குறியீடு"
-                  onChange={(e) => setProfileField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="6 digit pincode"
-                  type="tel"
-                  value={profileForm.pincode}
-                />
               </div>
               <div className="mt-5 flex justify-end">
                 <button
@@ -796,29 +775,83 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
                   {savingProfile ? 'Saving...' : 'Save Changes / மாற்றங்களை சேமிக்கவும்'}
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
+          )}
 
-          <form className="grid gap-6" onSubmit={handleChangePassword}>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Change Password / கடவுச்சொல்லை மாற்றவும்</p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <PasswordField field="currentPassword" label="Current Password / தற்போதைய கடவுச்சொல்" onToggleShow={() => setShowCurrent((v) => !v)} show={showCurrent} />
-                <PasswordField field="newPassword" label="New Password / புதிய கடவுச்சொல்" onToggleShow={() => setShowNew((v) => !v)} show={showNew} />
-                <PasswordField field="confirmPassword" label="Confirm Password / மீண்டும் புதிய கடவுச்சொல்" onToggleShow={() => setShowConfirm((v) => !v)} show={showConfirm} />
+          {profileTab === 'residential' && (
+            <form className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5" onSubmit={handleSaveProfile}>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Residential Details / குடியிருப்பு விவரங்கள்</p>
+              <p className="mt-1 text-[11px] font-semibold text-slate-400">
+                Area values are fixed by the administration based on your registered region / பகுதி விவரங்கள் நிர்வாகத்தால் நிர்ணயிக்கப்பட்டவை.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <ReadonlyTile label="State / மாநிலம்" value={profileForm.state || 'Tamil Nadu'} />
+                <ReadonlyTile label="District / மாவட்டம்" value={profileForm.district} />
+                <ReadonlyTile label="Taluk / தாலுகா" value={profileForm.taluk} />
+                <ReadonlyTile label="Village / கிராமம்" value={profileForm.village} />
+                <div className="sm:col-span-2">
+                  <ProfileField
+                    label="Pincode / அஞ்சல் குறியீடு"
+                    onChange={(e) => setProfileField('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="6 digit pincode"
+                    type="tel"
+                    value={profileForm.pincode}
+                  />
+                </div>
               </div>
               <div className="mt-5 flex justify-end">
                 <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-slate-800 disabled:opacity-50"
-                  disabled={savingPassword}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#007cba] px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#006090] disabled:opacity-50"
+                  disabled={savingProfile}
                   type="submit"
                 >
-                  {savingPassword ? <LoaderCircle className="animate-spin" size={17} /> : null}
-                  {savingPassword ? 'Updating...' : 'Update Password / கடவுச்சொல்லை மாற்றவும்'}
+                  {savingProfile ? <LoaderCircle className="animate-spin" size={17} /> : null}
+                  {savingProfile ? 'Saving...' : 'Save Changes / மாற்றங்களை சேமிக்கவும்'}
                 </button>
               </div>
+            </form>
+          )}
+
+          {profileTab === 'security' && (
+            <div className="grid content-start gap-6">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Information / கணக்கு தகவல்</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Username / பயனர் பெயர்</p>
+                    <p className="truncate text-sm font-bold text-slate-900">{user?.username || '-'}</p>
+                  </div>
+                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Email / மின்னஞ்சல்</p>
+                    <p className="truncate text-sm font-bold text-slate-900">{user?.email || '-'}</p>
+                  </div>
+                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">Role / பதவி</p>
+                    <p className="truncate text-sm font-bold text-[#007cba]">{roleLabels[user?.role] || user?.role || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <form className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5" onSubmit={handleChangePassword}>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Change Password / கடவுச்சொல்லை மாற்றவும்</p>
+                <div className="mt-4 grid gap-4">
+                  <PasswordField field="currentPassword" label="Current Password / தற்போதைய கடவுச்சொல்" onToggleShow={() => setShowCurrent((v) => !v)} show={showCurrent} />
+                  <PasswordField field="newPassword" label="New Password / புதிய கடவுச்சொல்" onToggleShow={() => setShowNew((v) => !v)} show={showNew} />
+                  <PasswordField field="confirmPassword" label="Confirm Password / மீண்டும் புதிய கடவுச்சொல்" onToggleShow={() => setShowConfirm((v) => !v)} show={showConfirm} />
+                </div>
+                <div className="mt-5 flex justify-end">
+                  <button
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-7 py-3 text-sm font-bold text-white shadow-md transition hover:bg-slate-800 disabled:opacity-50"
+                    disabled={savingPassword}
+                    type="submit"
+                  >
+                    {savingPassword ? <LoaderCircle className="animate-spin" size={17} /> : null}
+                    {savingPassword ? 'Updating...' : 'Update Password / கடவுச்சொல்லை மாற்றவும்'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
+          )}
         </div>
       </div>
     </section>
