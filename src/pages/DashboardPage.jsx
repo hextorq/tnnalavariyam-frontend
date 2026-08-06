@@ -3,6 +3,7 @@ import { DashboardSkeleton } from '../components/SkeletonLoader.jsx'
 import { STATUS_META } from '../constants/statusMeta.js'
 import { bilingualName, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import NewApplicationList from './NewApplicationList.jsx'
+import PaymentReceiptPage from './PaymentReceiptPage.jsx'
 import { api } from '../lib/api.js'
 import { clearProfilePhoto, clearSession, getProfilePhoto, getSession, isAuthenticated, saveProfilePhoto, updateSessionUser } from '../lib/auth.js'
 import { useNotifications } from '../lib/notifications.js'
@@ -3756,27 +3757,6 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
   )
 }
 
-function PaymentReceiptPlaceholder() {
-  return (
-    <section id="payment-receipt" className="w-full rounded-2xl border border-slate-200 bg-white shadow-xs">
-      <div className="border-b border-slate-100 p-4 sm:p-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Payment Receipt / கட்டண ரசீது</p>
-        <h2 className="mt-1 text-lg font-bold text-slate-950">Payment Receipt</h2>
-      </div>
-      <div className="flex flex-col items-center justify-center gap-3 p-10 text-center sm:p-16">
-        <span className="inline-flex size-14 items-center justify-center rounded-full bg-[#eef8ff] text-[#007cba]">
-          <ReceiptText size={28} />
-        </span>
-        <p className="text-sm font-bold text-slate-900">Payment Receipt / கட்டண ரசீது</p>
-        <p className="max-w-md text-xs leading-6 text-slate-500">
-          This section is under preparation. Payment receipts for submitted applications will be available here soon. /
-          இந்த பிரிவு தயாரிப்பில் உள்ளது. சமர்ப்பிக்கப்பட்ட விண்ணப்பங்களுக்கான கட்டண ரசீதுகள் விரைவில் இங்கே கிடைக்கும்.
-        </p>
-      </div>
-    </section>
-  )
-}
-
 export default function DashboardPage() {
   if (!isAuthenticated()) return <AuthRequired />
   const [user, setUser] = useState(() => getSession()?.user)
@@ -4058,7 +4038,7 @@ export default function DashboardPage() {
           <UserImageCard onProfilePhotoChange={setProfilePhotoUrl} onUserUpdated={updateSessionUser} user={user} />
         )}
 
-        {activeTab === 'payment-receipt' && <PaymentReceiptPlaceholder />}
+        {activeTab === 'payment-receipt' && <PaymentReceiptPage />}
 
         {activeTab === 'check-status' && (
           <section id="check-status">

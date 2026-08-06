@@ -89,3 +89,39 @@ html {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
+
+/* A4 Bill Printing */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body.bill-print-active {
+    background: #ffffff !important;
+  }
+
+  body.bill-print-active * {
+    visibility: hidden;
+  }
+
+  body.bill-print-active .bill-print-sheet,
+  body.bill-print-active .bill-print-sheet * {
+    visibility: visible;
+  }
+
+  body.bill-print-active .bill-print-sheet {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 10mm 12mm !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+}
