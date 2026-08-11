@@ -1,4 +1,4 @@
-import { CheckCircle2, Eye, LoaderCircle, Plus, Printer, ReceiptText, RefreshCw, Trash2, X } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronRight, Eye, LoaderCircle, Plus, Printer, ReceiptText, RefreshCw, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { associationName, brandName, images } from '../data/siteContent.js'
 import { api } from '../lib/api.js'
@@ -42,6 +42,13 @@ function scopeLabel(scope) {
     STATE: 'State / மாநிலம்',
   }[scope.type] || scope.type
   return `${typeLabel}: ${scope.tamilName || scope.name}`
+}
+
+const TYPE_LABELS = {
+  STATE: 'State / மாநிலம்',
+  DISTRICT: 'District / மாவட்டம்',
+  TALUK: 'Taluk / தாலுகா',
+  VILLAGE: 'Village / கிராமம்',
 }
 
 function BillPrintSheet({ user, bill }) {
@@ -124,6 +131,55 @@ function BillPrintSheet({ user, bill }) {
   )
 }
 
+function BillTreeNode({ collapsedSet, depth, node, onPreview, onPrint, toggleCollapse }) {
+  const key = `u-${node.id}`
+  const collapsed = collapsedSet.has(key)
+  const billCount = node.totalCount || 0
+
+  return (
+    <div>
+      <button
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition hover:bg-[#eef8ff]/60 sm:px-4"
+        onClick={() => toggleCollapse(key)}
+        style={{ paddingLeft: `${8 + depth * 22}px` }}
+        type="button"
+      >
+        {node.children.length > 0 || node.bills.length > 0 ? (
+          collapsed ? (
+            <ChevronRight className="shrink-0 text-slate-400" size={15} />
+          ) : (
+            <ChevronDown className="shrink-0 text-slate-400" size={15} />
+          )
+        ) : (
+          <span className="w-[15px] shrink-0" />
+        )}
+        <span className="min-w-0 truncate text-sm font-bold text-slate-800">{node.tamilName || node.name}</span>
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-slate-400">{TYPE_LABELS[node.type] || node.type}</span>
+        <span className="ml-auto inline-flex shrink-0 items-center rounded-full bg-[#007cba]/10 px-2 py-0.5 text-[11px] font-black text-[#007cba]">
+          {billCount}
+        </span>
+      </button>
+
+      {!collapsed && (
+        <div>
+          {node.children.map((child) => (
+            <BillTreeNode
+              collapsedSet={collapsedSet}
+              depth={depth + 1}
+              key={`u-${child.id}`}
+              node={child}
+              onPreview={onPreview}
+              onPrint={onPrint}
+              toggleCollapse={toggleCollapse}
+            />
+          ))}
+          {node.bills.length > 0 && <BillTable bills={node.bills} onPreview={onPreview} onPrint={onPrint} />}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function BillTable({ bills, onPreview, onPrint }) {
   return (
     <div className="overflow-x-auto">
@@ -190,6 +246,10 @@ export default function PaymentReceiptPage() {
   const userName = userDisplayName(user)
 
   const [bills, setBills] = useState([])
+  const [geoUnits, setGeoUnits] = useState([])
+  const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState({ STATE: '', DISTRICT: '', TALUK: '', VILLAGE: '' })
+  const [collapsedSet, setCollapsedSet] = useState(() => new Set())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -200,24 +260,90 @@ export default function PaymentReceiptPage() {
   const total = useMemo(() => rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0), [rows])
   const hasValidRows = rows.some((row) => String(row.particulars || '').trim() && Number(row.amount) > 0)
 
-  const billGroups = useMemo(() => {
-    const myId = user?.id
-    const buckets = { own: [], VILLAGE: [], TALUK: [], DISTRICT: [], STATE: [], OTHER: [] }
-    for (const bill of bills) {
-      const creator = bill.user
-      if (creator && creator.id === myId) buckets.own.push(bill)
-      else if (creator?.scope?.type && buckets[creator.scope.type]) buckets[creator.scope.type].push(bill)
-      else buckets.OTHER.push(bill)
+  const unitMap = useMemo(() => {
+    const map = {}
+    for (const unit of geoUnits) map[unit.id] = unit
+    return map
+  }, [geoUnits])
+
+  const filterOptions = useMemo(() => {
+    const opts = { STATE: [], DISTRICT: [], TALUK: [], VILLAGE: [] }
+    for (const unit of geoUnits) {
+      if (!opts[unit.type] || opts[unit.type].some((o) => o.id === unit.id)) continue
+      opts[unit.type].push(unit)
     }
-    return [
-      { key: 'own', title: 'My Bills / எனது பில்கள்', bills: buckets.own },
-      { key: 'VILLAGE', title: 'From Village Centers / கிராம மையங்களிலிருந்து', bills: buckets.VILLAGE },
-      { key: 'TALUK', title: 'From Taluks / தாலுகா அலுவலகங்களிலிருந்து', bills: buckets.TALUK },
-      { key: 'DISTRICT', title: 'From Districts / மாவட்ட அலுவலகங்களிலிருந்து', bills: buckets.DISTRICT },
-      { key: 'STATE', title: 'From State Office / மாநில அலுவலகத்திலிருந்து', bills: buckets.STATE },
-      { key: 'OTHER', title: 'From Others / பிற பில்கள்', bills: buckets.OTHER },
-    ].filter((group) => group.bills.length > 0)
-  }, [bills, user])
+    return opts
+  }, [geoUnits])
+
+  const billTree = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const activeFilters = Object.values(filters).filter(Boolean)
+
+    const chainFor = (bill) => {
+      const chain = []
+      let unit = bill.user?.scope?.id ? unitMap[bill.user.scope.id] : null
+      while (unit) {
+        chain.unshift(unit)
+        unit = unit.parentId ? unitMap[unit.parentId] : null
+      }
+      return chain
+    }
+
+    const matching = bills.filter((bill) => {
+      if (q && !String(bill.billNo || '').toLowerCase().includes(q)) return false
+      if (!activeFilters.length) return true
+      const chain = chainFor(bill)
+      return Object.entries(filters).every(([type, id]) => {
+        if (!id) return true
+        return chain.some((unit) => unit.type === type && String(unit.id) === String(id))
+      })
+    })
+
+    const root = { id: 0, name: 'All', type: 'ROOT', children: [], bills: [], others: [] }
+    const nodeByKey = new Map()
+
+    for (const bill of matching) {
+      const chain = chainFor(bill)
+      if (!chain.length) {
+        root.others.push(bill)
+        continue
+      }
+      let parent = root
+      for (const unit of chain) {
+        const key = `u-${unit.id}`
+        let child = nodeByKey.get(key)
+        if (!child) {
+          child = { id: unit.id, name: unit.name, tamilName: unit.tamilName, type: unit.type, children: [], bills: [], totalCount: 0 }
+          nodeByKey.set(key, child)
+          parent.children.push(child)
+        }
+        parent = child
+      }
+      parent.bills.push(bill)
+    }
+
+    const computeCount = (node) => {
+      node.totalCount = node.bills.length + node.children.reduce((sum, child) => sum + computeCount(child), 0)
+      return node.totalCount
+    }
+    root.children.forEach(computeCount)
+
+    return { root, totalCount: matching.length }
+  }, [bills, unitMap, search, filters])
+
+  function toggleCollapse(key) {
+    setCollapsedSet((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  function resetFilters() {
+    setSearch('')
+    setFilters({ STATE: '', DISTRICT: '', TALUK: '', VILLAGE: '' })
+  }
 
   useEffect(() => {
     loadBills()
@@ -237,6 +363,7 @@ export default function PaymentReceiptPage() {
       setLoading(true)
       const response = await api.get('/bills')
       setBills(response.data.bills || [])
+      setGeoUnits(response.data.geoUnits || [])
     } catch (error) {
       notify({
         type: 'error',
@@ -379,17 +506,112 @@ export default function PaymentReceiptPage() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {billGroups.map((group) => (
-              <div key={group.key}>
-                <div className="flex items-center justify-between bg-slate-50/70 px-4 py-2.5 sm:px-5">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
-                    {group.title} <span className="ml-1 text-slate-400">({group.bills.length})</span>
-                  </p>
+          <div>
+            {/* Search + Filters toolbar */}
+            <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:p-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <label className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <input
+                    className={`${inputClass} pl-9`}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search bill number / பில் எண்ணை தேடவும்"
+                    type="text"
+                    value={search}
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-200"
+                    onClick={() => setCollapsedSet(new Set())}
+                    type="button"
+                  >
+                    <ChevronDown size={13} />
+                    Expand All / முழுவதும் விரி
+                  </button>
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-200"
+                    onClick={() => setCollapsedSet(new Set(billTree.root.children.map((n) => `u-${n.id}`)))}
+                    type="button"
+                  >
+                    <ChevronRight size={13} />
+                    Collapse All / முழுவதும் சுருக்கு
+                  </button>
                 </div>
-                <BillTable bills={group.bills} onPreview={openPreview} onPrint={handlePrint} />
               </div>
-            ))}
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {[
+                  { key: 'STATE', label: 'State / மாநிலம்' },
+                  { key: 'DISTRICT', label: 'District / மாவட்டம்' },
+                  { key: 'TALUK', label: 'Taluk / தாலுகா' },
+                  { key: 'VILLAGE', label: 'Village / கிராமம்' },
+                ].map(({ key, label }) => (
+                  <select
+                    className={inputClass}
+                    key={key}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, [key]: e.target.value }))}
+                    value={filters[key]}
+                  >
+                    <option value="">All {label.split(' / ')[0]}s / அனைத்தும்</option>
+                    {filterOptions[key].map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.tamilName || unit.name}
+                      </option>
+                    ))}
+                  </select>
+                ))}
+                <button
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-950 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800"
+                  onClick={resetFilters}
+                  type="button"
+                >
+                  <RefreshCw size={13} />
+                  Reset / மீட்டமை
+                </button>
+              </div>
+
+              <p className="text-[11px] font-semibold text-slate-400">
+                Showing {billTree.totalCount} of {bills.length} bills / {bills.length} பில்களில் {billTree.totalCount} காணப்படுகிறது
+              </p>
+            </div>
+
+            {/* Hierarchy tree */}
+            {billTree.totalCount === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+                <span className="inline-flex size-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <Search size={26} />
+                </span>
+                <p className="text-sm font-bold text-slate-900">No matching bills / பொருந்தும் பில்கள் இல்லை</p>
+                <button className="text-xs font-bold text-[#007cba] underline" onClick={resetFilters} type="button">
+                  Clear filters / வடிகட்டிகளை அழிக்கவும்
+                </button>
+              </div>
+            ) : (
+              <div>
+                {billTree.root.others.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                        My Bills / எனது பில்கள் <span className="ml-1 text-slate-400">({billTree.root.others.length})</span>
+                      </p>
+                    </div>
+                    <BillTable bills={billTree.root.others} onPreview={openPreview} onPrint={handlePrint} />
+                  </div>
+                )}
+                {billTree.root.children.map((child) => (
+                  <BillTreeNode
+                    collapsedSet={collapsedSet}
+                    depth={0}
+                    key={`u-${child.id}`}
+                    node={child}
+                    onPreview={openPreview}
+                    onPrint={handlePrint}
+                    toggleCollapse={toggleCollapse}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </section>
