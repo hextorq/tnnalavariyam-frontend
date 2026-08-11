@@ -48,9 +48,9 @@ function BillPrintSheet({ user, bill }) {
             <p className="mt-1 text-xs font-semibold leading-snug text-slate-600">{associationName}</p>
           </div>
         </div>
-        <div className="shrink-0 rounded-xl bg-slate-950 px-4 py-2 text-right text-white">
+        <div className="shrink-0 text-right">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Bill No / பில் எண்</p>
-          <p className="text-sm font-black tracking-wide text-[#f0ad4e]">{bill.billNo}</p>
+          <p className="text-sm font-bold text-slate-900">{bill.billNo}</p>
         </div>
       </div>
 
@@ -460,11 +460,10 @@ export default function PaymentReceiptPage() {
         <div className="fixed inset-0 z-[100] flex flex-col items-center overflow-y-auto bg-slate-950/80 p-3 backdrop-blur-md sm:p-5">
           <div className="w-full max-w-[220mm] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl sm:p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#007cba]">Preview & Print / முன்னோட்டம் மற்றும் அச்சிடு</p>
-                <h2 className="text-lg font-extrabold text-slate-950">{printBill.billNo}</h2>
-              </div>
-              <div className="flex items-center gap-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#007cba]">Preview & Print / முன்னோட்டம் மற்றும் அச்சிடு</p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-bold text-slate-900">{printBill.billNo}</p>
+                <div className="flex items-center gap-2">
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
                   onClick={printNow}
@@ -480,6 +479,7 @@ export default function PaymentReceiptPage() {
                 >
                   <X size={18} />
                 </button>
+              </div>
               </div>
             </div>
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-4">

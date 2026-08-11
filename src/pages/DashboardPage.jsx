@@ -595,7 +595,7 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
     try {
       const payload = {}
       for (const [key, value] of Object.entries(profileForm)) {
-        if (['state', 'district', 'taluk', 'village'].includes(key)) continue
+        if (['state', 'district', 'taluk', 'village', 'fullName', 'addressLine'].includes(key)) continue
         if (String(value || '').trim()) payload[key] = String(value).trim()
       }
       const response = await api.patch('/auth/profile', payload)
@@ -755,13 +755,7 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
             <form className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5" onSubmit={handleSaveProfile}>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Personal Details / தனிப்பட்ட விவரங்கள்</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <ProfileField
-                  label="Full Name / முழு பெயர்"
-                  onChange={(e) => setProfileField('fullName', e.target.value)}
-                  placeholder="உங்கள் முழு பெயர்"
-                  required
-                  value={profileForm.fullName}
-                />
+                <ReadonlyTile label="Full Name / முழு பெயர்" value={profileForm.fullName} />
                 <ProfileField
                   label="Phone Number / அலைபேசி எண்"
                   onChange={(e) => setProfileField('phone', normalizePhone(e.target.value))}
@@ -770,12 +764,9 @@ function UserImageCard({ onProfilePhotoChange, onUserUpdated, user }) {
                   type="tel"
                   value={profileForm.phone}
                 />
-                <ProfileField
-                  label="Address / முகவரி"
-                  onChange={(e) => setProfileField('addressLine', e.target.value)}
-                  placeholder="வீட்டு முகவரி"
-                  value={profileForm.addressLine}
-                />
+                <div className="sm:col-span-2">
+                  <ReadonlyTile label="Address / முகவரி" value={profileForm.addressLine} />
+                </div>
               </div>
               <div className="mt-5 flex justify-end">
                 <button

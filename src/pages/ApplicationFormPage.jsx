@@ -1558,6 +1558,16 @@ export default function ApplicationFormPage({ formId }) {
           {/* Payment Section */}
           <Section eyebrow="Payment Information" title="Scan & Pay / ஸ்கேன் செய்து செலுத்துங்கள்">
             <div className="grid gap-5">
+              {features.livePhoto && (
+                <LivePhotoSection
+                  required
+                  onCapture={(dataUrl) => {
+                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
+                  }}
+                  preview={previews.livePhoto}
+                />
+              )}
+
               <div className="flex flex-col items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:justify-center sm:gap-6">
                 <div className="h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xs">
                   <img
@@ -1606,16 +1616,6 @@ export default function ApplicationFormPage({ formId }) {
                   </span>
                 </label>
               </div>
-
-              {features.livePhoto && (
-                <LivePhotoSection
-                  required
-                  onCapture={(dataUrl) => {
-                    setPreviews((prev) => ({ ...prev, livePhoto: dataUrl }))
-                  }}
-                  preview={previews.livePhoto}
-                />
-              )}
             </div>
           </Section>
 
