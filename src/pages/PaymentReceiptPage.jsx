@@ -33,7 +33,19 @@ function userDisplayName(user) {
   return user?.fullName || user?.firstName || user?.name || user?.username || 'User'
 }
 
+function scopeLabel(scope) {
+  if (!scope) return ''
+  const typeLabel = {
+    VILLAGE: 'Village / கிராமம்',
+    TALUK: 'Taluk / தாலுகா',
+    DISTRICT: 'District / மாவட்டம்',
+    STATE: 'State / மாநிலம்',
+  }[scope.type] || scope.type
+  return `${typeLabel}: ${scope.tamilName || scope.name}`
+}
+
 function BillPrintSheet({ user, bill }) {
+  const issuer = bill.user || user
   const items = Array.isArray(bill.items) ? bill.items : []
   const total = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
@@ -54,15 +66,15 @@ function BillPrintSheet({ user, bill }) {
         </div>
       </div>
 
-      {/* Issued by (logged-in user contact) */}
+      {/* Issued by (bill creator or logged-in user contact) */}
       <div className="mt-4 grid gap-1 border-b border-slate-200 pb-4 text-sm">
         <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Issued By / வழங்கியவர்</p>
-        <p className="font-extrabold text-slate-950">{userDisplayName(user)} <span className="font-semibold text-[#007cba]">({ROLES[user?.role] || user?.role || '-'})</span></p>
-        {user?.addressLine && <p className="max-w-xl leading-5 text-slate-700">{user.addressLine}{user?.pincode ? `, ${user.pincode}` : ''}</p>}
+        <p className="font-extrabold text-slate-950">{userDisplayName(issuer)} <span className="font-semibold text-[#007cba]">({ROLES[issuer?.role] || issuer?.role || '-'})</span></p>
+        {issuer?.addressLine && <p className="max-w-xl leading-5 text-slate-700">{issuer.addressLine}{issuer?.pincode ? `, ${issuer.pincode}` : ''}</p>}
         <p className="text-slate-700">
-          Phone: <span className="font-bold">{user?.phone || '-'}</span>
+          Phone: <span className="font-bold">{issuer?.phone || '-'}</span>
           <span className="mx-2 text-slate-300">|</span>
-          Email: <span className="font-bold">{user?.email || '-'}</span>
+          Email: <span className="font-bold">{issuer?.email || '-'}</span>
         </p>
         <p className="mt-1 text-xs font-semibold text-slate-500">Date / தேதி: <span className="text-slate-700">{formatDate(bill.createdAt)}</span></p>
       </div>
@@ -104,10 +116,70 @@ function BillPrintSheet({ user, bill }) {
       <div className="mt-14 flex justify-end">
         <div className="w-56 text-center">
           <div className="border-b-2 border-slate-400" />
-          <p className="mt-1.5 font-extrabold text-slate-900">{userDisplayName(user)}</p>
-          <p className="text-xs font-bold text-[#007cba]">{ROLES[user?.role] || user?.role || '-'}</p>
+          <p className="mt-1.5 font-extrabold text-slate-900">{userDisplayName(issuer)}</p>
+          <p className="text-xs font-bold text-[#007cba]">{ROLES[issuer?.role] || issuer?.role || '-'}</p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function BillTable({ bills, onPreview, onPrint }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[900px] border-collapse text-left text-sm">
+        <thead>
+          <tr className="bg-slate-50">
+            <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Bill No / பில் எண்</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Date / தேதி</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Entries</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Created By / உருவாக்கியவர்</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Total Amount</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bills.map((bill) => {
+            const creator = bill.user
+            const count = Array.isArray(bill.items) ? bill.items.length : 0
+            return (
+              <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={bill.id}>
+                <td className="px-4 py-3 font-black text-[#007cba]">{bill.billNo}</td>
+                <td className="px-4 py-3 text-xs font-bold text-slate-600">{formatDate(bill.createdAt)}</td>
+                <td className="px-4 py-3 font-semibold text-slate-600">{count} entries</td>
+                <td className="px-4 py-3">
+                  <p className="font-bold text-slate-800">{userDisplayName(creator)}</p>
+                  <p className="text-[11px] font-semibold text-slate-400">
+                    {ROLES[creator?.role] || creator?.role || '-'}
+                    {scopeLabel(creator?.scope) && ` • ${scopeLabel(creator?.scope)}`}
+                  </p>
+                </td>
+                <td className="px-4 py-3 text-right text-base font-black text-slate-950">{money(bill.totalAmount)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-200"
+                      onClick={() => onPreview(bill)}
+                      type="button"
+                    >
+                      <Eye size={13} />
+                      Preview / முன்னோட்டம்
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+                      onClick={() => onPrint(bill)}
+                      type="button"
+                    >
+                      <Printer size={13} />
+                      Print / Reprint
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -127,6 +199,25 @@ export default function PaymentReceiptPage() {
 
   const total = useMemo(() => rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0), [rows])
   const hasValidRows = rows.some((row) => String(row.particulars || '').trim() && Number(row.amount) > 0)
+
+  const billGroups = useMemo(() => {
+    const myId = user?.id
+    const buckets = { own: [], VILLAGE: [], TALUK: [], DISTRICT: [], STATE: [], OTHER: [] }
+    for (const bill of bills) {
+      const creator = bill.user
+      if (creator && creator.id === myId) buckets.own.push(bill)
+      else if (creator?.scope?.type && buckets[creator.scope.type]) buckets[creator.scope.type].push(bill)
+      else buckets.OTHER.push(bill)
+    }
+    return [
+      { key: 'own', title: 'My Bills / எனது பில்கள்', bills: buckets.own },
+      { key: 'VILLAGE', title: 'From Village Centers / கிராம மையங்களிலிருந்து', bills: buckets.VILLAGE },
+      { key: 'TALUK', title: 'From Taluks / தாலுகா அலுவலகங்களிலிருந்து', bills: buckets.TALUK },
+      { key: 'DISTRICT', title: 'From Districts / மாவட்ட அலுவலகங்களிலிருந்து', bills: buckets.DISTRICT },
+      { key: 'STATE', title: 'From State Office / மாநில அலுவலகத்திலிருந்து', bills: buckets.STATE },
+      { key: 'OTHER', title: 'From Others / பிற பில்கள்', bills: buckets.OTHER },
+    ].filter((group) => group.bills.length > 0)
+  }, [bills, user])
 
   useEffect(() => {
     loadBills()
@@ -257,7 +348,10 @@ export default function PaymentReceiptPage() {
         <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Bill History / பில் வரலாறு</p>
-            <h3 className="mt-1 text-lg font-bold text-slate-950">Created Bills ({bills.length})</h3>
+            <h3 className="mt-1 text-lg font-bold text-slate-950">All Bills ({bills.length})</h3>
+            <p className="mt-0.5 text-[11px] text-slate-400">
+              Your bills and bills from your area appear here / உங்கள் பில்கள் மற்றும் உங்கள் பகுதியின் பில்கள் இங்கே காணப்படும்
+            </p>
           </div>
           <button
             className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800"
@@ -285,51 +379,17 @@ export default function PaymentReceiptPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50">
-                  <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Bill No / பில் எண்</th>
-                  <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Date / தேதி</th>
-                  <th className="border-b border-slate-200 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500">Entries</th>
-                  <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Total Amount</th>
-                  <th className="border-b border-slate-200 px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-slate-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bills.map((bill) => {
-                  const count = Array.isArray(bill.items) ? bill.items.length : 0
-                  return (
-                    <tr className="border-b border-slate-100 transition hover:bg-[#eef8ff]/60" key={bill.id}>
-                      <td className="px-4 py-3 font-black text-[#007cba]">{bill.billNo}</td>
-                      <td className="px-4 py-3 text-xs font-bold text-slate-600">{formatDate(bill.createdAt)}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-600">{count} entries</td>
-                      <td className="px-4 py-3 text-right text-base font-black text-slate-950">{money(bill.totalAmount)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-200"
-                            onClick={() => openPreview(bill)}
-                            type="button"
-                          >
-                            <Eye size={13} />
-                            Preview / முன்னோட்டம்
-                          </button>
-                          <button
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
-                            onClick={() => handlePrint(bill)}
-                            type="button"
-                          >
-                            <Printer size={13} />
-                            Print / Reprint
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div className="divide-y divide-slate-100">
+            {billGroups.map((group) => (
+              <div key={group.key}>
+                <div className="flex items-center justify-between bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                    {group.title} <span className="ml-1 text-slate-400">({group.bills.length})</span>
+                  </p>
+                </div>
+                <BillTable bills={group.bills} onPreview={openPreview} onPrint={handlePrint} />
+              </div>
+            ))}
           </div>
         )}
       </section>
