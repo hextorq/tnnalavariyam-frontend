@@ -32,12 +32,14 @@ export default function PublicLayout({ children }) {
               <span className="hidden truncate whitespace-nowrap text-xs font-semibold text-slate-500 md:block xl:overflow-visible xl:text-clip xl:whitespace-normal">{associationName}</span>
             </span>
           </Link>
-          <nav className="order-3 hidden w-full items-center justify-center gap-5 border-t border-slate-100 pt-3 xl:flex">
+          <nav className="order-3 hidden w-full items-center justify-center gap-2.5 border-t border-slate-100 pt-3 xl:flex">
             {navItems.map((item) => (
               <NavLink
                 className={({ isActive }) =>
-                  `whitespace-nowrap border-b-2 px-0.5 py-2 text-xs font-bold leading-tight transition 2xl:text-sm ${
-                    isActive ? 'border-[#007cba] text-[#007cba]' : 'border-transparent text-slate-700 hover:border-slate-300 hover:text-slate-950'
+                  `whitespace-nowrap rounded-xl px-4 py-2 text-xs font-extrabold leading-tight shadow-sm transition 2xl:text-sm ${
+                    isActive
+                      ? 'bg-[#f0ad4e] text-slate-950 shadow-md'
+                      : 'border border-slate-200 bg-white text-slate-700 hover:border-[#f0ad4e] hover:bg-[#f0ad4e] hover:text-slate-950'
                   }`
                 }
                 key={item.to}
@@ -59,7 +61,18 @@ export default function PublicLayout({ children }) {
         {open && (
           <nav className="grid gap-2 border-t border-slate-200 bg-white px-3 py-4 sm:px-5 xl:hidden">
             {navItems.map((item) => (
-              <NavLink className="rounded-md border border-slate-200 px-3 py-3 text-sm font-bold text-slate-800" key={item.to} to={item.to} onClick={() => setOpen(false)}>
+              <NavLink
+                className={({ isActive }) =>
+                  `rounded-xl px-3 py-3 text-sm font-extrabold transition ${
+                    isActive
+                      ? 'bg-[#f0ad4e] text-slate-950 shadow-md'
+                      : 'border border-slate-200 bg-white text-slate-800 shadow-sm hover:border-[#f0ad4e] hover:bg-[#f0ad4e] hover:text-slate-950'
+                  }`
+                }
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+              >
                 {item.label}
               </NavLink>
             ))}
