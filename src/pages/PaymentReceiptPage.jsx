@@ -1,5 +1,6 @@
 import { CheckCircle2, ChevronDown, ChevronRight, Eye, LoaderCircle, Plus, Printer, ReceiptText, RefreshCw, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import SearchSelect from '../components/SearchSelect.jsx'
 import { associationName, brandName, images } from '../data/siteContent.js'
 import { api } from '../lib/api.js'
 import { getSession } from '../lib/auth.js'
@@ -275,6 +276,43 @@ export default function PaymentReceiptPage() {
     return opts
   }, [geoUnits])
 
+  const childrenByParent = useMemo(() => {
+    const map = {}
+    for (const unit of geoUnits) {
+      if (!unit.parentId) continue
+      if (!map[unit.parentId]) map[unit.parentId] = []
+      map[unit.parentId].push(unit)
+    }
+    return map
+  }, [geoUnits])
+
+  const stateOptions = filterOptions.STATE
+  const districtOptions = filters.STATE ? (childrenByParent[Number(filters.STATE)] || []).filter((u) => u.type === 'DISTRICT') : []
+  const talukOptions = filters.DISTRICT ? (childrenByParent[Number(filters.DISTRICT)] || []).filter((u) => u.type === 'TALUK') : []
+  const villageOptions = filters.TALUK ? (childrenByParent[Number(filters.TALUK)] || []).filter((u) => u.type === 'VILLAGE') : []
+
+  const selectOptions = (units) => units.map((unit) => ({
+    value: String(unit.id),
+    label: unit.tamilName && unit.tamilName !== unit.name ? `${unit.tamilName} (${unit.name})` : unit.name,
+  }))
+
+  function handleFilterChange(key, value) {
+    setFilters((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'STATE') {
+        next.DISTRICT = ''
+        next.TALUK = ''
+        next.VILLAGE = ''
+      } else if (key === 'DISTRICT') {
+        next.TALUK = ''
+        next.VILLAGE = ''
+      } else if (key === 'TALUK') {
+        next.VILLAGE = ''
+      }
+      return next
+    })
+  }
+
   const billTree = useMemo(() => {
     const q = search.trim().toLowerCase()
     const activeFilters = Object.values(filters).filter(Boolean)
@@ -541,26 +579,33 @@ export default function PaymentReceiptPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {[
-                  { key: 'STATE', label: 'State / மாநிலம்' },
-                  { key: 'DISTRICT', label: 'District / மாவட்டம்' },
-                  { key: 'TALUK', label: 'Taluk / தாலுகா' },
-                  { key: 'VILLAGE', label: 'Village / கிராமம்' },
-                ].map(({ key, label }) => (
-                  <select
-                    className={inputClass}
-                    key={key}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, [key]: e.target.value }))}
-                    value={filters[key]}
-                  >
-                    <option value="">All {label.split(' / ')[0]}s / அனைத்தும்</option>
-                    {filterOptions[key].map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {unit.tamilName || unit.name}
-                      </option>
-                    ))}
-                  </select>
-                ))}
+                <SearchSelect
+                  onChange={(value) => handleFilterChange('STATE', value)}
+                  options={selectOptions(stateOptions)}
+                  placeholder="State தேடவும் / Search state"
+                  value={filters.STATE}
+                />
+                <SearchSelect
+                  disabled={!filters.STATE}
+                  onChange={(value) => handleFilterChange('DISTRICT', value)}
+                  options={selectOptions(districtOptions)}
+                  placeholder={filters.STATE ? 'District தேடவும் / Search district' : 'Select state first / முதலில் மாநிலம் தேர்வு செய்யவும்'}
+                  value={filters.DISTRICT}
+                />
+                <SearchSelect
+                  disabled={!filters.DISTRICT}
+                  onChange={(value) => handleFilterChange('TALUK', value)}
+                  options={selectOptions(talukOptions)}
+                  placeholder={filters.DISTRICT ? 'Taluk தேடவும் / Search taluk' : 'Select district first / முதலில் மாவட்டம் தேர்வு செய்யவும்'}
+                  value={filters.TALUK}
+                />
+                <SearchSelect
+                  disabled={!filters.TALUK}
+                  onChange={(value) => handleFilterChange('VILLAGE', value)}
+                  options={selectOptions(villageOptions)}
+                  placeholder={filters.TALUK ? 'Village தேடவும் / Search village' : 'Select taluk first / முதலில் தாலுகா தேர்வு செய்யவும்'}
+                  value={filters.VILLAGE}
+                />
                 <button
                   className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-950 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800"
                   onClick={resetFilters}
