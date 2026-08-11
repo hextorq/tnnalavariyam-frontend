@@ -166,7 +166,7 @@ export default function TrackingPage() {
                     ]
                   : [
                       ['Application No', tracking.applicationNo],
-                      ['Form', tracking.tamilFormTitle || tracking.formTitle],
+                      ['Form', tracking.applicationType || tracking.tamilFormTitle || tracking.formTitle],
                       ['Applicant', tracking.applicantName || '-'],
                       ['பகுதி', tracking.scope || '-'],
                       ['Application Status', STATUS_META[tracking.status]?.en || tracking.status],

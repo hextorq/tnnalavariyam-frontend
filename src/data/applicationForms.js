@@ -33,6 +33,18 @@ export const applicationForms = [
     id: 'higher-education',
     title: 'Application for Educational Assistance for Higher Education',
     tamilTitle: 'உயர் கல்விக்கான உதவி பெறுவதற்கான விண்ணப்பம்',
+    applicationTypeOptions: [
+      'Higher Education / உயர் கல்வி',
+      'திருமண உதவித் தொகை',
+      'மகப்பேறு',
+      'கருக்கலைப்பு',
+      'இயற்கை மரணம்',
+      'விபத்து மரணம்',
+      'கண் கண்ணாடி',
+      'ஓய்வூதியம்',
+      'வீடு கட்டும் திட்டம்',
+      'ஆட்டோ வாங்க மானியம்',
+    ],
     fields: ['Course Type', 'Child Name', 'Course Name', 'Course Duration', 'Applying Year', 'Academic Year', 'Child Aadhar', 'Bonafide Certificate', 'Worker Name', 'Phone Number', 'District', 'Worker Registration Card', 'Worker Aadhar', 'Ration Card', 'Bank Passbook Front', 'Bank Passbook Last', 'Signature', 'Live Photo'],
   },
 ]

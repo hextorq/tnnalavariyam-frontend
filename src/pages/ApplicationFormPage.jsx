@@ -625,6 +625,7 @@ export default function ApplicationFormPage({ formId }) {
   const isPass = currentKey === 'education-pass'
   const isGirls = currentKey === 'education-girls-10-12'
   const isEducation = !isRenewal && !isNewRegistration
+  const formDisplayTitle = isHigherEducation ? (formData.customData.applicationType || form.tamilTitle) : form.tamilTitle
 
   function handleInputChange(field, value) {
     let sanitizedValue = value
@@ -771,6 +772,10 @@ export default function ApplicationFormPage({ formId }) {
         return
       }
       if (isHigherEducation) {
+        if (!formData.customData.applicationType) {
+          notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'விண்ணப்ப வகையைத் தேர்ந்தெடுக்கவும். / Select application type.' })
+          return
+        }
         if (!formData.customData.courseType) {
           notify({ type: 'warning', title: 'Required / அவசியமானது', message: 'படிப்பு வகையைத் தேர்ந்தெடுக்கவும். / Select course type.' })
           return
@@ -972,7 +977,7 @@ export default function ApplicationFormPage({ formId }) {
           workerJob: formData.workerJob,
           nomineeName: formData.nomineeName,
           customData: formData.customData,
-          formTitle: form.tamilTitle || form.title,
+          formTitle: formDisplayTitle,
         },
         images: uploadedImages,
         paymentData: {
@@ -1060,13 +1065,29 @@ export default function ApplicationFormPage({ formId }) {
             </Link>
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-wide text-[#007cba]">Online Portal Submission</p>
-              <h1 className="text-xl font-bold text-neutral-950 sm:text-2xl break-words">{form.tamilTitle}</h1>
+              <h1 className="text-xl font-bold text-neutral-950 sm:text-2xl break-words">{formDisplayTitle}</h1>
             </div>
           </div>
 
         </div>
 
         <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+          {/* Application Type Selection for Higher Education form */}
+          {isHigherEducation && (
+            <Section eyebrow="Application Type" title="Choose the application type / விண்ணப்ப வகையை தேர்ந்தெடுக்கவும்">
+              <div className="grid gap-5 md:grid-cols-1 items-start">
+                <SelectField
+                  onChange={(e) => handleCustomChange('applicationType', e.target.value)}
+                  options={form.applicationTypeOptions || []}
+                  required
+                  value={formData.customData.applicationType || ''}
+                >
+                  Select the application type / விண்ணப்ப வகையை தேர்ந்தெடுக்கவும்
+                </SelectField>
+              </div>
+            </Section>
+          )}
+
           {/* New Registration & Renewal Form */}
           {(isNewRegistration || isRenewal) && (
             <Section eyebrow="Worker Details" title="Worker details / தொழிலாளியின் விவரங்கள்">
@@ -1624,7 +1645,7 @@ export default function ApplicationFormPage({ formId }) {
           { title: 'Transmitting Data & Images to Server', tamil: 'தரவு சேவையகத்திற்கு அனுப்பப்படுகிறது' },
           { title: 'Finalizing Application Record & No', tamil: 'விண்ணப்ப எண் உருவாக்கப்படுகிறது' },
         ]}
-        subtitle={`Form: ${form.tamilTitle || form.title}`}
+        subtitle={`Form: ${formDisplayTitle}`}
         title="Application Submission / விண்ணப்ப சமர்ப்பிப்பு"
         uploadedFiles={activeFileList}
       />

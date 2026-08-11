@@ -38,6 +38,17 @@ function formatDate(value) {
   return new Date(value).toLocaleString('en-IN')
 }
 
+function getDisplayTitle(submission) {
+  return (
+    submission.applicantData?.customData?.applicationType ||
+    submission.applicationType ||
+    submission.form?.tamilTitle ||
+    submission.form?.title ||
+    submission.tamilFormTitle ||
+    submission.formTitle
+  )
+}
+
 function downloadImage(src, filename) {
   if (!src) return
   const link = document.createElement('a')
@@ -1449,7 +1460,7 @@ function CheckStatusPanel({ onSelectSubmission }) {
                 <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   {[
                     ['Application No', appTracking.applicationNo],
-                    ['Form Title', appTracking.tamilFormTitle || appTracking.formTitle],
+                    ['Form Title', appTracking.applicationType || appTracking.tamilFormTitle || appTracking.formTitle],
                     ['Applicant', appTracking.applicantName || '-'],
                     ['Status', appTracking.status],
                     ['Payment Reference', appTracking.paymentReference || '-'],
@@ -1852,7 +1863,7 @@ function SubmissionDetailsModal({ onClose, onReview, submission, viewerRole }) {
             </div>
             <h2 className="mt-1 text-2xl font-black text-slate-950 tracking-tight">{submission.applicationNo}</h2>
             <p className="mt-0.5 text-sm font-semibold text-slate-600">
-              {submission.tamilFormTitle || submission.formTitle || submission.form?.tamilTitle || submission.form?.title}
+              {getDisplayTitle(submission)}
             </p>
           </div>
           <button
@@ -2225,6 +2236,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
         application.status,
         application.form?.title,
         application.form?.tamilTitle,
+        application.applicationType,
         application.user?.username,
         application.user?.firstName,
         application.user?.phone,
@@ -2509,7 +2521,7 @@ function HierarchyApplicationsPanel({ hierarchy, loading, onRefresh, onSelectSub
                           {filteredRecentApplications.map((application) => (
                             <tr className="border-b border-slate-100 transition last:border-b-0 hover:bg-[#eef8ff]/60" key={application.id}>
                               <td className="break-all px-3 py-2.5 font-bold text-slate-950">{application.applicationNo}</td>
-                              <td className="px-3 py-2.5 text-xs font-semibold text-slate-600">{application.form?.tamilTitle || application.form?.title}</td>
+                              <td className="px-3 py-2.5 text-xs font-semibold text-slate-600">{getDisplayTitle(application)}</td>
                               <td className="px-3 py-2.5">
                                 <StatusPill status={application.status} />
                               </td>
@@ -2964,7 +2976,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
         const appNo = (sub.applicationNo || '').toLowerCase()
         const workerName = (sub.applicantData?.workerName || sub.applicantData?.childName || sub.applicantName || '').toLowerCase()
         const userName = (sub.user?.username || sub.user?.firstName || '').toLowerCase()
-        const formTitle = (sub.form?.tamilTitle || sub.form?.title || sub.tamilFormTitle || sub.formTitle || '').toLowerCase()
+        const formTitle = (getDisplayTitle(sub) || '').toLowerCase()
         const phone = (sub.applicantData?.phone || sub.user?.phone || '').toLowerCase()
         const upi = (sub.paymentReference || sub.paymentData?.upiTransactionId || '').toLowerCase()
 
@@ -3119,7 +3131,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
                         <p className="break-all font-bold text-slate-950 text-sm">{submission.applicationNo}</p>
                         <StatusPill status={submission.status} />
                       </div>
-                      <p className="mt-0.5 text-xs font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-700">{getDisplayTitle(submission)}</p>
                       <p className="mt-0.5 text-[11px] text-slate-400">
                         {submission.geoUnit?.name || '-'} • Updated: {formatDate(submission.updatedAt)}
                       </p>
@@ -3142,7 +3154,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
                         <p className="break-all font-bold text-slate-950 text-sm">{submission.applicationNo}</p>
                         <StatusPill status={submission.status} />
                       </div>
-                      <p className="mt-2 text-xs font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-2 text-xs font-semibold text-slate-700">{getDisplayTitle(submission)}</p>
                       <p className="mt-1 text-[11px] text-slate-500">{submission.geoUnit?.name || '-'}</p>
                       {submission.currentReviewReason && (
                         <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50 p-2 text-[10px] font-semibold text-rose-800 line-clamp-2">
@@ -3611,7 +3623,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-sm font-semibold text-slate-700">{submission.form?.tamilTitle || submission.form?.title}</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-700">{getDisplayTitle(submission)}</p>
                         <p className="mt-0.5 text-xs text-slate-500">
                           Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
                         </p>
@@ -3649,7 +3661,7 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
                         </div>
                         <StatusPill status={submission.status} />
                       </div>
-                      <p className="mt-2 text-sm font-semibold text-slate-700 line-clamp-2">{submission.form?.tamilTitle || submission.form?.title}</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-700 line-clamp-2">{getDisplayTitle(submission)}</p>
                       <p className="mt-1.5 text-xs text-slate-500">
                         Applicant: <span className="font-bold text-slate-800">{submission.applicantData?.workerName || submission.user?.firstName || submission.user?.username || 'Applicant'}</span>
                       </p>
