@@ -290,18 +290,14 @@ export const contactDetails = {
   address: '45/ 12 ஜெயின் நகர், படவேடு ரோடு, சந்தவாசல், போளூர் தாலுகா, திருவண்ணாமலை மாவட்டம், தமிழ்நாடு 606905',
 }
 
-export const homeStats = [
-  ['4+', 'அனுபவ ஆண்டுகள் / Years of Experience'],
-  ['226+', 'திருப்தியான உறுப்பினர்கள் / Happy Customers'],
-  ['02+', 'விருது பெற்றவை / Award Winning'],
+export const orgStats = [
+  ['15+', 'அனுபவ ஆண்டுகள் / Years of Experience'],
+  ['2500+', 'திருப்தியான உறுப்பினர்கள் / Happy Members'],
+  ['25+', 'விருது பெற்றவை / Award Winning'],
+  ['95%', 'வாடிக்கையாளர் திருப்தி / Customer Satisfaction'],
 ]
-
-export const aboutStats = [
-  ['10', 'அனுபவ ஆண்டுகள் / Years of Experience'],
-  ['0+', 'திருப்தியான உறுப்பினர்கள் / Happy Customers'],
-  ['00+', 'விருது பெற்றவை / Award Winning'],
-  ['0%', 'வாடிக்கையாளர் திருப்தி / Customer Satisfaction'],
-]
+export const homeStats = orgStats
+export const aboutStats = orgStats
 
 export const whyChooseUs = [
   {
