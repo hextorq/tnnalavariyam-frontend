@@ -60,31 +60,33 @@ function BillPrintSheet({ user, bill }) {
   return (
     <div className="bill-print-sheet mx-auto w-full max-w-[210mm] rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-2xl sm:px-10 sm:py-8 min-h-[1123px] text-slate-900">
       {/* Letterhead navbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b-2 border-[#007cba] pb-4">
+      <div className="border-b-2 border-[#007cba] pb-4">
         <div className="flex items-center gap-3 pr-2">
           <img alt="Logo" className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover" src={images.logoLeft} />
-          <div className="min-w-0 max-w-[calc(210mm-8rem)]">
+          <div className="min-w-0">
             <p className="text-sm font-black leading-snug text-slate-950 sm:text-lg">{brandName}</p>
             <p className="mt-1 text-xs font-semibold leading-snug text-slate-600">{associationName}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Issued by (left) and Bill No (right) in one row */}
+      <div className="mt-4 flex items-start justify-between gap-4 border-b border-slate-200 pb-4 text-sm">
+        <div className="grid gap-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Issued By / வழங்கியவர்</p>
+          <p className="font-extrabold text-slate-950">{userDisplayName(issuer)} <span className="font-semibold text-[#007cba]">({ROLES[issuer?.role] || issuer?.role || '-'})</span></p>
+          {issuer?.addressLine && <p className="max-w-xl leading-5 text-slate-700">{issuer.addressLine}{issuer?.pincode ? `, ${issuer.pincode}` : ''}</p>}
+          <p className="text-slate-700">
+            Phone: <span className="font-bold">{issuer?.phone || '-'}</span>
+            <span className="mx-2 text-slate-300">|</span>
+            Email: <span className="font-bold">{issuer?.email || '-'}</span>
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">Date / தேதி: <span className="text-slate-700">{formatDate(bill.createdAt)}</span></p>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Bill No / பில் எண்</p>
           <p className="text-sm font-bold text-slate-900">{bill.billNo}</p>
         </div>
-      </div>
-
-      {/* Issued by (bill creator or logged-in user contact) */}
-      <div className="mt-4 grid gap-1 border-b border-slate-200 pb-4 text-sm">
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Issued By / வழங்கியவர்</p>
-        <p className="font-extrabold text-slate-950">{userDisplayName(issuer)} <span className="font-semibold text-[#007cba]">({ROLES[issuer?.role] || issuer?.role || '-'})</span></p>
-        {issuer?.addressLine && <p className="max-w-xl leading-5 text-slate-700">{issuer.addressLine}{issuer?.pincode ? `, ${issuer.pincode}` : ''}</p>}
-        <p className="text-slate-700">
-          Phone: <span className="font-bold">{issuer?.phone || '-'}</span>
-          <span className="mx-2 text-slate-300">|</span>
-          Email: <span className="font-bold">{issuer?.email || '-'}</span>
-        </p>
-        <p className="mt-1 text-xs font-semibold text-slate-500">Date / தேதி: <span className="text-slate-700">{formatDate(bill.createdAt)}</span></p>
       </div>
 
       {/* Items table */}
