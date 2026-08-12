@@ -1,6 +1,8 @@
 const SESSION_KEY = 'tn_nalavariyam_session'
 const PENDING_PROFILE_PHOTO_KEY = 'tn_nalavariyam_profile_photo_pending'
 
+export const SESSION_DURATION_MS = 15 * 60 * 1000
+
 function getProfilePhotoKey(user) {
   const identifier = user?.id || user?.username || user?.email
   return identifier ? `tn_nalavariyam_profile_photo_${identifier}` : ''
@@ -19,6 +21,9 @@ export function isAuthenticated() {
 }
 
 export function saveSession(session) {
+  if (session?.token && !session.loggedInAt) {
+    session = { ...session, loggedInAt: Date.now() }
+  }
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
   const pendingPhoto = localStorage.getItem(PENDING_PROFILE_PHOTO_KEY)
   const profilePhotoKey = getProfilePhotoKey(session?.user)
