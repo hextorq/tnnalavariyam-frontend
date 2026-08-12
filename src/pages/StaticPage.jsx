@@ -1,7 +1,6 @@
 import Button from '../components/Button.jsx'
 import SectionHeader from '../components/SectionHeader.jsx'
-import { Phone } from 'lucide-react'
-import { aboutStats, brandName, images, membershipDocuments, officeContacts, services, welfareSchemes } from '../data/siteContent.js'
+import { aboutStats, brandName, images, membershipDocuments, services, welfareSchemes } from '../data/siteContent.js'
 import { applicationForms } from '../data/applicationForms.js'
 
 function DocumentList({ documents }) {
@@ -79,46 +78,6 @@ export default function StaticPage({ type }) {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Offices & contacts */}
-        <div className="mt-12 sm:mt-16">
-          <SectionHeader
-            eyebrow="தொடர்பு முகவரிகள் / Office Contacts"
-            title="தலைமை அலுவலகம் மற்றும் கிளை அலுவலகம் / Head Office and Branch Office"
-          />
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-            <div className="rounded-2xl border border-neutral-200 bg-[#f7fbff] p-5 sm:p-6">
-              <p className="text-sm font-bold uppercase text-[#f0ad4e]">தலைமை அலுவலகம் / Head Office</p>
-              <p className="mt-3 leading-7 text-neutral-800">{officeContacts.headOffice}</p>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-[#f7fbff] p-5 sm:p-6">
-              <p className="text-sm font-bold uppercase text-[#f0ad4e]">கிளை அலுவலகம் / Branch Office</p>
-              <p className="mt-3 leading-7 text-neutral-800">{officeContacts.branchOffice}</p>
-            </div>
-          </div>
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <div className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-base font-bold text-slate-950">{officeContacts.president.name}</p>
-                <p className="mt-0.5 text-xs font-bold text-[#007cba]">{officeContacts.president.role}</p>
-              </div>
-              <a className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-base font-black tracking-wide text-slate-950 shadow-sm transition hover:bg-[#f78a0c]" href={`tel:${officeContacts.president.phone}`}>
-                <Phone size={18} />
-                {officeContacts.president.phone}
-              </a>
-            </div>
-            <div className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-base font-bold text-slate-950">{officeContacts.secretary.name}</p>
-                <p className="mt-0.5 text-xs font-bold text-[#007cba]">{officeContacts.secretary.role}</p>
-              </div>
-              <a className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#f0ad4e] px-5 py-3 text-base font-black tracking-wide text-slate-950 shadow-sm transition hover:bg-[#f78a0c]" href={`tel:${officeContacts.secretary.phone}`}>
-                <Phone size={18} />
-                {officeContacts.secretary.phone}
-              </a>
-            </div>
           </div>
         </div>
 
