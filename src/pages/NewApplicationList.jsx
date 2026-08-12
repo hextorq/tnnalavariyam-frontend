@@ -39,6 +39,9 @@ export default function NewApplicationList({ onBack }) {
             <span className="min-w-0 flex-1">
               <span className="block text-base font-bold leading-snug text-slate-950">{form.tamilTitle}</span>
               <span className="mt-1 block text-xs font-semibold leading-snug text-slate-500">{form.title}</span>
+              {form.description && (
+                <span className="mt-2 block text-[11px] leading-5 text-slate-500">{form.description}</span>
+              )}
               <span className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] opacity-0 transition group-hover:opacity-100">
                   Open Form <ArrowRight size={13} />

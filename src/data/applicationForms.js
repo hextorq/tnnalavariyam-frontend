@@ -33,6 +33,8 @@ export const applicationForms = [
     id: 'higher-education',
     title: 'Application for Educational Assistance for Higher Education',
     tamilTitle: 'உயர் கல்விக்கான உதவி பெறுவதற்கான விண்ணப்பம்',
+    description:
+      'இந்த விண்ணப்பத்தின் மூலம் உயர் கல்வி உதவி மற்றும் மற்ற 9 நலத்திட்டங்களுக்கும் விண்ணப்பிக்கலாம். விண்ணப்ப வகைகள்: உயர் கல்வி, திருமண உதவித் தொகை, மகப்பேறு, கருக்கலைப்பு, இயற்கை மரணம், விபத்து மரணம், கண் கண்ணாடி, ஓய்வூதியம், வீடு கட்டும் திட்டம், ஆட்டோ வாங்க மானியம். / This form covers Higher Education assistance and the other 9 welfare applications. Application types: Higher Education, Marriage, Maternity, Abortion, Natural Death, Accident Death, Spectacles, Pension, House Construction, Auto Subsidy.',
     applicationTypeOptions: [
       'Higher Education / உயர் கல்வி',
       'திருமண உதவித் தொகை',
