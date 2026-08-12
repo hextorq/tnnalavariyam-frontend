@@ -1,6 +1,6 @@
 import Button from '../components/Button.jsx'
 import SectionHeader from '../components/SectionHeader.jsx'
-import { aboutStats, brandName, images, membershipDocuments, services, welfareSchemes } from '../data/siteContent.js'
+import { aboutStats, brandName, images, membershipDocuments, services, welfareSchemes, workBanners } from '../data/siteContent.js'
 import { applicationForms } from '../data/applicationForms.js'
 
 function DocumentList({ documents }) {
@@ -20,9 +20,65 @@ function DocumentList({ documents }) {
 
 export default function StaticPage({ type }) {
   if (type === 'services') {
+    const posterBanner = workBanners.find((banner) => banner.layout === 'poster')
+    const wideBanners = workBanners.filter((banner) => banner.layout !== 'poster')
+
     return (
       <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
         <SectionHeader eyebrow="எங்கள் சேவைகள்" title="தொழிலாளர்களுக்கான நல சேவைகள்" />
+
+        <div className="mt-8 rounded-2xl border border-[#d7e5f1] bg-gradient-to-br from-[#f7fbff] via-white to-[#fff8ef] p-3 shadow-sm sm:mt-10 sm:rounded-3xl sm:p-5 lg:p-6">
+          <div className="flex flex-col gap-2 border-b border-[#dbe7f0] pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-black uppercase tracking-wide text-[#007cba]">பணிகள் / Work Banners</p>
+              <h2 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">
+                நலத்திட்டங்கள் மற்றும் சேவை தகவல்கள் / Welfare and Service Information
+              </h2>
+            </div>
+            <p className="max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+              தொழிலாளர்கள் எளிதாக புரிந்து கொள்ளும் வகையில் முக்கிய சேவை, ஆவணங்கள் மற்றும் தொழில் வகை தகவல்கள்.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
+            <div className="grid gap-5">
+              {wideBanners.map((banner) => (
+                <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" key={banner.id}>
+                  <div className="border-b border-slate-100 p-4">
+                    <h3 className="text-lg font-black text-slate-950">{banner.title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{banner.description}</p>
+                  </div>
+                  <img
+                    className="w-full bg-white object-contain"
+                    src={banner.image}
+                    alt={banner.title}
+                    decoding="async"
+                    loading="lazy"
+                  />
+                </article>
+              ))}
+            </div>
+
+            {posterBanner && (
+              <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-100 p-4">
+                  <h3 className="text-lg font-black text-slate-950">{posterBanner.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{posterBanner.description}</p>
+                </div>
+                <div className="flex justify-center bg-white p-2 sm:p-4">
+                  <img
+                    className="max-h-[920px] w-full max-w-[520px] object-contain"
+                    src={posterBanner.image}
+                    alt={posterBanner.title}
+                    decoding="async"
+                    loading="lazy"
+                  />
+                </div>
+              </article>
+            )}
+          </div>
+        </div>
+
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:mt-12 lg:gap-8">
           {services.map((service) => (
             <article className="grid gap-5 border border-neutral-200 p-4 sm:p-5" key={service.id}>

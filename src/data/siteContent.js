@@ -31,6 +31,9 @@ export const images = {
   labourBenefits: '/assets/images/tn-labour-benefits.png',
   logoLeft: '/assets/images/tn-logo-left.jpg',
   logoRight: '/assets/images/tn-logo-right.jpg',
+  welfareBenefitsPoster: '/assets/images/welfare-benefits-poster.jpeg',
+  welfareServicesBanner: '/assets/images/welfare-services-banner.jpeg',
+  constructionJobsBanner: '/assets/images/construction-jobs-banner.jpeg',
 }
 
 export const services = [
@@ -69,6 +72,30 @@ export const services = [
     description:
       'தீவிர நோயின் காரணமாக பாதிக்கப்பட்ட தொழிலாளர்களுக்கு மாதாந்திர நிதியுதவி வழங்கப்படுகிறது. இது அவர்களின் நாளாந்த வாழ்க்கையை மேலும் வளர்க்க உதவுகிறது.',
     image: images.serviceFour,
+  },
+]
+
+export const workBanners = [
+  {
+    id: 'welfare-services',
+    title: 'நலத்திட்ட சேவை விவரங்கள் / Welfare Service Details',
+    description: 'உறுப்பினர் சேர்க்கை, புதுப்பித்தல், கல்வி, திருமணம், மகப்பேறு, மரணம் மற்றும் பிற உதவிகளுக்கான ஆவண விவரங்கள்.',
+    image: images.welfareServicesBanner,
+    layout: 'wide',
+  },
+  {
+    id: 'benefits',
+    title: 'நலத்திட்ட உதவித் தொகைகள் / Welfare Assistance Amounts',
+    description: 'தமிழக அரசு நலவாரியங்களில் கிடைக்கும் கல்வி, காப்பீடு, திருமணம், மரணம், ஓய்வூதியம் மற்றும் வீடு உதவி தொகைகள்.',
+    image: images.welfareBenefitsPoster,
+    layout: 'poster',
+  },
+  {
+    id: 'construction-jobs',
+    title: '54 வகையான கட்டுமான தொழில்கள் / 54 Construction Job Categories',
+    description: 'கட்டுமானத் துறையில் உறுப்பினர் சேர்க்கைக்கு பொருந்தும் தொழில் பிரிவுகள் மற்றும் தொழிலாளர் தகவல்கள்.',
+    image: images.constructionJobsBanner,
+    layout: 'wide',
   },
 ]
 
