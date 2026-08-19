@@ -32,7 +32,7 @@ function newEmptyRow() {
 
 function userDisplayName(user) {
   const firstLast = [user?.firstName, user?.lastName].filter(Boolean).join(' ')
-  return user?.fullName || firstLast || user?.name || user?.username || 'User'
+  return user?.fullName || user?.name || firstLast || user?.username || 'User'
 }
 
 function scopeLabel(scope) {
