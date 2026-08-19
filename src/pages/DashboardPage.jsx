@@ -2900,6 +2900,8 @@ function GeoNamesPanel({ user: currentUser }) {
   const [editingId, setEditingId] = useState(null)
   const [draftEnglishName, setDraftEnglishName] = useState('')
   const [savingId, setSavingId] = useState(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
 
   const typeOptions = ['STATE', 'DISTRICT', 'TALUK', 'VILLAGE']
 
@@ -2928,6 +2930,13 @@ function GeoNamesPanel({ user: currentUser }) {
     return counts
   }, [units])
 
+  const totalPages = Math.max(1, Math.ceil(filteredUnits.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedUnits = useMemo(
+    () => filteredUnits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredUnits, currentPage]
+  )
+
   async function loadUnits() {
     try {
       setLoading(true)
@@ -2948,6 +2957,10 @@ function GeoNamesPanel({ user: currentUser }) {
     loadUnits()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, typeFilter, units])
 
   function startEdit(unit) {
     setEditingId(unit.id)
@@ -3061,7 +3074,7 @@ function GeoNamesPanel({ user: currentUser }) {
             </tr>
           </thead>
           <tbody>
-            {filteredUnits.map((unit) => {
+            {paginatedUnits.map((unit) => {
               const isEditing = editingId === unit.id
               const transliterated = transliterateTamil(unit.tamilName || unit.name)
               return (
@@ -3144,6 +3157,34 @@ function GeoNamesPanel({ user: currentUser }) {
           </tbody>
         </table>
       </div>
+      {filteredUnits.length > PAGE_SIZE && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 px-4 py-3">
+          <p className="text-xs font-semibold text-slate-500">
+            Showing <span className="font-bold text-slate-800">{(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredUnits.length)}</span> of <span className="font-bold text-slate-800">{filteredUnits.length}</span> / மொத்தம் {filteredUnits.length}
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={currentPage === 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              type="button"
+            >
+              ← Previous / முந்தையது
+            </button>
+            <span className="rounded-lg bg-slate-200/70 px-3 py-1.5 text-xs font-bold text-slate-700">
+              Page <span className="text-[#007cba]">{currentPage}</span> / {totalPages}
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={currentPage === totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              type="button"
+            >
+              Next / அடுத்தது →
+            </button>
+          </div>
+        </div>
+      )}
     </Panel>
   )
 }
