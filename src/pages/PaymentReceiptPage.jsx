@@ -43,7 +43,8 @@ function scopeLabel(scope) {
     DISTRICT: 'District / மாவட்டம்',
     STATE: 'State / மாநிலம்',
   }[scope.type] || scope.type
-  return `${typeLabel}: ${scope.tamilName || scope.name}`
+  const englishName = scope.englishName || scope.name
+  return `${typeLabel}: ${scope.tamilName || englishName}${scope.englishName && scope.englishName !== scope.name ? ` / ${scope.englishName}` : ''}`
 }
 
 const TYPE_LABELS = {
@@ -157,7 +158,12 @@ function BillTreeNode({ collapsedSet, depth, node, onPreview, onPrint, toggleCol
         ) : (
           <span className="w-[15px] shrink-0" />
         )}
-        <span className="min-w-0 truncate text-sm font-bold text-slate-800">{node.tamilName || node.name}</span>
+        <span className="min-w-0 truncate text-sm font-bold text-slate-800">
+          {node.tamilName || node.name}
+          {node.englishName && node.englishName !== node.name && (
+            <span className="ml-1.5 font-semibold text-slate-500">/ {node.englishName}</span>
+          )}
+        </span>
         <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-slate-400">{TYPE_LABELS[node.type] || node.type}</span>
         <span className="ml-auto inline-flex shrink-0 items-center rounded-full bg-[#007cba]/10 px-2 py-0.5 text-[11px] font-black text-[#007cba]">
           {billCount}
@@ -296,7 +302,9 @@ export default function PaymentReceiptPage() {
 
   const selectOptions = (units) => units.map((unit) => ({
     value: String(unit.id),
-    label: unit.tamilName && unit.tamilName !== unit.name ? `${unit.tamilName} (${unit.name})` : unit.name,
+    label: unit.tamilName && unit.tamilName !== unit.name
+      ? `${unit.tamilName} (${unit.englishName || unit.name})`
+      : unit.englishName || unit.name,
   }))
 
   function handleFilterChange(key, value) {
@@ -354,7 +362,7 @@ export default function PaymentReceiptPage() {
         const key = `u-${unit.id}`
         let child = nodeByKey.get(key)
         if (!child) {
-          child = { id: unit.id, name: unit.name, tamilName: unit.tamilName, type: unit.type, children: [], bills: [], totalCount: 0 }
+          child = { id: unit.id, name: unit.name, tamilName: unit.tamilName, englishName: unit.englishName, type: unit.type, children: [], bills: [], totalCount: 0 }
           nodeByKey.set(key, child)
           parent.children.push(child)
         }

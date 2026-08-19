@@ -41,12 +41,46 @@ export const idProofOptions = [
 export const tamilNaduState = sortHierarchyByTamilName(tamilNaduHierarchy)
 export const tamilNaduDistricts = tamilNaduState.districts
 
+const englishNameByCode = new Map()
+
+export function applyGeoEnglishNames(units = []) {
+  for (const unit of units) {
+    if (!unit.code) continue
+    const englishName = String(unit.englishName || '').trim()
+    if (!englishName) continue
+    const rawCode = String(unit.code).includes('-') ? String(unit.code).split('-').slice(1).join('-') : String(unit.code)
+    englishNameByCode.set(rawCode, englishName)
+  }
+}
+
+export async function loadGeoEnglishNames() {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api'}/hierarchy/geo-units`,
+      { method: 'GET', cache: 'no-store' }
+    )
+    if (!response.ok) return
+    const data = await response.json()
+    applyGeoEnglishNames(data.units || [])
+  } catch {
+    // Admin-edited English names are optional; fall back to transliteration.
+  }
+}
+
+loadGeoEnglishNames()
+
+function withEnglishName(item) {
+  if (!item) return ''
+  const explicit = englishNameByCode.get(item.code) || item.englishName
+  const englishName = explicit || transliterateTamil(item.name)
+  return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
+}
+
 // Bilingual "Tamil / English" label for a hierarchy item (district, taluk, etc.).
-// Falls back to transliteration when no explicit englishName is present.
+// Prefers the admin-edited English name from the database; falls back to transliteration.
 export function bilingualName(item) {
   if (!item) return ''
-  const englishName = item.englishName || transliterateTamil(item.name)
-  return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
+  return withEnglishName(item)
 }
 
 // District dropdown options with the Tamil name as the stored value and a

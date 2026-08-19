@@ -2891,6 +2891,263 @@ function ActiveUsersPanel({ user: currentUser }) {
   )
 }
 
+function GeoNamesPanel({ user: currentUser }) {
+  const { notify } = useNotifications()
+  const [units, setUnits] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [editingId, setEditingId] = useState(null)
+  const [draftEnglishName, setDraftEnglishName] = useState('')
+  const [savingId, setSavingId] = useState(null)
+
+  const typeOptions = ['STATE', 'DISTRICT', 'TALUK', 'VILLAGE']
+
+  const typeLabels = {
+    STATE: 'State / மாநிலம்',
+    DISTRICT: 'District / மாவட்டம்',
+    TALUK: 'Taluk / தாலுகா',
+    VILLAGE: 'Village / கிராமம்',
+  }
+
+  const filteredUnits = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return units.filter((item) => {
+      if (typeFilter !== 'ALL' && item.type !== typeFilter) return false
+      if (q) {
+        const haystack = [item.name, item.tamilName, item.englishName, transliterateTamil(item.tamilName || item.name), item.parent?.name, item.parent?.tamilName].join(' ').toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
+      return true
+    })
+  }, [units, searchQuery, typeFilter])
+
+  const countsByType = useMemo(() => {
+    const counts = { STATE: 0, DISTRICT: 0, TALUK: 0, VILLAGE: 0 }
+    for (const item of units) counts[item.type] = (counts[item.type] || 0) + 1
+    return counts
+  }, [units])
+
+  async function loadUnits() {
+    try {
+      setLoading(true)
+      const response = await api.get('/hierarchy/geo-units')
+      setUnits(response.data.units || [])
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Load Failed / ஏற்ற முடியவில்லை',
+        message: error.response?.data?.message || 'இடங்களின் பட்டியலை ஏற்ற முடியவில்லை. / Could not load the geo unit list.',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadUnits()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function startEdit(unit) {
+    setEditingId(unit.id)
+    setDraftEnglishName(unit.englishName || '')
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setDraftEnglishName('')
+  }
+
+  async function saveEdit(unit) {
+    const englishName = draftEnglishName.trim()
+    if (!englishName) {
+      notify({
+        type: 'error',
+        title: 'Name Required / பெயர் தேவை',
+        message: 'ஆங்கிலப் பெயரை உள்ளிடவும். / Please enter the English name.',
+      })
+      return
+    }
+    setSavingId(unit.id)
+    try {
+      const response = await api.patch(`/admin/geo-units/${unit.id}/english-name`, { englishName })
+      const updated = response.data.unit
+      setUnits((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)))
+      setEditingId(null)
+      setDraftEnglishName('')
+      notify({
+        type: 'success',
+        title: 'Saved / சேமிக்கப்பட்டது',
+        message: `${updated.tamilName || updated.name} → ${updated.englishName} / English name updated successfully.`,
+      })
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Save Failed / சேமிக்க முடியவில்லை',
+        message: error.response?.data?.message || 'ஆங்கிலப் பெயரை சேமிக்க முடியவில்லை. / Could not save the English name.',
+      })
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  if (loading && !units.length) return <DashboardSkeleton />
+
+  return (
+    <Panel>
+      <PanelHeader
+        action={
+          <button
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+            onClick={loadUnits}
+            type="button"
+          >
+            <RefreshCw size={15} />
+            Refresh / புதுப்பிக்க
+          </button>
+        }
+        eyebrow="English Name Management / ஆங்கிலப் பெயர் மேலாண்மை"
+        title="State, District, Taluk & Village English Names / மாநிலம், மாவட்டம், தாலுகா, கிராமம் ஆங்கிலப் பெயர்கள்"
+      />
+      <div className="border-b border-slate-200 bg-slate-50/70 p-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${typeFilter === 'ALL' ? 'bg-[#007cba] text-white shadow-xs' : 'bg-slate-200/70 text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setTypeFilter('ALL')}
+            type="button"
+          >
+            All / அனைத்தும் ({units.length})
+          </button>
+          {typeOptions.map((type) => (
+            <button
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${typeFilter === type ? 'bg-[#007cba] text-white shadow-xs' : 'bg-slate-200/70 text-slate-600 hover:text-slate-900'}`}
+              key={type}
+              onClick={() => setTypeFilter(type)}
+              type="button"
+            >
+              {typeLabels[type]} ({countsByType[type] || 0})
+            </button>
+          ))}
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-9 text-xs font-medium text-slate-900 outline-none transition focus:border-[#007cba] focus:ring-2 focus:ring-[#007cba]/20"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search Tamil name, English name, transliterated name... / தமிழ் அல்லது ஆங்கிலப் பெயரில் தேடுங்கள்..."
+            type="text"
+            value={searchQuery}
+          />
+          {searchQuery && (
+            <button
+              className="absolute right-3 top-1/2 text-slate-400 hover:text-slate-600"
+              onClick={() => setSearchQuery('')}
+              type="button"
+            >
+              <X size={15} />
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-100/70 text-[11px] font-black uppercase tracking-wide text-slate-700">
+              <th className="px-4 py-3">Type / வகை</th>
+              <th className="px-4 py-3">Tamil Name / தமிழ் பெயர்</th>
+              <th className="px-4 py-3">English Name / ஆங்கிலப் பெயர்</th>
+              <th className="px-4 py-3 text-right">Action / செயல்</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUnits.map((unit) => {
+              const isEditing = editingId === unit.id
+              const transliterated = transliterateTamil(unit.tamilName || unit.name)
+              return (
+                <tr className="border-b border-slate-100 hover:bg-slate-50/70" key={unit.id}>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{typeLabels[unit.type]}</span>
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-slate-900">
+                    {unit.tamilName || unit.name}
+                    {unit.parent && (
+                      <span className="block text-[11px] font-medium text-slate-500">in {unit.parent.tamilName || unit.parent.name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          autoFocus
+                          className="min-w-0 w-full max-w-xs rounded-lg border border-[#007cba] px-3 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-[#007cba]/20"
+                          onChange={(e) => setDraftEnglishName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit(unit)
+                            if (e.key === 'Escape') cancelEdit()
+                          }}
+                          placeholder="English name..."
+                          type="text"
+                          value={draftEnglishName}
+                        />
+                        <button
+                          className="inline-flex items-center gap-1 rounded-lg bg-[#007cba] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#006090] disabled:opacity-50"
+                          disabled={savingId === unit.id}
+                          onClick={() => saveEdit(unit)}
+                          type="button"
+                        >
+                          {savingId === unit.id ? <LoaderCircle className="animate-spin" size={13} /> : <CheckCircle2 size={13} />}
+                          Save / சேமி
+                        </button>
+                        <button
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                          onClick={cancelEdit}
+                          type="button"
+                        >
+                          <X size={13} />
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className={unit.englishName ? 'font-bold text-slate-900' : 'font-semibold text-slate-400'}>
+                          {unit.englishName || `${transliterated} (auto / தானியங்கி)`}
+                        </span>
+                        <button
+                          className="inline-flex items-center gap-1 rounded-lg border border-[#007cba]/30 bg-[#007cba]/5 px-2 py-1 text-[11px] font-bold text-[#007cba] transition hover:bg-[#007cba]/10"
+                          onClick={() => startEdit(unit)}
+                          type="button"
+                        >
+                          <FileText size={12} />
+                          Edit / திருத்து
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {isEditing ? (
+                      <span className="text-[11px] font-semibold text-slate-400">Editing... / திருத்துகிறது...</span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-slate-400">Click Edit to change / திருத்த சொடுக்கவும்</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+            {!filteredUnits.length && (
+              <tr>
+                <td className="px-4 py-6" colSpan={4}>
+                  <EmptyState>No geo units found in your scope / உங்கள் எல்லைக்குள் இடங்கள் இல்லை.</EmptyState>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  )
+}
+
 function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'applications', loading, onNewApplication, onRefresh, onSelectSubmission, signupRequests, submissions, user }) {
   const [selectedSignup, setSelectedSignup] = useState(null)
   const [reviewReason, setReviewReason] = useState('')
@@ -3235,6 +3492,15 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
                 Active Users / பயனர் மேலாண்மை
               </button>
             )}
+            {['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
+              <button
+                className={`flex-1 rounded-lg px-4 py-2 whitespace-nowrap transition sm:flex-none sm:px-6 ${mainTab === 'geo-names' ? 'bg-white text-[#007cba] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                onClick={() => setMainTab('geo-names')}
+                type="button"
+              >
+                English Names / ஆங்கிலப் பெயர்கள்
+              </button>
+            )}
           </>
         )}
       </div>
@@ -3447,6 +3713,10 @@ function FullWorkPanel({ isAdmin, initialAppFilter = 'ALL', initialMainTab = 'ap
 
       {mainTab === 'active-users' && ['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
         <ActiveUsersPanel user={user} />
+      )}
+
+      {mainTab === 'geo-names' && ['SUPER_ADMIN', 'STATE_ADMIN'].includes(user?.role) && (
+        <GeoNamesPanel user={user} />
       )}
 
       {mainTab === 'applications' && (
