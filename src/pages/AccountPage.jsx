@@ -3,13 +3,12 @@ import FormUploadProgressModal from '../components/FormUploadProgressModal.jsx'
 import SearchSelect from '../components/SearchSelect.jsx'
 import { CheckCircle2, Eye, EyeOff, LoaderCircle, Trash2, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
+import { bilingualName, idProofOptions, requestedRoles, tamilNaduDistricts, tamilNaduState } from '../data/signup.js'
 import { api } from '../lib/api.js'
 import { saveProfilePhoto, saveSession } from '../lib/auth.js'
 import { normalizePhone, normalizePincode, phoneInputProps, pincodeInputProps } from '../lib/phone.js'
 import { useNotifications } from '../lib/notifications.js'
 import { Link, navigate } from '../lib/router.jsx'
-import { transliterateTamil } from '../lib/tamilTransliteration.js'
 
 const initialSignupForm = {
   fullName: '',
@@ -55,12 +54,6 @@ const signupProgressSteps = [
   { id: 'uploading', label: 'விவரங்கள் சமர்ப்பிக்கப்படுகிறது / Submitting details' },
   { id: 'processing', label: 'சர்வர் செயலாக்கம் / Server processing' },
 ]
-
-function bilingualName(item) {
-  if (!item) return ''
-  const englishName = item.englishName || transliterateTamil(item.name)
-  return englishName && englishName !== item.name ? `${item.name} / ${englishName}` : item.name
-}
 
 function FieldLabel({ children, required = false }) {
   return (
