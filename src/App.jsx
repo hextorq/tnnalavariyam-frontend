@@ -2,6 +2,7 @@ import PublicLayout from './layouts/PublicLayout.jsx'
 import AccountPage from './pages/AccountPage.jsx'
 import ApplicationFormPage from './pages/ApplicationFormPage.jsx'
 import AutoLogout from './components/AutoLogout.jsx'
+import KeepAlive from './components/KeepAlive.jsx'
 import BlogPage from './pages/BlogPage.jsx'
 import ContactPage from './pages/ContactPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
@@ -37,6 +38,7 @@ function App() {
   return (
     <>
       <AutoLogout />
+      <KeepAlive />
       {content}
     </>
   )
