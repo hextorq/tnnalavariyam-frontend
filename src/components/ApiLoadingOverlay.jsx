@@ -4,20 +4,28 @@ import { useEffect, useState } from 'react'
 export default function ApiLoadingOverlay() {
   const [loading, setLoading] = useState(false)
   const [visible, setVisible] = useState(false)
+  const [forceHidden, setForceHidden] = useState(false)
 
   useEffect(() => {
     let showTimer
     let hideTimer
+    let maxTimer
 
     function handleLoadingChange(event) {
       const nextLoading = Boolean(event.detail?.loading)
       setLoading(nextLoading)
+      setForceHidden(false)
 
       window.clearTimeout(showTimer)
       window.clearTimeout(hideTimer)
+      window.clearTimeout(maxTimer)
 
       if (nextLoading) {
         showTimer = window.setTimeout(() => setVisible(true), 180)
+        maxTimer = window.setTimeout(() => {
+          setForceHidden(true)
+          setVisible(false)
+        }, 20000)
       } else {
         hideTimer = window.setTimeout(() => setVisible(false), 120)
       }
@@ -27,11 +35,13 @@ export default function ApiLoadingOverlay() {
     return () => {
       window.clearTimeout(showTimer)
       window.clearTimeout(hideTimer)
+      window.clearTimeout(maxTimer)
       window.removeEventListener('api-loading-change', handleLoadingChange)
     }
   }, [])
 
   if (!visible && !loading) return null
+  if (forceHidden) return null
 
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/30 px-4 backdrop-blur-[3px]">

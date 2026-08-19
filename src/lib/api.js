@@ -3,6 +3,7 @@ import { getSession } from './auth.js'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://git-pipeline.metatronhost.in/tnnalavariyam/api',
+  timeout: 25000,
 })
 
 let activeRequestCount = 0
