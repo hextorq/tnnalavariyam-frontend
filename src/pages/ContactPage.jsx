@@ -23,7 +23,14 @@ export default function ContactPage() {
           <p className="text-sm font-bold uppercase text-[#007cba]">தொடர்பு கொள்ள / Reach Out</p>
           <h2 className="mt-2 text-xl font-bold sm:text-2xl">உங்களுக்கு உதவ நாங்கள் இருக்கிறோம் / We’re Here to Assist You</h2>
           <dl className="mt-6 grid gap-5 text-neutral-700">
-            <div><dt className="font-bold text-black">தொலைபேசி / Phone</dt><dd>{contactDetails.phone}</dd></div>
+            <div>
+              <dt className="font-bold text-black">தொலைபேசி / Phone</dt>
+              <dd className="flex flex-col gap-1">
+                {contactDetails.phone.split(', ').map((num) => (
+                  <a className="text-[#007cba] underline" href={`tel:${num}`} key={num}>{num}</a>
+                ))}
+              </dd>
+            </div>
             <div><dt className="font-bold text-black">மின்னஞ்சல் / Email</dt><dd>{contactDetails.email}</dd></div>
             <div><dt className="font-bold text-black">முகவரி / Address</dt><dd>{contactDetails.address}</dd></div>
             <div><dt className="font-bold text-black">சமூக ஊடகம் / Social Media</dt><dd>அதிகாரப்பூர்வ தொடர்பு வழிகளில் கிடைக்கும் / Available through official contact channels</dd></div>

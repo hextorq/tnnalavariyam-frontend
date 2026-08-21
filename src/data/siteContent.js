@@ -301,7 +301,7 @@ export const branches = [
 ]
 
 export const contactDetails = {
-  phone: '9345909105',
+  phone: '9345909105, 8438455909',
   whatsapp: '9345909105',
   email: 'tnskilleducation@gmail.com',
   timing: '9.00 AM TO 6.00 PM',
