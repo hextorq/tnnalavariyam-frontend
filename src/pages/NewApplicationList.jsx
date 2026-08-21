@@ -40,7 +40,17 @@ export default function NewApplicationList({ onBack }) {
               <span className="block text-base font-bold leading-snug text-slate-950">{form.tamilTitle}</span>
               <span className="mt-1 block text-xs font-semibold leading-snug text-slate-500">{form.title}</span>
               {form.description && (
-                <span className="mt-2 block text-[11px] leading-5 text-slate-500">{form.description}</span>
+                <span className="mt-3 block text-xs font-bold leading-5 text-slate-700">{form.description}</span>
+              )}
+              {form.descriptionItems && (
+                <span className="mt-3 block space-y-1.5">
+                  {form.descriptionItems.map((item) => (
+                    <span className="flex items-start gap-2 text-xs font-bold leading-5 text-slate-800" key={item}>
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#007cba]" />
+                      <span>{item}</span>
+                    </span>
+                  ))}
+                </span>
               )}
               <span className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-[#007cba] opacity-0 transition group-hover:opacity-100">
