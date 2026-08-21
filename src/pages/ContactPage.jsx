@@ -1,7 +1,7 @@
 import Button from '../components/Button.jsx'
 import SectionHeader from '../components/SectionHeader.jsx'
 import { Phone } from 'lucide-react'
-import { contactDetails, images, officeContacts } from '../data/siteContent.js'
+import { contactDetails, images, officeContacts, branches } from '../data/siteContent.js'
 
 export default function ContactPage() {
   return (
@@ -35,7 +35,7 @@ export default function ContactPage() {
       <div className="mt-12 sm:mt-16">
         <SectionHeader
           eyebrow="தொடர்பு முகவரிகள் / Office Contacts"
-          title="தலைமை அலுவலகம் மற்றும் கிளை அலுவலகம் / Head Office and Branch Office"
+          title="தலைமை அலுவலகம் மற்றும் கிளை அலுவலகம் / Head Office and Branch Offices"
         />
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-[#f7fbff] p-5 sm:p-6">
@@ -46,6 +46,18 @@ export default function ContactPage() {
             <p className="text-sm font-bold uppercase text-[#f0ad4e]">கிளை அலுவலகம் / Branch Office</p>
             <p className="mt-3 leading-7 text-neutral-800">{officeContacts.branchOffice}</p>
           </div>
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {branches.map((branch) => (
+            <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm" key={branch.name}>
+              <p className="text-sm font-bold text-[#007cba]">{branch.name}</p>
+              <p className="mt-2 text-sm leading-6 text-neutral-700">{branch.address}</p>
+              <a className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#f0ad4e] px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-[#f78a0c]" href={`tel:${branch.mobile}`}>
+                <Phone size={16} />
+                {branch.mobile}
+              </a>
+            </div>
+          ))}
         </div>
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">

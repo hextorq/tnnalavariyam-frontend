@@ -282,6 +282,24 @@ export const blogPosts = [
   },
 ]
 
+export const branches = [
+  {
+    name: 'Vellore Branch / வேலூர் கிளை',
+    address: '34, Tiruvannamalai road, Sathuvacheri, Vellore - 632009',
+    mobile: '8438455909',
+  },
+  {
+    name: 'Kanchipuram Branch / காஞ்சிபுரம் கிளை',
+    address: '164 Near Bustand, Chennai Road, Kanchipuram - 631501',
+    mobile: '8438455909',
+  },
+  {
+    name: 'Ranipet Branch / இராணிப்பேட்டை கிளை',
+    address: '56 Lakshmi Theatre opp, Timiri Road, Arcot, Ranipet District - 632501',
+    mobile: '8438455909',
+  },
+]
+
 export const contactDetails = {
   phone: '9345909105',
   whatsapp: '9345909105',
